@@ -1,0 +1,882 @@
+{
+  "categories": [
+    {
+      "id": "cat-home-health",
+      "title": "Nursing care at Home",
+      "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+      "slug": "home-healthcare",
+      "type": "service",
+      "description": "DHA licensed nurses providing premium in-home clinical care, wound antiseptic dressing, and support.",
+      "subcategories": [
+        {
+          "id": "sub-general-nurse",
+          "title": "Nurse Visits"
+        },
+        {
+          "id": "sub-wound-care",
+          "title": "Wound Care"
+        },
+        {
+          "id": "sub-long-term",
+          "title": "Long-Term & Companion Care"
+        }
+      ]
+    },
+    {
+      "id": "cat-physio",
+      "title": "Physiotherapy at Home",
+      "image": "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=400",
+      "slug": "physiotherapy",
+      "type": "service",
+      "description": "Post-injury physical therapy, joint mobility restoration, and tailored skeletal recovery sessions.",
+      "subcategories": [
+        {
+          "id": "sub-skeletal-physio",
+          "title": "Physical Therapy"
+        }
+      ]
+    },
+    {
+      "id": "cat-doctor-on-call",
+      "title": "Doctor on Call",
+      "image": "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400",
+      "slug": "doctor-on-call",
+      "type": "service",
+      "description": "24/7 in-home primary physician consultations, checks, and on-call hotel dispatches in Dubai.",
+      "subcategories": [
+        {
+          "id": "sub-dr-visit",
+          "title": "Doctor Consultation"
+        }
+      ]
+    },
+    {
+      "id": "cat-speech",
+      "title": "Speech and Language Therapy",
+      "image": "https://images.unsplash.com/photo-1622445262465-2481c4574875?auto=format&fit=crop&q=80&w=400",
+      "slug": "speech-therapy",
+      "type": "service",
+      "description": "Interactive and professional diagnostic testing for children and adult communicational speech issues.",
+      "subcategories": [
+        {
+          "id": "sub-speech-visit",
+          "title": "Speech & Swallowing Rehab"
+        }
+      ]
+    },
+    {
+      "id": "cat-occupational",
+      "title": "Occupational Therapy",
+      "image": "https://images.unsplash.com/photo-1581594693702-fbdc51b2763b?auto=format&fit=crop&q=80&w=400",
+      "slug": "occupational-therapy",
+      "type": "service",
+      "description": "Functional diagnostic profiles helping to promote independent motor skills and daily work activities.",
+      "subcategories": [
+        {
+          "id": "sub-occupate-visit",
+          "title": "Independent Motor Rehab"
+        }
+      ]
+    },
+    {
+      "id": "cat-iv-therapy",
+      "title": "IV Therapy",
+      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
+      "slug": "iv-therapy",
+      "type": "service",
+      "description": "DHA licensed nurse administered intravenous nutrient drips, energy infusions, and premium age reversal NAD+.",
+      "subcategories": [
+        {
+          "id": "sub-wellness-drip",
+          "title": "Energy & Immune Drips"
+        },
+        {
+          "id": "sub-nad-therapy",
+          "title": "NAD+ Longevity"
+        }
+      ]
+    },
+    {
+      "id": "cat-devices",
+      "title": "Medical Devices for Rent",
+      "image": "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=80&w=400",
+      "slug": "devices-for-rent",
+      "type": "product",
+      "description": "Certified oxygen units, wheelchairs, electronic hospital beds, and clinical mobility lifts on daily/weekly rent.",
+      "subcategories": [
+        {
+          "id": "sub-mobility-kits",
+          "title": "Leased Mobility"
+        }
+      ]
+    },
+    {
+      "id": "cat-test-1780106227849",
+      "title": "Test",
+      "slug": "test",
+      "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+      "description": "test",
+      "type": "service",
+      "subcategories": []
+    },
+    {
+      "id": "cat-home-visit-1780106410586",
+      "title": "Home visit",
+      "slug": "home-visit",
+      "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+      "description": "Home visit",
+      "type": "service",
+      "subcategories": []
+    }
+  ],
+  "products": [
+    {
+      "id": "prod-omron-bp",
+      "name": "Omron BP Monitor",
+      "subtitle": "HEM-7120 Electronic Upper Arm Blood Pressure Monitor",
+      "price": 139,
+      "originalPrice": 199,
+      "image": "https://images.unsplash.com/photo-1603398938378-e54eab446dde?auto=format&fit=crop&q=80&w=400",
+      "category": "devices-for-rent",
+      "subcategory": "sub-vital-monitors",
+      "brand": "Omron",
+      "rating": 4.8,
+      "inStock": true,
+      "description": "Equipped with Intellisense technology that automatically applies the right amount of pressure for fast, accurate and comfortable readings. Highly trusted by clinics across UAE.",
+      "attributes": [
+        {
+          "name": "Device Type",
+          "value": "Upper Arm Blood Pressure Monitor"
+        },
+        {
+          "name": "Memory Records",
+          "value": "Last Measurement Memory"
+        },
+        {
+          "name": "Accuracy",
+          "value": "Pressure ±3 mmHg, Pulse ±5% reading"
+        },
+        {
+          "name": "Warranty",
+          "value": "3 Years International Warranty"
+        }
+      ],
+      "vendorPrices": [
+        {
+          "vendorName": "Medziva Pharmacy",
+          "price": 139
+        },
+        {
+          "vendorName": "Aster Pharmacy",
+          "price": 145
+        },
+        {
+          "vendorName": "Life Pharmacy",
+          "price": 149
+        }
+      ]
+    },
+    {
+      "id": "prod-pulse-ox",
+      "name": "Pulse Oximeter",
+      "subtitle": "Finger Pulse Blood Oxygen Saturation (SpO2) Monitor",
+      "price": 59,
+      "originalPrice": 99,
+      "image": "https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&q=80&w=400",
+      "category": "devices-for-rent",
+      "subcategory": "sub-vital-monitors",
+      "brand": "MedTech",
+      "rating": 4.7,
+      "inStock": true,
+      "description": "Compact and precise blood oxygen level evaluator. Clips comfortably to the index fingertip with high brightness LED display indicating real-time oxygen percentage and current pulse rate.",
+      "attributes": [
+        {
+          "name": "Display Type",
+          "value": "OLED High Brightness Screen"
+        },
+        {
+          "name": "Power Source",
+          "value": "2x AAA Alkaline Batteries"
+        },
+        {
+          "name": "Measurement Time",
+          "value": "8 Seconds Auto Response"
+        }
+      ],
+      "vendorPrices": [
+        {
+          "vendorName": "Medziva Pharmacy",
+          "price": 59
+        },
+        {
+          "vendorName": "Supercare Pharmacy",
+          "price": 65
+        }
+      ]
+    },
+    {
+      "id": "prod-neb",
+      "name": "Nebulizer Compressor System",
+      "subtitle": "Compressor Medical Aerosol Steam Inhaler System",
+      "price": 149,
+      "originalPrice": 199,
+      "image": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
+      "category": "devices-for-rent",
+      "subcategory": "sub-respiratory",
+      "brand": "Nebulyfe",
+      "rating": 4.9,
+      "inStock": true,
+      "description": "High efficacy medicine nebulization system built to administer liquid bronchodilators to customers diagnosed with asthma, bronchitis, or COPD. Suitable for pediatric and adult care.",
+      "attributes": [
+        {
+          "name": "Compressor Pressure",
+          "value": "35 Psi Max"
+        },
+        {
+          "name": "Medication Capacity",
+          "value": "10 mL max volume"
+        },
+        {
+          "name": "Sound Level",
+          "value": "Below 55 Decibels silent drive"
+        }
+      ],
+      "vendorPrices": [
+        {
+          "vendorName": "Medziva Pharmacy",
+          "price": 149
+        },
+        {
+          "vendorName": "Life Pharmacy",
+          "price": 155
+        }
+      ]
+    },
+    {
+      "id": "prod-whey",
+      "name": "Isolate Whey Protein",
+      "subtitle": "Chocolate flavor Premium Isolate Protein Supplement (1kg)",
+      "price": 149,
+      "originalPrice": 199,
+      "image": "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?auto=format&fit=crop&q=80&w=400",
+      "category": "nutrition-diet",
+      "subcategory": "sub-supplements",
+      "brand": "Optimum Gold",
+      "rating": 4.9,
+      "inStock": true,
+      "description": "Premium ultra-filtered isolate protein. Perfect for fast nutrient delivery during post-rehabilitation exercise, senior muscle mass enhancement, or weight-management plans.",
+      "attributes": [
+        {
+          "name": "Protein count",
+          "value": "25g Protein per scoop"
+        },
+        {
+          "name": "Carb count",
+          "value": "1g Carbs, 0g Trans Fats"
+        },
+        {
+          "name": "Net weight",
+          "value": "1.0 kg Pack"
+        }
+      ],
+      "vendorPrices": [
+        {
+          "vendorName": "Medziva Pharmacy",
+          "price": 149
+        },
+        {
+          "vendorName": "Life Pharmacy",
+          "price": 159
+        },
+        {
+          "vendorName": "BinSina Pharmacy",
+          "price": 169
+        }
+      ]
+    }
+  ],
+  "services": [
+    {
+      "id": "srv-generic-nurse",
+      "title": "Generic Nurse Visit",
+      "category": "home-healthcare",
+      "price": 200,
+      "duration": "1 Hour (Min 3 hrs)",
+      "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+      "description": "Experienced registered nurses for checkups, injection preparation, or general clinical assistance at home.",
+      "popular": true
+    },
+    {
+      "id": "srv-wound-small",
+      "title": "Wound care and Surgical Dressing-Small",
+      "category": "home-healthcare",
+      "price": 500,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+      "description": "Standard clinical dressing for small incisions or wounds focusing on premium sanitary and infection controls.",
+      "popular": false
+    },
+    {
+      "id": "srv-wound-medium",
+      "title": "Wound care and Surgical Dressing-Medium",
+      "category": "home-healthcare",
+      "price": 650,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+      "description": "Specialized antiseptic cleaning and surgical dressing application for medium-sized post-operative wounds.",
+      "popular": false
+    },
+    {
+      "id": "srv-wound-large",
+      "title": "Wound care and Surgical Dressing-Large",
+      "category": "home-healthcare",
+      "price": 1000,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+      "description": "Advanced sterile surgical dressing & intensive wound debridement overview for large ulcers, skin incisions or bedsores.",
+      "popular": false
+    },
+    {
+      "id": "srv-longterm-nursing",
+      "title": "Long term Nursing Care",
+      "category": "home-healthcare",
+      "price": 0,
+      "duration": "Hourly / Monthly",
+      "image": "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
+      "description": "Customized long-term home nursing schedules supervised by senior certified DHA health specialists.",
+      "popular": true,
+      "enquiryOnly": true
+    },
+    {
+      "id": "srv-elderly-longterm",
+      "title": "Elderly and Long term care",
+      "category": "home-healthcare",
+      "price": 0,
+      "duration": "Daily / Weekly",
+      "image": "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
+      "description": "Supportive elder assistance, companionship, nutritional checks, and daily activities management.",
+      "popular": true,
+      "enquiryOnly": true
+    },
+    {
+      "id": "srv-post-surgery",
+      "title": "Post Surgery Recovery",
+      "category": "home-healthcare",
+      "price": 0,
+      "duration": "Custom Basis",
+      "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+      "description": "Clinical profile tracking, wound audit, therapeutic guidance and supportive recovery following hospital discharges.",
+      "popular": false,
+      "enquiryOnly": true
+    },
+    {
+      "id": "srv-chronic-clinical",
+      "title": "Chronic Disease management",
+      "category": "home-healthcare",
+      "price": 0,
+      "duration": "Continuous",
+      "image": "https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&q=80&w=400",
+      "description": "Certified chronic wellness and clinical oversight targeting diabetes, high blood pressure, asthma, or COPD.",
+      "popular": false,
+      "enquiryOnly": true
+    },
+    {
+      "id": "srv-palliative",
+      "title": "Palliative care",
+      "category": "home-healthcare",
+      "price": 0,
+      "duration": "Continuous",
+      "image": "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&q=80&w=400",
+      "description": "Compassionate multi-disciplinary support focusing on pain relief, symptom reduction, and spiritual alignment.",
+      "popular": false,
+      "enquiryOnly": true
+    },
+    {
+      "id": "srv-physiotherapy",
+      "title": "Physiotherapy",
+      "category": "physiotherapy",
+      "price": 450,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=400",
+      "description": "Personalized muscle recovery, mobility restoration and skeletal manipulation with a certified physiotherapist.",
+      "popular": true
+    },
+    {
+      "id": "srv-dr-home",
+      "title": "Doctor at Home",
+      "category": "doctor-on-call",
+      "price": 500,
+      "duration": "30 Min Session",
+      "image": "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400",
+      "description": "DHA Licensed Primary Care Doctor visit at your home for standard diagnostic evaluation and acute symptom relief.",
+      "popular": true
+    },
+    {
+      "id": "srv-dr-hotel",
+      "title": "Doctor at Hotel",
+      "category": "doctor-on-call",
+      "price": 500,
+      "duration": "30 Min Session",
+      "image": "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400",
+      "description": "Urgent premium doctor dispatch directly to your hotel room or suite with treatment prescriptions and checkups.",
+      "popular": false
+    },
+    {
+      "id": "srv-speech-therapy-hour",
+      "title": "Speech and Language Therapy",
+      "category": "speech-therapy",
+      "price": 400,
+      "duration": "1 Hour Session",
+      "image": "https://images.unsplash.com/photo-1622445262465-2481c4574875?auto=format&fit=crop&q=80&w=400",
+      "description": "Interactions and communication exercises addressing expressive articulation, speech issues, or swallow patterns.",
+      "popular": true
+    },
+    {
+      "id": "srv-occupational-therapy-hour",
+      "title": "Occupation Therapy",
+      "category": "occupational-therapy",
+      "price": 400,
+      "duration": "1 Hour Session",
+      "image": "https://images.unsplash.com/photo-1581594693702-fbdc51b2763b?auto=format&fit=crop&q=80&w=400",
+      "description": "Functional recovery programs targeting motor skill recovery, joint alignment, and day-to-day work autonomy support.",
+      "popular": true
+    },
+    {
+      "id": "srv-iv-skin-glow",
+      "title": "Skin Glow IV Therapy",
+      "category": "iv-therapy",
+      "price": 999,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
+      "description": "Premium Glutathione and Vitamin C infusion designed to nourish skin radiance, fight hyperpigmentation and clarify complexion.",
+      "popular": true
+    },
+    {
+      "id": "srv-iv-hair-loss",
+      "title": "Hair Loss IV Therapy",
+      "category": "iv-therapy",
+      "price": 999,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
+      "description": "Biotin-fortified medical infusion to support hair follicle strengths, stimulate locks growth and reverse scalp thinning.",
+      "popular": false
+    },
+    {
+      "id": "srv-iv-skin-hair-wellness",
+      "title": "Skin and Hair wellness IV Drip",
+      "category": "iv-therapy",
+      "price": 999,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
+      "description": "Synergistic beauty blend of vital amino acids and high-dose trace elements for complete dermal and hair density enhancement.",
+      "popular": false
+    },
+    {
+      "id": "srv-iv-energy-booster",
+      "title": "Energy Booster IV Therapy",
+      "category": "iv-therapy",
+      "price": 999,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
+      "description": "Recharging clinical fluid loaded with B-complex vitamins, helping to overcome physical lethargy and restore peak muscle performance.",
+      "popular": true
+    },
+    {
+      "id": "srv-iv-immune-booster",
+      "title": "Immune Booster IV Therapy",
+      "category": "iv-therapy",
+      "price": 1100,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
+      "description": "Super-defense mineral shield combined with high zinc formulation to ward off seasonal cold, flu, and chronic immune vulnerabilities.",
+      "popular": true
+    },
+    {
+      "id": "srv-iv-hangover",
+      "title": "Hangover IV Therapy",
+      "category": "iv-therapy",
+      "price": 999,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
+      "description": "Hyper-hydration therapeutic recipe neutralizing free radicals, curing severe migraines, and restoring electrolyte balance.",
+      "popular": false
+    },
+    {
+      "id": "srv-iv-liver-detox",
+      "title": "Liver Detox IV Therapy",
+      "category": "iv-therapy",
+      "price": 1100,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
+      "description": "In-depth hepatic flushing combining strong hepatoprotective elements to clear internal toxins and liver cell stress.",
+      "popular": false
+    },
+    {
+      "id": "srv-iv-antistress",
+      "title": "Antistress and Antoixidant IV Therapy",
+      "category": "iv-therapy",
+      "price": 1299,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
+      "description": "Premium neural calming blend containing calming magnesium and powerful antioxidants to defeat stress, fatigue, and burnout.",
+      "popular": false
+    },
+    {
+      "id": "srv-iv-female-balance",
+      "title": "Female Balance IV Therapy",
+      "category": "iv-therapy",
+      "price": 899,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
+      "description": "Specially engineered mineral balancing infusion to optimize hormonal health, soothe PMS muscle cramps and improve sleep cycles.",
+      "popular": false
+    },
+    {
+      "id": "srv-iv-memory-boost",
+      "title": "Memory Boost IV Therapy",
+      "category": "iv-therapy",
+      "price": 999,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
+      "description": "Critical neuro-support factors designed to optimize cognitive focus, elevate retention speeds and clear mental fog.",
+      "popular": false
+    },
+    {
+      "id": "srv-iv-vitamin-mix",
+      "title": "Vitamin Mix IV Therapy",
+      "category": "iv-therapy",
+      "price": 999,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
+      "description": "Wellness cocktails featuring an intensive spectrum of 12 vital micronutrients for complete physical restoration.",
+      "popular": false
+    },
+    {
+      "id": "srv-iv-iron-boost",
+      "title": "Iron Boost IV Therapy",
+      "category": "iv-therapy",
+      "price": 999,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
+      "description": "Highly bioavailable medical iron replacement therapy to correct chronic fatigue and optimize blood cell oxygenation.",
+      "popular": false
+    },
+    {
+      "id": "srv-iv-gut-support",
+      "title": "Gut support IV Therapy",
+      "category": "iv-therapy",
+      "price": 999,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
+      "description": "Soothing hydration flush focused on digestion health, reducing gut lining irritation and promoting healthy bowel absorption.",
+      "popular": false
+    },
+    {
+      "id": "srv-iv-nad-100",
+      "title": "Antiaging with NAD 100mg IV Therapy",
+      "category": "iv-therapy",
+      "price": 999,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
+      "description": "Moderate Nicotinamide Adenine Dinucleotide (NAD+) infusion initiating mitochondrial DNA repairs and cell revitalization.",
+      "popular": false
+    },
+    {
+      "id": "srv-iv-nad-250",
+      "title": "Antiaging with NAD 250mg IV Therapy",
+      "category": "iv-therapy",
+      "price": 1299,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
+      "description": "Strong clinical NAD+ infusion activating deep sirtuin enzymes to boost cellular lifespan, energy, and anti-aging defenses.",
+      "popular": false
+    },
+    {
+      "id": "srv-iv-nad-500",
+      "title": "Antiaging with NAD 500mg IV Therapy",
+      "category": "iv-therapy",
+      "price": 1499,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
+      "description": "Vigorous longevity infusion delivering 500mg pure medical NAD+ to optimize cognitive neuro-protection and full systemic age reversal.",
+      "popular": true
+    }
+  ],
+  "vendors": [
+    {
+      "id": "v-1",
+      "name": "Medziva Pharmacy",
+      "type": "Pharmacy",
+      "contact": "+971 4 123 4567",
+      "rating": 4.9,
+      "address": "Dubai Marina, Dubai",
+      "active": true
+    },
+    {
+      "id": "v-2",
+      "name": "Aster Home Healthcare",
+      "type": "Clinic & Home Care",
+      "contact": "+971 4 222 3333",
+      "rating": 4.8,
+      "address": "Al Barsha, Dubai",
+      "active": true
+    },
+    {
+      "id": "v-3",
+      "name": "Life Pharmacy Group",
+      "type": "Pharmacy",
+      "contact": "+971 4 444 5555",
+      "rating": 4.7,
+      "address": "Sharjah Industrial",
+      "active": true
+    },
+    {
+      "id": "v-4",
+      "name": "Medziva Nurse Team",
+      "type": "Nursing Provider",
+      "contact": "+971 4 555 7788",
+      "rating": 5,
+      "address": "Deira, Dubai",
+      "active": true
+    },
+    {
+      "id": "v-1780105239521",
+      "name": "Anb",
+      "type": "Pharmacy",
+      "contact": "+971787878787",
+      "rating": 5,
+      "address": "Dubai Marina, Dubai",
+      "active": true
+    }
+  ],
+  "settings": {
+    "siteName": "Medziva Home Healthcare",
+    "vatPercent": 5,
+    "platformFeePercent": 2.5,
+    "defaultCurrency": "AED",
+    "supportEmail": "support@medziva.ae",
+    "serviceRegions": [
+      "Dubai",
+      "Sharjah"
+    ],
+    "maintenanceMode": false,
+    "adminUsername": "admin",
+    "adminPassword": "admin123"
+  },
+  "bookings": [
+    {
+      "id": "b-1",
+      "customerName": "Fatima Ahmed",
+      "customerEmail": "fatima.ahmed@example.com",
+      "serviceTitle": "At-Home General Nursing Consultation",
+      "vendorName": "Medziva Nurse Team",
+      "price": 250,
+      "date": "2026-05-18",
+      "region": "Dubai",
+      "status": "Completed"
+    },
+    {
+      "id": "b-2",
+      "customerName": "John Doe",
+      "customerEmail": "john.d@example.com",
+      "serviceTitle": "Post-Injury Physiotherapy At Home",
+      "vendorName": "Aster Home Healthcare",
+      "price": 300,
+      "date": "2026-05-19",
+      "region": "Dubai",
+      "status": "Completed"
+    },
+    {
+      "id": "b-3",
+      "customerName": "Kamal Al-Sharif",
+      "customerEmail": "kamal.sh@example.com",
+      "serviceTitle": "Complete Blood Count (CBC) with differential",
+      "vendorName": "Medziva Pharmacy",
+      "price": 99,
+      "date": "2026-05-20",
+      "region": "Sharjah",
+      "status": "Pending"
+    },
+    {
+      "id": "b-4",
+      "customerName": "Yasmine Hassan",
+      "customerEmail": "yasmine.h@example.com",
+      "serviceTitle": "Skin Glow IV Therapy",
+      "vendorName": "Life Pharmacy Group",
+      "price": 999,
+      "date": "2026-05-15",
+      "region": "Dubai",
+      "status": "Completed"
+    },
+    {
+      "id": "b-5",
+      "customerName": "Robert Vance",
+      "customerEmail": "robert.v@example.com",
+      "serviceTitle": "Omron BP Monitor",
+      "vendorName": "Aster Pharmacy",
+      "price": 139,
+      "date": "2026-05-17",
+      "region": "Sharjah",
+      "status": "Completed"
+    },
+    {
+      "id": "b-6",
+      "customerName": "Muna Al-Ketbi",
+      "customerEmail": "muna.k@example.com",
+      "serviceTitle": "Elderly and Long term care",
+      "vendorName": "Medziva Nurse Team",
+      "price": 1200,
+      "date": "2026-05-20",
+      "region": "Dubai",
+      "status": "Active"
+    },
+    {
+      "id": "b-1779326253164",
+      "customerName": "Bala",
+      "customerEmail": "bala@gmail.com",
+      "serviceTitle": "Wound care and Surgical Dressing-Small",
+      "vendorName": "Medziva Nurse Team",
+      "price": 500,
+      "date": "2026-05-21",
+      "timeSlot": "10:00 AM - 11:30 AM (Pre Noon)",
+      "region": "Dubai",
+      "status": "Pending",
+      "notes": "",
+      "createdAt": "2026-05-21T01:17:33.164Z"
+    },
+    {
+      "id": "b-1779326614937",
+      "customerName": "Bala",
+      "customerEmail": "bala@gmail.com",
+      "serviceTitle": "Wound care and Surgical Dressing-Medium",
+      "vendorName": "Medziva Nurse Team",
+      "price": 650,
+      "date": "2026-05-27",
+      "timeSlot": "03:00 PM - 04:30 PM (Late Afternoon)",
+      "region": "Dubai",
+      "status": "Pending",
+      "notes": "",
+      "createdAt": "2026-05-21T01:23:34.937Z"
+    },
+    {
+      "id": "b-1779326792998",
+      "customerName": "Bala",
+      "customerEmail": "bala@gmail.com",
+      "serviceTitle": "Wound care and Surgical Dressing-Small",
+      "vendorName": "Medziva Nurse Team",
+      "price": 500,
+      "date": "2026-05-28",
+      "timeSlot": "09:00 AM - 10:00 AM (Morning)",
+      "region": "Dubai",
+      "status": "Pending",
+      "notes": "",
+      "createdAt": "2026-05-21T01:26:32.998Z"
+    },
+    {
+      "id": "b-1779333369059",
+      "customerName": "Bala",
+      "customerEmail": "bala@gmail.com",
+      "serviceTitle": "Wound care and Surgical Dressing-Medium",
+      "vendorName": "Medziva Nurse Team",
+      "price": 650,
+      "date": "2026-05-22",
+      "timeSlot": "09:00 AM - 10:00 AM (Morning)",
+      "region": "Dubai",
+      "status": "Pending",
+      "notes": "",
+      "createdAt": "2026-05-21T03:16:09.059Z"
+    },
+    {
+      "id": "b-1779338557706",
+      "customerName": "Bala",
+      "customerEmail": "bala@gmail.com",
+      "serviceTitle": "Wound care and Surgical Dressing-Medium",
+      "vendorName": "Medziva Nurse Team",
+      "price": 650,
+      "date": "2026-05-22",
+      "timeSlot": "09:00 AM - 10:00 AM (Morning)",
+      "region": "Dubai",
+      "status": "Pending",
+      "notes": "",
+      "createdAt": "2026-05-21T04:42:37.706Z"
+    },
+    {
+      "id": "b-1779338660693",
+      "customerName": "Bala",
+      "customerEmail": "bala@gmail.com",
+      "serviceTitle": "Wound care and Surgical Dressing-Small",
+      "vendorName": "Medziva Nurse Team",
+      "price": 500,
+      "date": "2026-05-22",
+      "timeSlot": "09:00 AM - 10:00 AM (Morning)",
+      "region": "Dubai",
+      "status": "Pending",
+      "notes": "",
+      "createdAt": "2026-05-21T04:44:20.693Z"
+    },
+    {
+      "id": "b-1779338718642",
+      "customerName": "Bala",
+      "customerEmail": "bala@gmail.com",
+      "serviceTitle": "Wound care and Surgical Dressing-Small",
+      "vendorName": "Medziva Nurse Team",
+      "price": 500,
+      "date": "2026-05-22",
+      "timeSlot": "09:00 AM - 10:00 AM (Morning)",
+      "region": "Dubai",
+      "status": "Pending",
+      "notes": "",
+      "createdAt": "2026-05-21T04:45:18.642Z"
+    },
+    {
+      "id": "b-1779338833073",
+      "customerName": "Bala",
+      "customerEmail": "bala@gmail.com",
+      "serviceTitle": "Wound care and Surgical Dressing-Small",
+      "vendorName": "Medziva Nurse Team",
+      "price": 500,
+      "date": "2026-05-22",
+      "timeSlot": "09:00 AM - 10:00 AM (Morning)",
+      "region": "Dubai",
+      "status": "Pending",
+      "notes": "",
+      "createdAt": "2026-05-21T04:47:13.073Z"
+    },
+    {
+      "id": "b-1779338914646",
+      "customerName": "Bala",
+      "customerEmail": "bala@gmail.com",
+      "serviceTitle": "Wound care and Surgical Dressing-Small",
+      "vendorName": "Medziva Nurse Team",
+      "price": 500,
+      "date": "2026-05-22",
+      "timeSlot": "09:00 AM - 10:00 AM (Morning)",
+      "region": "Dubai",
+      "status": "Pending",
+      "notes": "",
+      "createdAt": "2026-05-21T04:48:34.646Z"
+    }
+  ],
+  "enquiries": [
+    {
+      "id": "e-1",
+      "customerName": "Layla Al-Fahim",
+      "customerEmail": "layla.f@example.com",
+      "customerPhone": "050 333 4444",
+      "serviceTitle": "Dedicated Elderly Care Session",
+      "message": "Hi, do you provide 24/7 nursing companion for a customer recovering from a stroke? What are the monthly rates?",
+      "date": "2026-05-19",
+      "status": "Answered"
+    },
+    {
+      "id": "e-2",
+      "customerName": "Ahmed Mansoor",
+      "customerEmail": "ahmed.m@example.com",
+      "customerPhone": "056 999 8888",
+      "serviceTitle": "Complete Blood Count (CBC) with differential",
+      "message": "Can I arrange tests for 5 family members simultaneously at my home in Dubai Marina? Do we get a group discount?",
+      "date": "2026-05-20",
+      "status": "Answered"
+    }
+  ]
+}

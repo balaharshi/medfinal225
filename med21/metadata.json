@@ -1,0 +1,6 @@
+{
+  "name": "Medziva",
+  "description": "Premium Healthcare Marketplace – Home Nursing, Lab Tests, Medical Devices for Rent, and Health eCommerce Store",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;700;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-medical-blue: #1769b3;
+  --color-medical-green: #82c342;
+}
+
+/* Custom/Fallback Utility Classes for Sleek Interface Theme */
+.text-medical-blue {
+  color: #1769b3;
+}
+
+.bg-medical-blue {
+  background-color: #1769b3;
+}
+
+.text-medical-green {
+  color: #82c342;
+}
+
+.bg-medical-green {
+  background-color: #82c342;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.search-bar {
+  border-radius: 9999px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.service-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.service-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Base Body Styling matching design theme */
+body {
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  background-color: #F8FAFC;
+  color: #1E293B;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  /* Hide HeaderTopBar on mobile */
+  #header-top-bar {
+    display: none;
+  }
+
+  /* 1. Tab bar clipping fix */
+  .tab-navigation {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tab-navigation::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* 2. Search bar text truncation fix */
+  .search-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .search-bar-container input {
+    flex: 1;
+    min-width: 0;
+  }
+  .search-bar-container button {
+    flex-shrink: 0;
+    width: 84px;
+  }
+
+  /* 3. Location + Profile row fix */
+  .location-profile-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+  }
+  .location-profile-row .flex {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* 4. Inconsistent section padding fix */
+  .page-section {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  /* 5. Top banner cramped spacing fix */
+  .top-info-banner {
+    padding: 12px 16px;
+    line-height: 1.6;
+  }
+  .top-info-banner > div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  /* 6. Bottom nav label size fix */
+  .bottom-nav-bar {
+    font-size: 11px;
+    padding: 8px 0;
+  }
+  .bottom-nav-bar button {
+    padding: 8px 0;
+  }
+  .bottom-nav-bar svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* 7. Quick View Mobile Optimization */
+  .quick-view-modal {
+    padding: 0;
+  }
+  
+  .quick-view-modal > div {
+    max-height: 90vh;
+    height: auto;
+    max-width: 100%;
+    margin: 0;
+    border-radius: 16px 16px 0 0;
+  }
+  
+  /* Move booking button to top on mobile */
+  .quick-view-actions {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: white;
+    padding: 12px;
+    border-bottom: 1px solid #e5e7eb;
+    order: -1;
+  }
+  
+  /* Hide cancel button on mobile */
+  .quick-view-actions button:first-child {
+    display: none;
+  }
+}

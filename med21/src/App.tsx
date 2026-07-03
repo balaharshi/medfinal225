@@ -53,7 +53,6 @@ import { ActiveTab, CartItem, Product, HealthcareService, ServiceCategory } from
 import { LAB_TESTS_AT_HOME_CATEGORIES, LAB_TESTS_AT_HOME_EXPECTED_COUNTS } from '../../shared/labTestsAtHomeCatalog.js';
 
 // UI Components
-import HeaderTopBar from './components/HeaderTopBar';
 import MainHeader from './components/MainHeader';
 import NavigationMenu from './components/NavigationMenu';
 import HeroSection from './components/HeroSection';
@@ -1216,10 +1215,7 @@ function MainApp() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans transition-all selection:bg-teal-500 selection:text-white">
       
-      {/* 1. Dark Blue Top bar announcement element */}
-      <HeaderTopBar />
-
-      {/* 2. Interactive Main medical branding header */}
+      {/* Interactive Main medical branding header */}
       <MainHeader 
           cartCount={cartTotalItems}
           onCartOpen={() => setIsCartOpen(true)}

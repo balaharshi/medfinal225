@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { Search, User, ShoppingCart, LogOut, ChevronDown, Menu, X, Home, Activity, Beaker, Flame } from 'lucide-react';
+import { Search, User, ShoppingCart, LogOut, ChevronDown, Menu, X, Home, Activity, Beaker, Flame, Phone } from 'lucide-react';
 import { ActiveTab } from '../types';
 import ConfirmDialog from './ConfirmDialog';
 
@@ -124,6 +124,13 @@ export default function MainHeader({
             className="h-24 w-auto object-contain"
             referrerPolicy="no-referrer"
           />
+        </a>
+        <a 
+          href="tel:+971559510794" 
+          className="flex items-center justify-center gap-1.5 text-slate-500 text-[11px] font-semibold mb-1"
+        >
+          <Phone className="w-3 h-3 text-medical-green" />
+          +971 55 951 0794
         </a>
 
         <div className="relative flex w-full items-center gap-2">
@@ -316,6 +323,16 @@ export default function MainHeader({
 
         {/* Right Side: Member Account, Active Bookings list, Cart with counter badge */}
         <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 lg:gap-5 self-center location-profile-row">
+
+          {/* Phone Number */}
+          <a 
+            href="tel:+971559510794" 
+            aria-label="Call +971 55 951 0794"
+            className="hidden md:flex items-center gap-1.5 text-slate-600 hover:text-medical-green transition-colors font-semibold text-xs cursor-pointer"
+          >
+            <Phone className="w-4 h-4 text-medical-green" />
+            <span>+971 55 951 0794</span>
+          </a>
 
           {/* 1. Account Login/Signup - Hidden on mobile */}
           <div className="hidden md:block">

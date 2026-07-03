@@ -217,17 +217,19 @@ const normalizeLongTermServiceSlashSpacing = (service: HealthcareService): Healt
   prep: normalizeLongTermTextSpacing(service.prep),
   result: normalizeLongTermTextSpacing(service.result),
   inclusions: service.inclusions?.map((item) => normalizeLongTermTextSpacing(item) || item),
-  attributes: service.attributes?.map((attribute) => ({
-    ...attribute,
-    label:
-      typeof attribute.label === 'string'
-        ? normalizeLongTermTextSpacing(attribute.label)
-        : attribute.label,
-    value:
-      typeof attribute.value === 'string'
-        ? normalizeLongTermTextSpacing(attribute.value)
-        : attribute.value,
-  })),
+  attributes: Array.isArray(service.attributes)
+    ? service.attributes.map((attribute) => ({
+        ...attribute,
+        label:
+          typeof attribute.label === 'string'
+            ? normalizeLongTermTextSpacing(attribute.label)
+            : attribute.label,
+        value:
+          typeof attribute.value === 'string'
+            ? normalizeLongTermTextSpacing(attribute.value)
+            : attribute.value,
+      }))
+    : service.attributes,
 });
 
 export default function AppWrapper() {
@@ -798,7 +800,7 @@ function MainApp() {
       const query = customLabSearch.trim().toLowerCase();
       if (!query) return customizeServices;
       return customizeServices.filter((service) => {
-        const testCode = service.attributes?.find((item: any) => item.label === 'Test Code')?.value || '';
+        const testCode = Array.isArray(service.attributes) ? service.attributes.find((item: any) => item.label === 'Test Code')?.value || '' : '';
         return (
           String(service.title || '').toLowerCase().includes(query) ||
           String(service.description || '').toLowerCase().includes(query) ||
@@ -1170,8 +1172,9 @@ function MainApp() {
       const title = String(s.title || '').toLowerCase();
       const desc = String(s.description || '').toLowerCase();
       const shortDesc = String(s.shortDescription || '').toLowerCase();
-      const testCode = (s.attributes || []).find((a: any) => a.label === 'Test Code')?.value || '';
-      const includedTests = (s.attributes || []).find((a: any) => /include|test|parameter|marker/i.test(a.label))?.value || '';
+      const attrs = Array.isArray(s.attributes) ? s.attributes : [];
+      const testCode = attrs.find((a: any) => a.label === 'Test Code')?.value || '';
+      const includedTests = attrs.find((a: any) => /include|test|parameter|marker/i.test(a.label))?.value || '';
       return (
         title.includes(query) ||
         desc.includes(query) ||
@@ -1298,7 +1301,7 @@ function MainApp() {
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                       {searchResults.services.map((srv) => {
                         const isAdded = cart.some((item) => item.product.id === srv.id);
-                        const testCode = srv.attributes?.find((item: any) => item.label === 'Test Code')?.value;
+                        const testCode = Array.isArray(srv.attributes) ? srv.attributes.find((item: any) => item.label === 'Test Code')?.value : undefined;
                         return (
                           <div
                             key={srv.id}
@@ -1401,7 +1404,7 @@ function MainApp() {
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                       {searchResults.customLabs.map((srv) => {
                         const isAdded = cart.some((item) => item.product.id === srv.id);
-                        const testCode = srv.attributes?.find((item: any) => item.label === 'Test Code')?.value;
+                        const testCode = Array.isArray(srv.attributes) ? srv.attributes.find((item: any) => item.label === 'Test Code')?.value : undefined;
                         return (
                           <div
                             key={srv.id}
@@ -1745,7 +1748,7 @@ function MainApp() {
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                     {displayedLabServices.map((srv) => {
                       const isAdded = cart.some((item) => item.product.id === srv.id);
-                      const testCode = srv.attributes?.find((item: any) => item.label === 'Test Code')?.value;
+                      const testCode = Array.isArray(srv.attributes) ? srv.attributes.find((item: any) => item.label === 'Test Code')?.value : undefined;
                       return (
                         <div
                           key={srv.id}
@@ -1912,7 +1915,7 @@ function MainApp() {
                       {prod.subcategory === 'rent-medical-equipments' && (
                         <div className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-full mb-4">
                           <Clock className="w-3 h-3" />
-                          <span>{prod.attributes?.find((item) => item.label === 'Booking notice')?.value}</span>
+                          <span>{Array.isArray(prod.attributes) ? prod.attributes.find((item) => item.label === 'Booking notice')?.value : undefined}</span>
                         </div>
                       )}
                     </div>

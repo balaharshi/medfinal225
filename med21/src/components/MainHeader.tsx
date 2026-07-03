@@ -222,7 +222,7 @@ export default function MainHeader({
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto hidden md:flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto hidden md:flex items-stretch justify-between gap-4">
         
         {/* Mobile Hamburger Menu Button - Left side */}
         <button
@@ -233,12 +233,12 @@ export default function MainHeader({
         </button>
 
         {/* Left Side: Brand Logo */}
-        <div className="flex items-center shrink-0">
-          <a href="/" className="flex items-center gap-2 group" aria-label="Go to homepage">
+        <div className="flex items-center shrink-0 h-full">
+          <a href="/" className="flex items-center gap-2 group h-full" aria-label="Go to homepage">
             <img 
               src={newlogo} 
               alt="MedZiva Logo" 
-              className="h-[5rem] md:h-[8rem] w-auto object-contain"
+              className="h-full w-auto object-contain py-2"
               referrerPolicy="no-referrer" 
             />
           </a>

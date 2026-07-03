@@ -17,7 +17,7 @@ export const products = appPgTable('products', {
   image: text('image').notNull(),
   category: text('category').notNull().default('devices-for-rent'),
   subcategory: text('subcategory').notNull().default(''),
-  brand: text('brand').notNull().default('Medziva Store'),
+  brand: text('brand').notNull().default('MedZiva Store'),
   rating: real('rating').notNull().default(5),
   inStock: boolean('in_stock').notNull().default(true),
   description: text('description').notNull().default(''),

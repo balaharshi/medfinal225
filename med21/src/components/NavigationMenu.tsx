@@ -4,9 +4,8 @@
  */
 
 import { useState } from 'react';
-import { Menu, ChevronDown, Sparkles } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { ActiveTab } from '../types';
-import { SERVICE_CATEGORIES } from '../data';
 
 interface NavigationMenuProps {
   activeTab: ActiveTab;
@@ -19,27 +18,32 @@ const homeHealthcareItems: { label: string; tab: ActiveTab; sectionId: string }[
   { label: 'Physiotherapy at Home', tab: 'services', sectionId: 'physiotherapy-section' },
   { label: 'Doctor on Call', tab: 'services', sectionId: 'doctor-on-call-section' },
   { label: 'Long-Term / Specialized Care', tab: 'services', sectionId: 'long-term-care-section' },
-  { label: 'Therapy Services', tab: 'services', sectionId: 'therapy-services-section' },
+  { label: 'Speech and Language Therapy', tab: 'services', sectionId: 'speech-therapy-section' },
+  { label: 'Occupational Therapy', tab: 'services', sectionId: 'occupational-therapy-section' },
+  { label: 'IV Therapy', tab: 'services', sectionId: 'iv-therapy-section' },
 ];
 
 const labTestsItems: { label: string; tab: ActiveTab; sectionId: string }[] = [
   { label: 'Routine Blood Tests', tab: 'lab-tests', sectionId: 'routine-blood-tests-section' },
-  { label: 'Preventive Health Packages', tab: 'health-packages', sectionId: 'preventive-health-packages-section' },
-  { label: "Men's Health Packages", tab: 'health-packages', sectionId: 'mens-health-packages-section' },
-  { label: "Women's Health Packages", tab: 'health-packages', sectionId: 'womens-health-packages-section' },
+  { label: 'Preventive Health Packages', tab: 'lab-tests', sectionId: 'preventive-health-packages-section' },
+  { label: "Men's Health Packages", tab: 'lab-tests', sectionId: 'mens-health-packages-section' },
+  { label: "Women's Health Packages", tab: 'lab-tests', sectionId: 'womens-health-packages-section' },
   { label: 'STD / Sexual Health', tab: 'lab-tests', sectionId: 'std-sexual-health-section' },
   { label: 'Specialized Diagnostic Tests', tab: 'lab-tests', sectionId: 'specialized-diagnostic-tests-section' },
   { label: 'Genetic Testing', tab: 'lab-tests', sectionId: 'genetic-testing-section' },
 ];
 
+const productItems: { label: string; tab: ActiveTab; sectionId: string }[] = [
+  { label: 'Rent Medical Equipments', tab: 'products', sectionId: 'rent-medical-equipments-section' },
+];
+
 export default function NavigationMenu({ activeTab, activeSectionId, onTabChange }: NavigationMenuProps) {
-  const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false);
   const [showServicesDropdown, setShowServicesDropdown] = useState(false);
   const [showHomeHealthcareDropdown, setShowHomeHealthcareDropdown] = useState(false);
   const [showLabTestsDropdown, setShowLabTestsDropdown] = useState(false);
+  const [showProductsDropdown, setShowProductsDropdown] = useState(false);
 
   const menuItems: { label: string; value: ActiveTab }[] = [
-    { label: 'Products', value: 'products' },
     { label: 'Wellness', value: 'wellness' },
     { label: 'Offers', value: 'offers' },
     { label: 'For Providers', value: 'providers' },
@@ -48,50 +52,7 @@ export default function NavigationMenu({ activeTab, activeSectionId, onTabChange
 
   return (
     <nav id="navigation-menu" className="bg-white border-b border-slate-100 py-1.5 px-4 z-30 hidden md:block">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2.5">
-        
-        {/* Leftmost side: "All Categories" drop trigger - Hidden on mobile */}
-        <div className="relative w-full md:w-auto mt-2 md:mt-0 hidden md:block">
-          <button
-            id="nav-categories-dropdown"
-            onClick={() => setShowCategoriesDropdown(!showCategoriesDropdown)}
-            className="w-full md:w-auto h-11 bg-white hover:bg-slate-50 border border-slate-200 text-medical-blue font-bold text-xs uppercase tracking-wider px-5 rounded-lg flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-2xs"
-          >
-            <Menu className="hidden md:block w-4 h-4 text-medical-green" />
-            <span>All Categories</span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-1" />
-          </button>
-          
-          {showCategoriesDropdown && (
-            <div className="absolute left-0 mt-1.5 w-64 md:w-80 bg-white border border-slate-100 rounded-xl shadow-2xl z-50 py-3 grid grid-cols-1 gap-1">
-              <div className="text-[10px] text-gray-400 font-bold tracking-widest uppercase px-4 pb-2 border-b border-slate-50 mb-1.5 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" strokeWidth={2.5} />
-                <span>Popular Health Departments</span>
-              </div>
-              {SERVICE_CATEGORIES.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => {
-                    // Navigate according to the clicked categories slug
-                    if (cat.slug === 'lab-tests') {
-                      onTabChange('lab-tests');
-                    } else if (cat.slug === 'devices-for-rent') {
-                      onTabChange('products');
-                    } else {
-                      onTabChange('services');
-                    }
-                    setShowCategoriesDropdown(false);
-                  }}
-                  className="w-full text-left px-4 py-2 hover:bg-teal-50/60 text-xs text-slate-700 hover:text-medical-green flex items-center gap-3 transition-all cursor-pointer"
-                >
-                  <img src={cat.image} className="w-6.5 h-6.5 rounded-full object-cover border border-slate-100" alt={cat.title} referrerPolicy="no-referrer" />
-                  <span className="font-semibold">{cat.title}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-center gap-2.5">
         {/* Center: Main Horizontal Tabs */}
         <div className="flex items-center overflow-x-auto md:overflow-visible w-full md:w-auto no-scrollbar py-2 md:py-0 tab-navigation">
           <div className="flex items-center gap-1 sm:gap-2.5">
@@ -114,7 +75,7 @@ export default function NavigationMenu({ activeTab, activeSectionId, onTabChange
               <button
                 onClick={() => setShowServicesDropdown((current) => !current)}
                 className={`relative px-3 py-3 text-xs sm:text-[13px] font-bold tracking-wide transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 ${
-                  activeTab === 'services' || activeTab === 'lab-tests' || activeTab === 'health-packages'
+                  activeTab === 'services' || ((activeTab === 'lab-tests' || activeTab === 'health-packages') && activeSectionId !== 'customize-lab-package-section')
                     ? 'text-medical-blue border-b-2 border-medical-green font-extrabold pb-3'
                     : 'text-slate-600 hover:text-medical-blue'
                 }`}
@@ -148,7 +109,7 @@ export default function NavigationMenu({ activeTab, activeSectionId, onTabChange
                     </button>
 
                     {showHomeHealthcareDropdown && (
-                      <div className="absolute left-full top-0 ml-1 w-64 bg-white border border-slate-100 rounded-xl shadow-2xl z-50 py-2">
+                      <div className="absolute left-full top-0 -ml-8 w-64 bg-white border border-slate-100 rounded-xl shadow-2xl z-50 py-2">
                         {homeHealthcareItems.map((item) => {
                           const isActive = activeSectionId === item.sectionId || (!activeSectionId && item.sectionId === 'home-healthcare-section' && activeTab === 'services');
                           return (
@@ -174,21 +135,6 @@ export default function NavigationMenu({ activeTab, activeSectionId, onTabChange
                     )}
                   </div>
 
-                  <button
-                    onClick={() => {
-                      onTabChange('services', 'iv-therapy-section');
-                      setShowServicesDropdown(false);
-                    }}
-                    className={`w-full text-left px-4 py-2.5 text-xs font-bold transition-colors cursor-pointer ${
-                      activeSectionId === 'iv-therapy-section'
-                        ? 'bg-teal-50/80 text-medical-green'
-                        : 'text-slate-600 hover:bg-teal-50/60 hover:text-medical-green'
-                    }`}
-                    role="menuitem"
-                  >
-                    IV Therapy
-                  </button>
-
                   <div
                     className="relative"
                     onMouseEnter={() => setShowLabTestsDropdown(true)}
@@ -210,7 +156,7 @@ export default function NavigationMenu({ activeTab, activeSectionId, onTabChange
                     </button>
 
                     {showLabTestsDropdown && (
-                      <div className="absolute left-full top-0 ml-1 w-64 bg-white border border-slate-100 rounded-xl shadow-2xl z-50 py-2">
+                      <div className="absolute left-full top-0 -ml-8 w-64 bg-white border border-slate-100 rounded-xl shadow-2xl z-50 py-2">
                         {labTestsItems.map((item) => {
                           const isActive = activeSectionId === item.sectionId || (!activeSectionId && item.sectionId === 'routine-blood-tests-section' && activeTab === 'lab-tests');
                           return (
@@ -238,6 +184,62 @@ export default function NavigationMenu({ activeTab, activeSectionId, onTabChange
                 </div>
               )}
             </div>
+
+            <div
+              className="relative"
+              onMouseEnter={() => setShowProductsDropdown(true)}
+              onMouseLeave={() => setShowProductsDropdown(false)}
+            >
+              <button
+                onClick={() => setShowProductsDropdown((current) => !current)}
+                className={`relative px-3 py-3 text-xs sm:text-[13px] font-bold tracking-wide transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 ${
+                  activeTab === 'products'
+                    ? 'text-medical-blue border-b-2 border-medical-green font-extrabold pb-3'
+                    : 'text-slate-600 hover:text-medical-blue'
+                }`}
+                aria-expanded={showProductsDropdown}
+                aria-haspopup="menu"
+              >
+                <span>Products</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showProductsDropdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showProductsDropdown && (
+                <div className="absolute left-0 top-full w-56 bg-white border border-slate-100 rounded-xl shadow-2xl z-50 py-2">
+                  {productItems.map((item) => {
+                    const isActive = activeSectionId === item.sectionId;
+                    return (
+                      <button
+                        key={item.sectionId}
+                        onClick={() => {
+                          onTabChange(item.tab, item.sectionId);
+                          setShowProductsDropdown(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-xs font-bold transition-colors cursor-pointer ${
+                          isActive
+                            ? 'bg-teal-50/80 text-medical-green'
+                            : 'text-slate-600 hover:bg-teal-50/60 hover:text-medical-green'
+                        }`}
+                        role="menuitem"
+                      >
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => onTabChange('lab-tests', 'customize-lab-package-section')}
+              className={`relative px-3 py-3 text-xs sm:text-[13px] font-bold tracking-wide transition-all whitespace-nowrap cursor-pointer ${
+                activeSectionId === 'customize-lab-package-section'
+                  ? 'text-medical-blue border-b-2 border-medical-green font-extrabold pb-3'
+                  : 'text-slate-600 hover:text-medical-blue'
+              }`}
+            >
+              Create your own Package
+            </button>
 
             {menuItems.map((item) => {
               const isActive = activeTab === item.value;

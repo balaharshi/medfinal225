@@ -5,18 +5,13 @@
 
 import { Flame, Sparkles, Heart, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
+import bloodTestImage from '../assets/images/lab-tests-at-home/srv-lab-home-complete-blood-count-cbc-with-differential.jpg';
 
 interface PromoProps {
-  onHealthPackClick: () => void;
-  onLabClick: () => void;
-  onRentClick: () => void;
   onOffersClick?: () => void;
 }
 
 export default function PromotionalBanners({ 
-  onHealthPackClick, 
-  onLabClick, 
-  onRentClick, 
   onOffersClick 
 }: PromoProps) {
   return (
@@ -36,7 +31,7 @@ export default function PromotionalBanners({
               Exclusive Deals &amp; Offers
             </h2>
             <p className="text-emerald-100/90 text-xs sm:text-sm font-medium leading-relaxed">
-              Save more on premium home nursing services, lab testing packages &amp; home medical products with our authorized clinic partners.
+              Save 10% on products and services, capped at AED 100, with our active MedZiva promo code.
             </p>
             
             <button
@@ -53,15 +48,14 @@ export default function PromotionalBanners({
             
             {/* Promo card 1: LAB Tests */}
             <div 
-              onClick={onLabClick}
-              className="bg-white/10 hover:bg-white/15 border border-white/15 rounded-2xl p-4 flex items-center justify-between gap-3 cursor-pointer transition-all hover:scale-102 group relative overflow-hidden"
+              className="bg-white/10 border border-white/15 rounded-2xl p-4 flex items-center justify-between gap-3 group relative overflow-hidden"
             >
               <div className="space-y-1 z-10">
                 <span className="text-[10px] text-teal-300 font-extrabold tracking-wider block uppercase">
-                  LAB Tests
+                  Lab Tests
                 </span>
                 <h4 className="text-sm font-bold text-white leading-tight">
-                  Up to 30%
+                  10%
                 </h4>
                 <span className="text-[10px] bg-teal-400/20 text-teal-300 font-bold px-1.5 py-0.5 rounded tracking-wide uppercase">
                   OFF
@@ -71,25 +65,23 @@ export default function PromotionalBanners({
               {/* Promo image alignment */}
               <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-white/20">
                 <img 
-                  src="https://images.unsplash.com/photo-1579154204601-01588f351167?auto=format&fit=crop&q=80&w=150" 
+                  src={bloodTestImage}
                   alt="Blood Vial Drawing Lab"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover"
                 />
               </div>
             </div>
 
             {/* Promo card 2: Health Packages */}
             <div 
-              onClick={onHealthPackClick}
-              className="bg-white/10 hover:bg-white/15 border border-white/15 rounded-2xl p-4 flex items-center justify-between gap-3 cursor-pointer transition-all hover:scale-102 group relative overflow-hidden"
+              className="bg-white/10 border border-white/15 rounded-2xl p-4 flex items-center justify-between gap-3 group relative overflow-hidden"
             >
               <div className="space-y-1 z-10">
                 <span className="text-[10px] text-teal-300 font-extrabold tracking-wider block uppercase">
-                  Health Packages
+                  Services
                 </span>
                 <h4 className="text-sm font-bold text-white leading-tight">
-                  Up to 25%
+                  10%
                 </h4>
                 <span className="text-[10px] bg-teal-400/20 text-teal-300 font-bold px-1.5 py-0.5 rounded tracking-wide uppercase">
                   OFF
@@ -101,7 +93,7 @@ export default function PromotionalBanners({
                 <img 
                   src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=150" 
                   alt="Smiling Nurses Consultation"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
                 />
               </div>
@@ -109,15 +101,14 @@ export default function PromotionalBanners({
 
             {/* Promo card 3: Devices for Rent */}
             <div 
-              onClick={onRentClick}
-              className="bg-white/10 hover:bg-white/15 border border-white/15 rounded-2xl p-4 flex items-center justify-between gap-3 cursor-pointer transition-all hover:scale-102 group relative overflow-hidden"
+              className="bg-white/10 border border-white/15 rounded-2xl p-4 flex items-center justify-between gap-3 group relative overflow-hidden"
             >
               <div className="space-y-1 z-10">
                 <span className="text-[10px] text-teal-300 font-extrabold tracking-wider block uppercase">
-                  Devices for Rent
+                  Products
                 </span>
                 <h4 className="text-sm font-bold text-white leading-tight">
-                  Up to 20%
+                  10%
                 </h4>
                 <span className="text-[10px] bg-teal-400/20 text-teal-300 font-bold px-1.5 py-0.5 rounded tracking-wide uppercase">
                   OFF
@@ -129,7 +120,7 @@ export default function PromotionalBanners({
                 <img 
                   src="https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=80&w=150" 
                   alt="Wheelchair Devices for Rent"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
                 />
               </div>

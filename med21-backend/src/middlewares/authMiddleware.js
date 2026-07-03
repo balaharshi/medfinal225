@@ -4,6 +4,8 @@ import { users } from '../db/schema/index.js';
 import { HttpError } from '../utils/httpError.js';
 import { verifyAccessToken } from '../utils/jwt.js';
 
+const PRIMARY_ADMIN_EMAIL = 'admin@gmail.com';
+
 export const authenticate = async (req, _res, next) => {
   try {
     const authHeader = req.headers.authorization || '';
@@ -14,7 +16,11 @@ export const authenticate = async (req, _res, next) => {
     const [user] = await db.select().from(users).where(eq(users.id, payload.sub)).limit(1);
     if (!user || !user.isActive) throw new HttpError(401, 'Invalid authentication token');
 
-    const { passwordHash, ...safeUser } = user;
+    const resolvedUser =
+      user.email === PRIMARY_ADMIN_EMAIL && user.role !== 'admin'
+        ? { ...user, role: 'admin' }
+        : user;
+    const { passwordHash, ...safeUser } = resolvedUser;
     req.user = safeUser;
     next();
   } catch (error) {

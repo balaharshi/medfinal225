@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, type SyntheticEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
@@ -34,13 +34,23 @@ import {
   ArrowUpRight, 
   Award, 
   Copy,
+  Clock,
   ChevronDown,
-  MessageCircle
+  MessageCircle,
+  Eye
 } from 'lucide-react';
 
 // Static Data and Types
-import { SERVICE_CATEGORIES, PRODUCTS, HEALTHCARE_SERVICES, DUBAI_LOCATIONS } from './data';
-import { ActiveTab, CartItem, Product, HealthcareService } from './types';
+import {
+  DEFAULT_HEALTHCARE_SERVICE_IMAGE,
+  SERVICE_CATEGORIES,
+  PRODUCTS,
+  HEALTHCARE_SERVICES,
+  DUBAI_LOCATIONS,
+  resolveHealthcareServiceImage,
+} from './data';
+import { ActiveTab, CartItem, Product, HealthcareService, ServiceCategory } from './types';
+import { LAB_TESTS_AT_HOME_CATEGORIES, LAB_TESTS_AT_HOME_EXPECTED_COUNTS } from '../../shared/labTestsAtHomeCatalog.js';
 
 // UI Components
 import HeaderTopBar from './components/HeaderTopBar';
@@ -59,6 +69,166 @@ import ProfileModal from './components/ProfileModal';
 import AdminDashboard from './components/AdminDashboard';
 import VendorDashboard from './components/VendorDashboard';
 import EnquiryModal from './components/EnquiryModal';
+import { subscribeToNotifications } from './services/pusherClient';
+import { checkEnbdpayStatus } from './services/enbdpay';
+import { FAQ_SECTIONS, PRIVACY_SECTIONS, TERMS_SECTIONS } from './content/legalContent';
+import { formatAedWhole } from './utils/money';
+
+const SERVICE_ROUTE_BY_SECTION_ID: Record<string, string> = {
+  'home-healthcare-section': 'nursing-care-at-home',
+  'long-term-care-section': 'long-term-specialized-care',
+  'physiotherapy-section': 'physiotherapy-at-home',
+  'doctor-on-call-section': 'doctor-on-call',
+  'speech-therapy-section': 'speech-and-language-therapy',
+  'occupational-therapy-section': 'occupational-therapy',
+  'iv-therapy-section': 'iv-therapy',
+};
+
+const SERVICE_SECTION_ID_BY_ROUTE: Record<string, string> = {
+  'nursing-care-at-home': 'home-healthcare-section',
+  'long-term-specialized-care': 'long-term-care-section',
+  'physiotherapy-at-home': 'physiotherapy-section',
+  'doctor-on-call': 'doctor-on-call-section',
+  'speech-and-language-therapy': 'speech-therapy-section',
+  'occupational-therapy': 'occupational-therapy-section',
+  'iv-therapy': 'iv-therapy-section',
+};
+
+const DEFAULT_SERVICE_ROUTE = 'nursing-care-at-home';
+
+const LAB_TESTS_AT_HOME_ROUTE_PREFIX = '/services/lab-tests-at-home';
+const LAB_TESTS_SECTION_ID_BY_ROUTE: Record<string, string> = LAB_TESTS_AT_HOME_CATEGORIES.reduce((acc, category) => {
+  acc[category.slug] = `${category.slug}-section`;
+  return acc;
+}, {} as Record<string, string>);
+const LAB_TESTS_ROUTE_BY_SECTION_ID: Record<string, string> = LAB_TESTS_AT_HOME_CATEGORIES.reduce((acc, category) => {
+  acc[`${category.slug}-section`] = category.slug;
+  return acc;
+}, {} as Record<string, string>);
+const LAB_TESTS_PAGE_COPY: Record<string, { title: string; description: string }> = LAB_TESTS_AT_HOME_CATEGORIES.reduce((acc, category) => {
+  acc[category.slug] = {
+    title: category.title,
+    description: '12 hours prior booking slots. All services will be provided in Dubai and SHJ ONLY.',
+  };
+  return acc;
+}, {} as Record<string, { title: string; description: string }>);
+const DEFAULT_LAB_TESTS_ROUTE = 'routine-blood-tests';
+
+const HOME_ADDITIONAL_HEALTHCARE_CATEGORIES = [
+  {
+    id: 'cat-long-term-care',
+    title: 'Long-Term / Specialized Care',
+    slug: 'long-term-care',
+    description: 'Long-term nursing, caregiver, companion care, and specialized home healthcare support.',
+  },
+  {
+    id: 'cat-rent-medical-equipments',
+    title: 'Rent Medical Equipments',
+    slug: 'devices-for-rent',
+    description: 'Rent certified medical equipment with weekly and monthly options for home healthcare support.',
+  },
+  {
+    id: 'cat-iv-therapy',
+    title: 'IV Therapy',
+    slug: 'iv-therapy',
+    description: 'Nurse-administered intravenous nutrient drips, energy infusions, and premium age reversal NAD+.',
+  },
+  ...LAB_TESTS_AT_HOME_CATEGORIES.map((category) => ({
+    id: `cat-lab-${category.slug}`,
+    title: category.title,
+    slug: category.slug,
+    description: 'Lab tests at home with 12 hours prior booking, available in Dubai and Sharjah.',
+  })),
+];
+
+const PRODUCT_ROUTE_BY_SECTION_ID: Record<string, string> = {
+  'rent-medical-equipments-section': 'rent-medical-equipments',
+  'buy-medical-equipments-section': 'buy-medical-equipments',
+  'supplements-section': 'supplements',
+};
+
+const PRODUCT_SECTION_ID_BY_ROUTE: Record<string, string> = {
+  'rent-medical-equipments': 'rent-medical-equipments-section',
+  'buy-medical-equipments': 'buy-medical-equipments-section',
+  'supplements': 'supplements-section',
+};
+
+const PRODUCT_CATEGORY_BY_ROUTE: Record<string, string> = {
+  'rent-medical-equipments': 'devices-for-rent',
+  'buy-medical-equipments': 'buy-medical-equipments',
+  'supplements': 'supplements',
+};
+
+const PRODUCT_PAGE_COPY: Record<string, { title: string; description: string }> = {
+  'rent-medical-equipments': {
+    title: 'Rent Medical Equipments',
+    description: 'Weekly and monthly rental options with listed security deposits. All services provided in UAE except AUH, with 12 hours prior booking.',
+  },
+  'buy-medical-equipments': {
+    title: 'Buy Medical Equipments',
+    description: 'Order certified medical equipment and home healthcare accessories delivered across the UAE.',
+  },
+  supplements: {
+    title: 'Supplements',
+    description: 'Nutrition and wellness supplements available through the MedZiva product store.',
+  },
+};
+
+const DEFAULT_PRODUCT_ROUTE = 'rent-medical-equipments';
+const IV_THERAPY_ALLOWED_IDS = new Set([
+  'srv-iv-skin-glow',
+  'srv-iv-hair-skin-nail-care',
+  'srv-iv-energy-weight-loss',
+  'srv-iv-immune-hydration-drip',
+  'srv-iv-antistress-relax',
+  'srv-iv-gut-cleanse-acne-cure',
+  'srv-iv-memory-boost',
+  'srv-iv-surgery-recovery',
+  'srv-iv-women-health-fertilty',
+  'srv-iv-men-power-drip',
+  'srv-iv-liver-detox-after-party',
+  'srv-iv-nad-100',
+  'srv-iv-nad-250',
+  'srv-iv-nad-500',
+]);
+
+const addSpacesAroundSlashes = (value?: string) =>
+  value?.replace(/\s*\/\s*/g, ' / ');
+
+const addSpacesAroundOnePlusOne = (value?: string) =>
+  value?.replace(/\s*\(1\+1\)\s*/g, ' (1+1) ');
+
+const normalizeLongTermTextSpacing = (value?: string) =>
+  addSpacesAroundOnePlusOne(addSpacesAroundSlashes(value))?.replace(/\s{2,}/g, ' ').trim();
+
+const normalizeLongTermServiceSlashSpacing = (service: HealthcareService): HealthcareService => ({
+  ...service,
+  title: normalizeLongTermTextSpacing(service.title) || service.title,
+  duration: normalizeLongTermTextSpacing(service.duration) || service.duration,
+  shortDescription: normalizeLongTermTextSpacing(service.shortDescription),
+  fullDescription: normalizeLongTermTextSpacing(service.fullDescription),
+  description: normalizeLongTermTextSpacing(service.description) || service.description,
+  preparationInstructions: normalizeLongTermTextSpacing(service.preparationInstructions),
+  whoIsItFor: normalizeLongTermTextSpacing(service.whoIsItFor),
+  availability: normalizeLongTermTextSpacing(service.availability),
+  bookingNotice: normalizeLongTermTextSpacing(service.bookingNotice),
+  remarks: normalizeLongTermTextSpacing(service.remarks),
+  who: normalizeLongTermTextSpacing(service.who),
+  prep: normalizeLongTermTextSpacing(service.prep),
+  result: normalizeLongTermTextSpacing(service.result),
+  inclusions: service.inclusions?.map((item) => normalizeLongTermTextSpacing(item) || item),
+  attributes: service.attributes?.map((attribute) => ({
+    ...attribute,
+    label:
+      typeof attribute.label === 'string'
+        ? normalizeLongTermTextSpacing(attribute.label)
+        : attribute.label,
+    value:
+      typeof attribute.value === 'string'
+        ? normalizeLongTermTextSpacing(attribute.value)
+        : attribute.value,
+  })),
+});
 
 export default function AppWrapper() {
   return (
@@ -66,6 +236,13 @@ export default function AppWrapper() {
       <Router>
         <Routes>
           <Route path="/" element={<MainApp />} />
+          <Route path="/services" element={<Navigate to={`/services/${DEFAULT_SERVICE_ROUTE}`} replace />} />
+          <Route path="/services/lab-tests-at-home" element={<Navigate to={`${LAB_TESTS_AT_HOME_ROUTE_PREFIX}/${DEFAULT_LAB_TESTS_ROUTE}`} replace />} />
+          <Route path="/services/lab-tests-at-home/:labCategorySlug" element={<MainApp />} />
+          <Route path="/services/:serviceSlug" element={<MainApp />} />
+          <Route path="/products" element={<Navigate to={`/products/${DEFAULT_PRODUCT_ROUTE}`} replace />} />
+          <Route path="/products/:productSlug" element={<MainApp />} />
+          <Route path="/payment/return" element={<PaymentReturnPage />} />
           <Route path="/admin" element={<AdminDashboardApp />} />
           <Route path="/vendor" element={<VendorDashboardApp />} />
           <Route path="*" element={<Navigate to="/" replace />} />
@@ -102,9 +279,9 @@ export default function AppWrapper() {
 
 function AdminDashboardApp() {
   const [db, setDb] = useState({
-    categories: [],
-    products: [],
-    services: []
+    categories: SERVICE_CATEGORIES as any[],
+    products: PRODUCTS as any[],
+    services: HEALTHCARE_SERVICES as any[]
   });
   const triggerToast = (msg: string) => {
     toast.success(msg);
@@ -115,20 +292,26 @@ function AdminDashboardApp() {
       const [catRes, prodRes, srvRes] = await Promise.all([
         fetch('/api/categories'),
         fetch('/api/products'),
-        fetch('/api/services')
+        fetch('/api/services/all', {
+          headers: localStorage.getItem('medziva_admin_token')
+            ? { Authorization: `Bearer ${localStorage.getItem('medziva_admin_token')}` }
+            : undefined,
+          credentials: 'include',
+        })
       ]);
 
       if (catRes.ok) {
         const categories = await catRes.json();
-        setDb(prev => ({ ...prev, categories }));
+        if (categories.length > 0) setDb(prev => ({ ...prev, categories }));
       }
       if (prodRes.ok) {
         const products = await prodRes.json();
-        setDb(prev => ({ ...prev, products }));
+        if (products.length > 0) setDb(prev => ({ ...prev, products }));
       }
       if (srvRes.ok) {
         const services = await srvRes.json();
-        setDb(prev => ({ ...prev, services }));
+        const servicesWithLocalImages = services.map(resolveHealthcareServiceImage);
+        if (servicesWithLocalImages.length > 0) setDb(prev => ({ ...prev, services: servicesWithLocalImages }));
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -158,13 +341,138 @@ function VendorDashboardApp() {
   );
 }
 
+function PaymentReturnPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [syncState, setSyncState] = useState<'idle' | 'syncing' | 'synced' | 'failed'>('idle');
+  const [syncedBookingId, setSyncedBookingId] = useState('');
+  const [liveStatus, setLiveStatus] = useState('');
+  const params = new URLSearchParams(location.search);
+  const status = params.get('responseStatus') || params.get('status') || 'PROCESSING';
+  const appUtrParam = params.get('appUtr') || '';
+  const transactionUtrParam = params.get('transactionUtr') || '';
+  const appUtr = appUtrParam || transactionUtrParam || params.get('orderId') || 'Pending reference';
+  const effectiveStatus = liveStatus || status;
+  const normalizedStatus = effectiveStatus.toUpperCase();
+  const isSuccess = ['CAPTURED', 'AUTHORIZED', 'PROCESSED', 'SUCCESS'].includes(normalizedStatus);
+  const isFailure = ['FAILED', 'DECLINED', 'REJECTED', 'ERROR', 'AUTHORIZATION_DECLINED'].includes(normalizedStatus);
+
+  useEffect(() => {
+    if (!appUtrParam && !transactionUtrParam) return;
+
+    let cancelled = false;
+    setSyncState('syncing');
+    checkEnbdpayStatus({
+      appUtr: appUtrParam || undefined,
+      transactionUtr: transactionUtrParam || undefined,
+    })
+      .then((result) => {
+        if (cancelled) return;
+        setLiveStatus(result.responseStatus || result.status || '');
+        setSyncedBookingId(result.booking?.id || '');
+        setSyncState('synced');
+      })
+      .catch((error) => {
+        console.error('Unable to sync ENBDpay status:', error);
+        if (!cancelled) setSyncState('failed');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [appUtrParam, transactionUtrParam]);
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl shadow-xl p-6 text-center space-y-5">
+        <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center ${
+          isSuccess ? 'bg-emerald-50 text-medical-green' : 'bg-amber-50 text-amber-600'
+        }`}>
+          <CheckCircle2 className="w-9 h-9" />
+        </div>
+        <div>
+          <h1 className="text-xl font-black text-blue-950">
+            {isSuccess ? 'Payment Received' : isFailure ? 'Payment Declined' : 'Payment Status Pending'}
+          </h1>
+          <p className="text-sm text-slate-500 mt-2">
+            ENBDpay returned status <span className="font-bold text-slate-800">{effectiveStatus}</span>.
+          </p>
+        </div>
+        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-left text-xs">
+          <span className="text-slate-400 font-bold uppercase tracking-wider">Reference</span>
+          <p className="text-slate-900 font-black mt-1 break-all">{appUtr}</p>
+          {syncedBookingId && (
+            <p className={`font-bold mt-2 ${isSuccess ? 'text-emerald-700' : 'text-amber-700'}`}>
+              Booking {syncedBookingId} — {isSuccess ? 'payment confirmed' : 'payment ' + (isFailure ? 'failed' : 'pending')}
+            </p>
+          )}
+          {syncState === 'syncing' && (
+            <p className="text-slate-500 font-semibold mt-2">Updating booking payment status...</p>
+          )}
+          {syncState === 'failed' && (
+            <p className="text-amber-700 font-semibold mt-2">Unable to sync payment status with booking. An admin can manually update it.</p>
+          )}
+        </div>
+        <button
+          onClick={() => navigate('/')}
+          className="w-full bg-medical-green hover:bg-emerald-600 text-white font-bold py-3 rounded-xl text-xs tracking-wider transition-all cursor-pointer"
+        >
+          RETURN TO MEDZIVA
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function MainApp() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const currentLabTestsRoute = location.pathname.startsWith(`${LAB_TESTS_AT_HOME_ROUTE_PREFIX}/`)
+    ? location.pathname.split(`${LAB_TESTS_AT_HOME_ROUTE_PREFIX}/`)[1]?.split('/')[0] || null
+    : null;
+  const currentLabTestsSectionId = currentLabTestsRoute ? LAB_TESTS_SECTION_ID_BY_ROUTE[currentLabTestsRoute] || null : null;
+  const currentServiceRoute = location.pathname.startsWith('/services/') && !location.pathname.startsWith(LAB_TESTS_AT_HOME_ROUTE_PREFIX)
+    ? location.pathname.split('/services/')[1]?.split('/')[0] || null
+    : null;
+  const currentServiceSectionId = currentServiceRoute ? SERVICE_SECTION_ID_BY_ROUTE[currentServiceRoute] || null : null;
+  const currentProductRoute = location.pathname.startsWith('/products/')
+    ? location.pathname.split('/products/')[1]?.split('/')[0] || null
+    : null;
+  const currentProductSectionId = currentProductRoute ? PRODUCT_SECTION_ID_BY_ROUTE[currentProductRoute] || null : null;
+
   // Core Platform States
-  const [activeTab, setActiveTab] = useState<ActiveTab>('home');
-  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<ActiveTab>(currentLabTestsRoute ? 'lab-tests' : currentServiceRoute ? 'services' : currentProductRoute ? 'products' : 'home');
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(currentLabTestsSectionId || currentServiceSectionId || currentProductSectionId);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState(DUBAI_LOCATIONS[0]);
+  const [searchQuery, setSearchQuery] = useState(() =>
+    typeof window !== 'undefined' ? String(localStorage.getItem('medziva_search_query') || '') : ''
+  );
+  const [searchHistory, setSearchHistory] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const savedHistory = JSON.parse(localStorage.getItem('medziva_search_history') || '[]');
+      return Array.isArray(savedHistory)
+        ? savedHistory.filter((item): item is string => typeof item === 'string')
+        : [];
+    } catch {
+      return [];
+    }
+  });
+  const [customLabSearch, setCustomLabSearch] = useState('');
+  const [labTestsAtHomeSearch, setLabTestsAtHomeSearch] = useState('');
+  const [, setDetectedLocation] = useState(DUBAI_LOCATIONS[0]);
+
+  useEffect(() => {
+    if (searchQuery) {
+      localStorage.setItem('medziva_search_query', searchQuery);
+    } else {
+      localStorage.removeItem('medziva_search_query');
+    }
+  }, [searchQuery]);
+
+  useEffect(() => {
+    localStorage.setItem('medziva_search_history', JSON.stringify(searchHistory));
+  }, [searchHistory]);
 
   // Drawer & Overlay Triggers
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -172,9 +480,6 @@ function MainApp() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
   const [showBookingSuccess, setShowBookingSuccess] = useState(false);
-  const [showBottomServicesMenu, setShowBottomServicesMenu] = useState(false);
-  const [showBottomHomeHealthcareMenu, setShowBottomHomeHealthcareMenu] = useState(false);
-  const [showBottomLabTestsMenu, setShowBottomLabTestsMenu] = useState(false);
 
   // Auto-redirect to My Bookings after 3 seconds
   useEffect(() => {
@@ -198,6 +503,27 @@ function MainApp() {
   const [loggedInUserPhone, setLoggedInUserPhone] = useState<string>('');
   const [loggedInUserAddress, setLoggedInUserAddress] = useState<string>('');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  useEffect(() => {
+    if (!loggedInUserEmail) return undefined;
+
+    return subscribeToNotifications((payload) => {
+      const message = String(payload.message || 'You have a new MedZiva notification.');
+      toast.success(message);
+    });
+  }, [loggedInUserEmail]);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setDetectedLocation(`Detected location (${coords.latitude.toFixed(3)}, ${coords.longitude.toFixed(3)})`);
+      },
+      () => undefined,
+      { enableHighAccuracy: false, maximumAge: 30 * 60 * 1000, timeout: 6000 },
+    );
+  }, []);
 
   useEffect(() => {
     localStorage.removeItem('medziva_user_name');
@@ -234,6 +560,7 @@ function MainApp() {
   // Success Feedback state variables
   const [providerApplied, setProviderApplied] = useState(false);
   const [supportSubmitted, setSupportSubmitted] = useState(false);
+  const [serviceDetails, setServiceDetails] = useState<HealthcareService | null>(null);
 
   const triggerToast = (msg: string) => {
     toast.success(msg);
@@ -254,46 +581,455 @@ function MainApp() {
   });
 
   const fetchDb = async () => {
-    // Temporarily disabled to use local data only
-    // try {
-    //   const response = await fetch('/api/db');
-    //   if (response.ok) {
-    //     const data = await response.json();
-    //     setDb({
-    //       categories: data.categories || SERVICE_CATEGORIES,
-    //       products: data.products || PRODUCTS,
-    //       services: data.services || HEALTHCARE_SERVICES
-    //     });
-    //   }
-    // } catch (e) {
-    //   console.error("Failed to load live backend database, using static fallback:", e);
-    // }
+    try {
+      const [catRes, srvRes] = await Promise.all([
+        fetch('/api/categories'),
+        fetch('/api/services'),
+      ]);
+
+      if (catRes.ok) {
+        const categories = await catRes.json();
+        if (categories.length > 0) setDb(prev => ({ ...prev, categories }));
+      }
+
+      if (srvRes.ok) {
+        const liveServices = (await srvRes.json())
+          .map(resolveHealthcareServiceImage)
+          .filter((service: any) =>
+            !(service.category === 'iv-therapy' || service.subcategory === 'iv-therapy') ||
+            IV_THERAPY_ALLOWED_IDS.has(service.id)
+          );
+        if (liveServices.length > 0) {
+          const liveIds = new Set(liveServices.map((s: any) => s.id));
+          const hasLiveIvTherapy = liveServices.some((s: any) => s.category === 'iv-therapy' || s.subcategory === 'iv-therapy');
+          setDb(prev => ({
+            ...prev,
+            services: [
+              ...prev.services.filter(s => !liveIds.has(s.id) && !(hasLiveIvTherapy && (s.category === 'iv-therapy' || s.subcategory === 'iv-therapy'))),
+              ...liveServices,
+            ],
+          }));
+        }
+      }
+    } catch (e) {
+      // API unavailable, keep static data
+    }
   };
 
   useEffect(() => {
     fetchDb();
   }, []);
 
+  useEffect(() => {
+    setSearchQuery('');
+    setCustomLabSearch('');
+    setLabTestsAtHomeSearch('');
+
+    if (currentLabTestsRoute && LAB_TESTS_SECTION_ID_BY_ROUTE[currentLabTestsRoute]) {
+      setActiveTab('lab-tests');
+      setActiveSectionId(LAB_TESTS_SECTION_ID_BY_ROUTE[currentLabTestsRoute]);
+      return;
+    }
+
+    if (currentServiceRoute && SERVICE_SECTION_ID_BY_ROUTE[currentServiceRoute]) {
+      setActiveTab('services');
+      setActiveSectionId(SERVICE_SECTION_ID_BY_ROUTE[currentServiceRoute]);
+      return;
+    }
+
+    if (currentProductRoute && PRODUCT_SECTION_ID_BY_ROUTE[currentProductRoute]) {
+      setActiveTab('products');
+      setActiveSectionId(PRODUCT_SECTION_ID_BY_ROUTE[currentProductRoute]);
+      return;
+    }
+
+    if (location.pathname === '/') {
+      setActiveSectionId(null);
+      if (activeTab === 'services' || activeTab === 'products') {
+        setActiveTab('home');
+      }
+    }
+  }, [currentLabTestsRoute, currentServiceRoute, currentProductRoute, location.pathname]);
+
   // Search filter query lookup helper
   const filteredProducts = useMemo(() => {
-    if (!searchQuery.trim()) return db.products;
-    const query = searchQuery.toLowerCase();
+    if (!String(searchQuery || '').trim()) return db.products;
+    const query = String(searchQuery || '').toLowerCase();
     return db.products.filter(
-      p => p.name.toLowerCase().includes(query) || 
-           p.subtitle.toLowerCase().includes(query) || 
-           p.brand?.toLowerCase().includes(query)
+      p => String(p.name || '').toLowerCase().includes(query) ||
+           String(p.subtitle || '').toLowerCase().includes(query) ||
+           String(p.brand || '').toLowerCase().includes(query)
     );
   }, [searchQuery, db.products]);
 
+  const displayedProducts = useMemo(() => {
+    if (!currentProductRoute) return filteredProducts;
+    const category = PRODUCT_CATEGORY_BY_ROUTE[currentProductRoute];
+    if (!category) return filteredProducts;
+    return filteredProducts.filter((product) => product.category === category || product.subcategory === currentProductRoute);
+  }, [currentProductRoute, filteredProducts]);
+
   const filteredServices = useMemo(() => {
-    if (!searchQuery.trim()) return db.services;
-    const query = searchQuery.toLowerCase();
+    if (!String(searchQuery || '').trim()) return db.services;
+    const query = String(searchQuery || '').toLowerCase();
     return db.services.filter(
-      s => s.title.toLowerCase().includes(query) || 
-           s.description.toLowerCase().includes(query) || 
-           s.category.toLowerCase().includes(query)
+      s => String(s.title || '').toLowerCase().includes(query) ||
+           String(s.description || '').toLowerCase().includes(query) ||
+           String(s.shortDescription || '').toLowerCase().includes(query) ||
+           String(s.category || '').toLowerCase().includes(query) ||
+           String(s.subcategory || '').toLowerCase().includes(query)
     );
   }, [searchQuery, db.services]);
+
+  const homeHealthcareCategories = useMemo(() => {
+    const categoriesBySlug = new Map<string, ServiceCategory>(
+      SERVICE_CATEGORIES.map((category) => [category.slug, category as ServiceCategory]),
+    );
+
+    db.categories
+      .filter((category) => category.slug !== 'service')
+      .forEach((category) => {
+        const existing = categoriesBySlug.get(category.slug);
+        categoriesBySlug.set(category.slug, {
+          ...(category as ServiceCategory),
+          image: existing?.image || (category as ServiceCategory).image || '',
+        } as ServiceCategory);
+      });
+
+    HOME_ADDITIONAL_HEALTHCARE_CATEGORIES.forEach((category) => {
+      const existingCategory = categoriesBySlug.get(category.slug);
+      const matchingService = db.services.find(
+        (service) => service.category === category.slug || service.subcategory === category.slug,
+      );
+
+      categoriesBySlug.set(category.slug, {
+        ...existingCategory,
+        ...category,
+        image:
+          existingCategory?.image ||
+          matchingService?.image ||
+          'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&q=80&w=400',
+      });
+    });
+
+    return Array.from(categoriesBySlug.values());
+  }, [db.categories, db.services]);
+
+  const homeHealthcareServices = useMemo<HealthcareService[]>(() => {
+    const normalizedServices = db.services.map((service) =>
+      service.category === 'long-term-care' || service.subcategory === 'long-term-care'
+        ? normalizeLongTermServiceSlashSpacing(service)
+        : service,
+    );
+    const rentalEquipment = db.products
+      .filter(
+        (product) =>
+          product.category === 'devices-for-rent' ||
+          product.subcategory === 'rent-medical-equipments',
+      )
+      .map((product) => ({
+        id: product.id,
+        title: product.name,
+        category: 'devices-for-rent',
+        subcategory: 'rent-medical-equipments',
+        price: product.price,
+        originalPrice: product.originalPrice,
+        duration: 'Weekly / Monthly Rental',
+        image: product.image,
+        description: product.description || product.subtitle,
+        shortDescription: product.subtitle,
+        popular: false,
+        bookingNotice: '12 hours prior booking',
+        remarks: 'Available across the UAE except Abu Dhabi.',
+        attributes: product.attributes,
+        vendorPrices: product.vendorPrices,
+      }));
+
+    const serviceIds = new Set(normalizedServices.map((service) => service.id));
+    return [
+      ...normalizedServices,
+      ...rentalEquipment.filter((product) => !serviceIds.has(product.id)),
+    ];
+  }, [db.products, db.services]);
+
+  const nursingServices = useMemo(
+    () => filteredServices.filter((srv) => srv.category === 'home-healthcare'),
+    [filteredServices],
+  );
+  const placeVentillatorCareAfterLessThan12Hours = (services: HealthcareService[]) => {
+    const itemId = 'srv-longterm-dha-ventillator-trach-peg-24-hours-30-days';
+    const afterId = 'srv-longterm-dha-nurse-less-than-12-hours-per-day';
+    const itemIndex = services.findIndex((srv) => srv.id === itemId);
+    const afterIndex = services.findIndex((srv) => srv.id === afterId);
+    if (itemIndex === -1 || afterIndex === -1) return services;
+
+    const nextServices = [...services];
+    const [item] = nextServices.splice(itemIndex, 1);
+    const nextAfterIndex = nextServices.findIndex((srv) => srv.id === afterId);
+    nextServices.splice(nextAfterIndex + 1, 0, item);
+    return nextServices;
+  };
+  const longTermServices = useMemo(
+    () =>
+      placeVentillatorCareAfterLessThan12Hours(
+        filteredServices
+          .filter((srv) => srv.category === 'long-term-care' || srv.subcategory === 'long-term-care')
+          .map(normalizeLongTermServiceSlashSpacing),
+      ),
+    [filteredServices],
+  );
+  const physioServices = useMemo(
+    () => filteredServices.filter((srv) => srv.category === 'physiotherapy'),
+    [filteredServices],
+  );
+  const doctorServices = useMemo(
+    () => filteredServices.filter((srv) => srv.category === 'doctor-on-call'),
+    [filteredServices],
+  );
+  const speechServices = useMemo(
+    () => filteredServices.filter((srv) => srv.category === 'speech-therapy'),
+    [filteredServices],
+  );
+  const occupationalServices = useMemo(
+    () => filteredServices.filter((srv) => srv.category === 'occupational-therapy'),
+    [filteredServices],
+  );
+  const ivServices = useMemo(
+    () => filteredServices.filter((srv) => srv.category === 'iv-therapy' || srv.subcategory === 'iv-therapy'),
+    [filteredServices],
+  );
+  const displayedLabServices = useMemo(() => {
+    if (activeSectionId === 'customize-lab-package-section') {
+      const labServices = db.services.filter((service) => service.category === 'lab-tests');
+      const customizeServices = labServices.filter((service) => service.subcategory === 'customize-lab-package');
+      const query = customLabSearch.trim().toLowerCase();
+      if (!query) return customizeServices;
+      return customizeServices.filter((service) => {
+        const testCode = service.attributes?.find((item: any) => item.label === 'Test Code')?.value || '';
+        return (
+          String(service.title || '').toLowerCase().includes(query) ||
+          String(service.description || '').toLowerCase().includes(query) ||
+          String(testCode).toLowerCase().includes(query)
+        );
+      });
+    }
+    if (!currentLabTestsRoute) return [];
+    const categoryServices = db.services.filter((service) => service.category === 'lab-tests-at-home' && service.subcategory === currentLabTestsRoute);
+    const query = labTestsAtHomeSearch.trim().toLowerCase();
+    if (!query) return categoryServices;
+
+    return categoryServices.filter((service) => {
+      const attributeText = (service.attributes || [])
+        .map((item: any) => `${item.label || ''} ${item.value || ''}`)
+        .join(' ');
+      return (
+        String(service.title || '').toLowerCase().includes(query) ||
+        String(service.description || '').toLowerCase().includes(query) ||
+        attributeText.toLowerCase().includes(query)
+      );
+    });
+  }, [activeSectionId, currentLabTestsRoute, customLabSearch, labTestsAtHomeSearch, db.services]);
+
+  const getServiceAttributeValue = (srv: HealthcareService, label: string) => {
+    const attributes = srv.attributes;
+    if (Array.isArray(attributes)) {
+      return attributes.find((item: any) => item.label === label)?.value;
+    }
+
+    if (attributes && typeof attributes === 'object') {
+      const key = label
+        .replace(/[^a-zA-Z0-9]+(.)/g, (_, char) => char.toUpperCase())
+        .replace(/^[A-Z]/, (char) => char.toLowerCase());
+      const snakeKey = label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+      return (attributes as Record<string, any>)[key] || (attributes as Record<string, any>)[snakeKey] || (attributes as Record<string, any>)[label];
+    }
+
+    return undefined;
+  };
+
+  const isIvTherapyService = (srv: HealthcareService) =>
+    srv.category === 'iv-therapy' || srv.subcategory === 'iv-therapy';
+
+  const getVendorPriceValue = (srv: HealthcareService, vendorName: string) => {
+    const vendorPrices = srv.vendorPrices;
+    if (Array.isArray(vendorPrices)) {
+      return vendorPrices.find((item: any) => item.vendorName === vendorName)?.price;
+    }
+
+    if (vendorPrices && typeof vendorPrices === 'object') {
+      return (vendorPrices as Record<string, any>)[vendorName];
+    }
+
+    return undefined;
+  };
+
+  const formatVendorPriceValue = (value: number | string | null | undefined) => {
+    if (value === null || value === undefined || value === '') return undefined;
+    return `AED ${formatAedWhole(value)}`;
+  };
+
+  const getVisibleServiceDetailAttributes = (srv: HealthcareService) =>
+    (isIvTherapyService(srv)
+      ? [
+          [
+            'Doctor Plus Home Healthcare',
+            formatVendorPriceValue(getVendorPriceValue(srv, 'Doctor Plus Home Healthcare')),
+          ],
+          ['Pegasus', formatVendorPriceValue(getVendorPriceValue(srv, 'Pegasus'))],
+        ]
+      : []
+    ).concat([
+      ['Key Ingredients', getServiceAttributeValue(srv, 'Key Ingredients')],
+      ['Clinical Benefits', getServiceAttributeValue(srv, 'Clinical Benefits')],
+      ['Disclaimer', getServiceAttributeValue(srv, 'Disclaimer')],
+    ]).filter(([, value]) => value);
+
+  const getVisibleLabAttributes = (srv: HealthcareService) =>
+    (srv.attributes || []).filter((item: any) =>
+      !['Excel Row', 'Category', 'Collection', 'Coverage'].includes(item.label) && item.value,
+    );
+
+  const fitWithinImageHolderServiceIds = new Set([
+    'srv-lab-home-male-infertility-profile',
+    'srv-lab-home-pregnancy-profile',
+  ]);
+
+  const getServiceImageClassName = (srv: HealthcareService) =>
+    fitWithinImageHolderServiceIds.has(srv.id)
+      ? 'w-full h-full object-contain bg-white p-2'
+      : 'w-full h-full object-cover';
+
+  const getServiceImage = (srv: HealthcareService) =>
+    resolveHealthcareServiceImage(srv).image || DEFAULT_HEALTHCARE_SERVICE_IMAGE;
+
+  const handleServiceImageError = (event: SyntheticEvent<HTMLImageElement>, srv: HealthcareService) => {
+    const image = event.currentTarget;
+    const fallback = getServiceImage(srv);
+    if (image.src.endsWith(fallback) || image.dataset.fallbackApplied === 'true') {
+      image.src = DEFAULT_HEALTHCARE_SERVICE_IMAGE;
+      return;
+    }
+    image.dataset.fallbackApplied = 'true';
+    image.src = fallback;
+  };
+
+  const renderServiceCard = (srv: HealthcareService) => (
+    <div
+      key={srv.id}
+      className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between scroll-mt-32"
+    >
+      <div>
+        <div className="h-44 w-full flex items-center justify-center rounded-2xl overflow-hidden mb-4 bg-slate-50 relative">
+          <img
+            src={getServiceImage(srv)}
+            alt={srv.title}
+            className={getServiceImageClassName(srv)}
+            referrerPolicy="no-referrer"
+            onError={(event) => handleServiceImageError(event, srv)}
+          />
+          {srv.popular && (
+            <span className="absolute top-3 left-3 bg-amber-500 text-white text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider shadow">
+              Popular
+            </span>
+          )}
+          {srv.enquiryOnly && (
+            <span className="absolute top-3 right-3 bg-slate-900 text-white text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider shadow">
+              Enquiry
+            </span>
+          )}
+        </div>
+        <h3 className="text-base font-extrabold text-blue-950 mt-0.5 leading-snug line-clamp-2">{srv.title}</h3>
+        <p className="text-xs text-slate-500 mt-2 mb-4 line-clamp-3 min-h-[48px]">{srv.shortDescription || srv.description}</p>
+        <button
+          type="button"
+          onClick={() => setServiceDetails(srv)}
+          className="mb-3 inline-flex items-center gap-1.5 text-xs font-extrabold text-medical-green hover:text-emerald-700 hover:underline cursor-pointer"
+        >
+          <Eye className="w-3.5 h-3.5" />
+          <span>View Details</span>
+        </button>
+        {(srv.bookingNotice || srv.remarks) && (
+          <div className="space-y-1 mb-3">
+            {srv.bookingNotice && (
+              <div className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-full">
+                <Clock className="w-3 h-3" />
+                <span>{srv.bookingNotice}</span>
+              </div>
+            )}
+            {srv.remarks && (
+              <div className="text-[10px] text-amber-700 font-semibold">{srv.remarks}</div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="pt-3 border-t border-slate-100 flex flex-col gap-3">
+        <div className="flex items-baseline gap-2 justify-start">
+          {srv.price > 0 ? (
+            <>
+              <span className="text-xs text-slate-400 font-extrabold uppercase leading-none">AED</span>
+              <span className="text-xl font-black text-medical-green">{formatAedWhole(srv.price)}</span>
+            </>
+          ) : (
+            <span className="text-sm font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">Enquiry Only</span>
+          )}
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleAddToCart(srv)}
+            className="flex-1 py-3 px-4 bg-medical-blue hover:bg-blue-900 active:scale-95 text-white font-black text-xs rounded-xl tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
+          >
+            <ShoppingCart className="w-4 h-4" />
+            <span>Add to Cart</span>
+          </button>
+          {!srv.enquiryOnly && srv.price > 0 && (
+            <button
+              onClick={() => triggerServiceBooking(srv.title, srv.price)}
+              className="flex-1 py-3 px-4 bg-medical-green hover:bg-emerald-600 active:scale-95 text-white font-black text-xs rounded-xl tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
+            >
+              <CalendarClock className="w-4 h-4" />
+              <span>BOOK NOW</span>
+            </button>
+          )}
+          {srv.enquiryOnly && (
+            <button
+              onClick={() => triggerServiceEnquiry(srv.title)}
+              className="flex-1 py-3 px-4 bg-orange-500 hover:bg-orange-600 active:scale-95 text-white font-black text-xs rounded-xl tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>ENQUIRE</span>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderServiceGroup = (
+    sectionId: string,
+    label: string,
+    title: string,
+    description: string,
+    items: HealthcareService[],
+  ) => (
+    <section id={sectionId} className="mb-12 scroll-mt-32">
+      <div className="border-b border-slate-100 pb-4 mb-6">
+        <h2 className="text-2xl font-black text-blue-950">{title}</h2>
+        <p className="text-slate-500 text-sm mt-1 max-w-2xl">{description}</p>
+      </div>
+
+      {items.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {items.map((srv) => renderServiceCard(srv))}
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-8 text-sm text-slate-500">
+          No services available in this section.
+        </div>
+      )}
+    </section>
+  );
 
   // Cart Interactions
   const handleAddToCart = (product: Product | HealthcareService) => {
@@ -355,14 +1091,54 @@ function MainApp() {
 
   // Switch tab trigger & optional in-page section scroll.
   const handleTabChange = (tab: ActiveTab, sectionId?: string) => {
-    setShowBottomServicesMenu(false);
-    setShowBottomHomeHealthcareMenu(false);
-    setShowBottomLabTestsMenu(false);
+    if (tab === 'services') {
+      const targetSectionId = sectionId || 'home-healthcare-section';
+      const targetRoute = SERVICE_ROUTE_BY_SECTION_ID[targetSectionId] || DEFAULT_SERVICE_ROUTE;
+      setActiveTab('services');
+      setActiveSectionId(targetSectionId);
+      navigate(`/services/${targetRoute}`);
+      return;
+    }
+
+    if (tab === 'products') {
+      const targetSectionId = sectionId || 'rent-medical-equipments-section';
+      const targetRoute = PRODUCT_ROUTE_BY_SECTION_ID[targetSectionId] || DEFAULT_PRODUCT_ROUTE;
+      setActiveTab('products');
+      setActiveSectionId(targetSectionId);
+      navigate(`/products/${targetRoute}`);
+      return;
+    }
+
+    if (tab === 'lab-tests' || tab === 'health-packages') {
+      if (sectionId === 'customize-lab-package-section') {
+        setActiveTab('lab-tests');
+        setActiveSectionId(sectionId);
+        navigate('/');
+        window.setTimeout(() => {
+          const section = document.getElementById(sectionId);
+          if (section) {
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 80);
+        return;
+      }
+
+      const targetSectionId = sectionId || 'routine-blood-tests-section';
+      const targetRoute = LAB_TESTS_ROUTE_BY_SECTION_ID[targetSectionId] || DEFAULT_LAB_TESTS_ROUTE;
+      setActiveTab('lab-tests');
+      setActiveSectionId(targetSectionId);
+      navigate(`${LAB_TESTS_AT_HOME_ROUTE_PREFIX}/${targetRoute}`);
+      return;
+    }
+
     setActiveTab(tab);
     setActiveSectionId(sectionId || null);
+    navigate('/');
 
     if (!sectionId) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      });
       return;
     }
 
@@ -373,6 +1149,64 @@ function MainApp() {
       }
     }, 80);
   };
+
+  const handleGlobalSearch = (submittedQuery: string) => {
+    const normalizedSearch = submittedQuery.trim();
+    const query = normalizedSearch.toLowerCase();
+    if (!query) {
+      triggerToast('Enter a search term.');
+      return;
+    }
+
+    setSearchQuery(normalizedSearch);
+    setSearchHistory((current) => [
+      normalizedSearch,
+      ...current.filter((item) => typeof item === 'string' && item.toLowerCase() !== query),
+    ].slice(0, 8));
+
+    setActiveTab('search-results');
+    setActiveSectionId(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const searchResults = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return { services: [], products: [], customLabs: [] };
+
+    const matchService = (s: any) => {
+      const title = String(s.title || '').toLowerCase();
+      const desc = String(s.description || '').toLowerCase();
+      const shortDesc = String(s.shortDescription || '').toLowerCase();
+      const testCode = (s.attributes || []).find((a: any) => a.label === 'Test Code')?.value || '';
+      const includedTests = (s.attributes || []).find((a: any) => /include|test|parameter|marker/i.test(a.label))?.value || '';
+      return (
+        title.includes(query) ||
+        desc.includes(query) ||
+        shortDesc.includes(query) ||
+        String(testCode).toLowerCase().includes(query) ||
+        String(includedTests).toLowerCase().includes(query)
+      );
+    };
+
+    const matchProduct = (p: any) => {
+      return (
+        String(p.name || '').toLowerCase().includes(query) ||
+        String(p.subtitle || '').toLowerCase().includes(query) ||
+        String(p.description || '').toLowerCase().includes(query) ||
+        String(p.brand || '').toLowerCase().includes(query)
+      );
+    };
+
+    const allMatching = db.services.filter(matchService);
+    const customLabs = allMatching.filter((s: any) => s.category === 'lab-tests' && s.subcategory === 'customize-lab-package');
+    const services = allMatching.filter((s: any) => !(s.category === 'lab-tests' && s.subcategory === 'customize-lab-package'));
+
+    return {
+      services,
+      products: db.products.filter(matchProduct),
+      customLabs,
+    };
+  }, [searchQuery, db.services, db.products]);
 
   // Copy offer coupons text
   const copyCouponCode = (code: string) => {
@@ -405,15 +1239,14 @@ function MainApp() {
         }}
         onAuthOpen={() => setIsAuthOpen(true)}
         onProfileOpen={() => setIsProfileOpen(true)}
-        selectedLocation={selectedLocation}
-        onSelectLocation={setSelectedLocation}
         searchQuery={searchQuery}
-        onSearchQueryChange={(query) => {
-          setSearchQuery(query);
-          // Auto route to appropriate listing view if search begins
-          if (query.trim().length > 0 && activeTab === 'home') {
-            setActiveTab('products');
-          }
+        onSearchQueryChange={setSearchQuery}
+        onSearchSubmit={handleGlobalSearch}
+        searchHistory={searchHistory}
+        onClearSearchHistory={() => {
+          setSearchHistory([]);
+          localStorage.removeItem('medziva_search_history');
+          localStorage.removeItem('medziva_search_query');
         }}
         onTabChange={handleTabChange}
         activeTab={activeTab}
@@ -445,6 +1278,188 @@ function MainApp() {
       {/* 4. Display Core layouts based on dynamic state ActiveTab */}
       <main className="flex-grow">
         
+        {activeTab === 'search-results' && (
+          <div className="max-w-7xl mx-auto py-10 px-4 page-section">
+            <div className="border-b border-slate-100 pb-5 mb-8">
+              <span className="text-medical-green text-xs font-bold uppercase tracking-widest block mb-1">Search Results</span>
+              <h1 className="text-3xl font-black text-blue-950">
+                {searchResults.services.length + searchResults.products.length + searchResults.customLabs.length} results for "{searchQuery}"
+              </h1>
+            </div>
+
+            {searchResults.services.length === 0 && searchResults.products.length === 0 && searchResults.customLabs.length === 0 ? (
+              <div className="text-center py-20 bg-white border border-slate-100 rounded-2xl">
+                <p className="text-slate-400 text-sm font-medium">No results found for "{searchQuery}".</p>
+                <button
+                  onClick={() => { setSearchQuery(''); setActiveTab('home'); }}
+                  className="bg-medical-green text-white text-xs font-bold py-2.5 px-6 rounded-xl mt-3 hover:bg-emerald-600 cursor-pointer"
+                >
+                  Back to Home
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-10">
+                {searchResults.services.length > 0 && (
+                  <div>
+                    <h2 className="text-lg font-bold text-blue-950 mb-4">Services ({searchResults.services.length})</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {searchResults.services.map((srv) => {
+                        const isAdded = cart.some((item) => item.product.id === srv.id);
+                        const testCode = srv.attributes?.find((item: any) => item.label === 'Test Code')?.value;
+                        return (
+                          <div
+                            key={srv.id}
+                            className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs"
+                          >
+                            {srv.image && (
+                              <div className="h-36 w-full rounded-xl overflow-hidden mb-3 bg-slate-50/50">
+                                <img
+                                  src={getServiceImage(srv)}
+                                  alt={srv.title}
+                                  className="h-full w-full object-cover"
+                                  referrerPolicy="no-referrer"
+                                  onError={(event) => handleServiceImageError(event, srv)}
+                                />
+                              </div>
+                            )}
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                {srv.popular && (
+                                  <span className="inline-block bg-amber-500 text-white text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-wider shadow mb-1.5">
+                                    Popular
+                                  </span>
+                                )}
+                                <h3 className="text-sm font-extrabold text-blue-950 leading-snug line-clamp-2">{srv.title}</h3>
+                                <div className="flex flex-wrap items-center gap-1.5 mt-1 text-xs">
+                                  <span className="text-medical-green font-black">AED {formatAedWhole(srv.price)}</span>
+                                  {srv.duration && <span className="text-slate-400 font-semibold">{srv.duration}</span>}
+                                </div>
+                                {testCode && (
+                                  <p className="text-[11px] text-slate-500 mt-1 line-clamp-1">{testCode}</p>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleAddToCart(srv)}
+                                className={`shrink-0 rounded-xl px-3 py-2 text-[11px] font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                                  isAdded
+                                    ? 'bg-emerald-50 text-medical-green border border-emerald-200'
+                                    : 'bg-medical-blue text-white hover:bg-blue-900'
+                                }`}
+                              >
+                                <ShoppingCart className="w-3.5 h-3.5" />
+                                <span>{isAdded ? 'Added' : 'Add to Cart'}</span>
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {searchResults.products.length > 0 && (
+                  <div>
+                    <h2 className="text-lg font-bold text-blue-950 mb-4">Products ({searchResults.products.length})</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                      {searchResults.products.map((prod) => (
+                        <div
+                          key={prod.id}
+                          className="bg-white rounded-3xl border border-slate-200/80 p-4 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between"
+                        >
+                          <div>
+                            <div className="h-44 w-full flex items-center justify-center rounded-2xl overflow-hidden mb-4 bg-slate-50/50 relative">
+                              <img
+                                src={prod.image}
+                                alt={prod.name}
+                                className={prod.subcategory === 'rent-medical-equipments' || prod.subcategory === 'buy-medical-equipments' || prod.subcategory === 'supplements' ? 'h-full w-full rounded-2xl object-cover' : 'max-h-36 max-w-full object-contain mix-blend-multiply'}
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
+                            <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+                              {prod.brand || 'MedZiva Store'}
+                            </span>
+                            <h3 className="text-sm font-extrabold text-blue-950 mt-0.5 leading-snug line-clamp-1">{prod.name}</h3>
+                            <p className="text-xs text-slate-500 mt-1 mb-4 line-clamp-2 min-h-[32px]">{prod.subtitle}</p>
+                          </div>
+                          <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-sm font-black text-medical-green">AED {formatAedWhole(prod.price)}</span>
+                              </div>
+                              {prod.subcategory !== 'rent-medical-equipments' && <span className="text-[9px] text-slate-400 leading-none mt-1 font-semibold">Free Express Shipping available</span>}
+                            </div>
+                            <button
+                              onClick={() => handleAddToCart(prod)}
+                              className="bg-medical-green hover:bg-emerald-600 active:scale-95 p-2.5 text-white rounded-xl transition-all cursor-pointer shadow-2xs flex items-center justify-center"
+                              title="Add to Cart"
+                            >
+                              <ShoppingCart className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {searchResults.customLabs.length > 0 && (
+                  <div>
+                    <h2 className="text-lg font-bold text-blue-950 mb-4">Create Your Own Package ({searchResults.customLabs.length})</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {searchResults.customLabs.map((srv) => {
+                        const isAdded = cart.some((item) => item.product.id === srv.id);
+                        const testCode = srv.attributes?.find((item: any) => item.label === 'Test Code')?.value;
+                        return (
+                          <div
+                            key={srv.id}
+                            className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs"
+                          >
+                            {srv.image && (
+                              <div className="h-28 w-full rounded-xl overflow-hidden mb-3 bg-slate-50/50">
+                                <img
+                                  src={getServiceImage(srv)}
+                                  alt={srv.title}
+                                  className="h-full w-full object-cover"
+                                  referrerPolicy="no-referrer"
+                                  onError={(event) => handleServiceImageError(event, srv)}
+                                />
+                              </div>
+                            )}
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <h3 className="text-sm font-extrabold text-blue-950 leading-snug line-clamp-2">{srv.title}</h3>
+                                <div className="flex flex-wrap items-center gap-1.5 mt-1 text-xs">
+                                  <span className="text-medical-green font-black">AED {formatAedWhole(srv.price)}</span>
+                                </div>
+                                {testCode && (
+                                  <p className="text-[11px] text-slate-500 mt-1 line-clamp-1">{testCode}</p>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleAddToCart(srv)}
+                                className={`shrink-0 rounded-xl px-3 py-2 text-[11px] font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                                  isAdded
+                                    ? 'bg-emerald-50 text-medical-green border border-emerald-200'
+                                    : 'bg-medical-blue text-white hover:bg-blue-900'
+                                }`}
+                              >
+                                <ShoppingCart className="w-3.5 h-3.5" />
+                                <span>{isAdded ? 'Added' : 'Add to Cart'}</span>
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {activeTab === 'home' && (
           <motion.div 
             initial={{ opacity: 0 }}
@@ -452,26 +1467,35 @@ function MainApp() {
             exit={{ opacity: 0 }}
             className="space-y-0"
           >
-            {/* Hero Banner Grid */}
-            <HeroSection 
-              onBookServiceClick={() => {
-                if (!loggedInUser) {
-                  triggerToast('Please log in with your customer account first to proceed with booking.');
-                  setIsAuthOpen(true);
-                  return;
-                }
-                setPreselectedServiceTitle('');
-                setPreselectedPrice(0);
-                setIsBookingOpen(true);
-              }}
-              onExploreProductsClick={() => handleTabChange('products')}
-            />
+            {/* Hero Banner */}
+            <section className="relative w-full">
+              <img
+                src="/b23.png"
+                alt="Complete Healthcare Anytime Anywhere"
+                className="w-full h-auto object-cover"
+              />
+              <div className="absolute bottom-[12%] left-[4%] flex gap-3 sm:gap-4">
+                <button
+                  onClick={() => handleTabChange('services')}
+                  className="bg-medical-green hover:bg-emerald-600 text-white font-bold text-xs sm:text-sm py-2.5 sm:py-3 px-5 sm:px-6 rounded-xl cursor-pointer transition-all active:scale-95 shadow-lg flex items-center gap-2"
+                >
+                  Book a Service <ArrowUpRight className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleTabChange('products')}
+                  className="bg-white hover:bg-slate-50 text-blue-900 font-bold text-xs sm:text-sm py-2.5 sm:py-3 px-5 sm:px-6 rounded-xl cursor-pointer transition-all active:scale-95 shadow-lg border border-slate-200 flex items-center gap-2"
+                >
+                  Explore Products <ArrowUpRight className="w-4 h-4" />
+                </button>
+              </div>
+            </section>
 
             {/* Popular Healthcare Services carousel */}
             <ProductsSection 
               onServiceSelect={triggerServiceBooking}
               onServiceEnquire={triggerServiceEnquiry}
               onAddToCart={handleAddToCart}
+              onViewDetails={setServiceDetails}
               onExploreMore={() => handleTabChange('services')}
               servicesList={db.services.filter(s => s.popular)}
             />
@@ -482,17 +1506,16 @@ function MainApp() {
               onServiceEnquire={triggerServiceEnquiry}
               onAddToCart={handleAddToCart}
               onExploreMore={() => handleTabChange('services')}
-              categoriesList={db.categories}
-              servicesList={db.services}
+              categoriesList={homeHealthcareCategories}
+              servicesList={homeHealthcareServices}
               overlapHero={false}
             />
 
             {/* Popular Products section */}
-            <section className="bg-white py-12 px-4 border-b border-slate-100">
+            <section className="bg-white py-6 px-4 border-b border-slate-100">
               <div className="max-w-7xl mx-auto">
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center justify-between mb-4">
                   <div className="text-left">
-                    <div className="h-5 mb-1" aria-hidden="true" />
                     <h2 className="text-2xl sm:text-3xl font-extrabold text-medical-blue">
                       Popular Products
                     </h2>
@@ -514,13 +1537,18 @@ function MainApp() {
                     >
                       <div>
                         <div className="h-36 w-full flex items-center justify-center rounded-xl overflow-hidden mb-4 bg-white relative">
-                          <img src={prod.image} alt={prod.name} className="max-h-28 max-w-full object-contain mix-blend-multiply" referrerPolicy="no-referrer" />
+                          <img
+                            src={prod.image}
+                            alt={prod.name}
+                            className={prod.subcategory === 'rent-medical-equipments' || prod.subcategory === 'buy-medical-equipments' || prod.subcategory === 'supplements' ? 'h-full w-full rounded-xl object-cover' : 'max-h-28 max-w-full object-contain mix-blend-multiply'}
+                            referrerPolicy="no-referrer"
+                          />
                           <span className="absolute top-2 left-2 bg-emerald-50 border border-emerald-100 text-medical-green text-[9px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider">
                             Popular
                           </span>
                         </div>
                         <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
-                          {prod.brand || 'Medziva Store'}
+                          {prod.brand || 'MedZiva Store'}
                         </span>
                         <h3 className="text-sm font-extrabold text-blue-950 mt-0.5 leading-snug line-clamp-1">
                           {prod.name}
@@ -533,8 +1561,7 @@ function MainApp() {
                       <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                         <div className="flex flex-col">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-sm font-black text-medical-green">AED {prod.price}</span>
-                            <span className="text-[10px] font-medium text-slate-400 line-through">AED {prod.originalPrice}</span>
+                            <span className="text-sm font-black text-medical-green">AED {formatAedWhole(prod.price)}</span>
                           </div>
                           <span className="text-[9px] text-slate-400 leading-none mt-1 font-semibold">Express delivery available</span>
                         </div>
@@ -581,9 +1608,6 @@ function MainApp() {
 
             {/* Interactive Promotional Pastel Row */}
             <PromotionalBanners 
-              onHealthPackClick={() => handleTabChange('health-packages')}
-              onLabClick={() => handleTabChange('lab-tests')}
-              onRentClick={() => handleTabChange('products')}
               onOffersClick={() => handleTabChange('offers')}
             />
 
@@ -593,164 +1617,266 @@ function MainApp() {
         )}
 
         {/* Dedicated view: SERVICES catalog page */}
-        {activeTab === 'services' && (
-          <div id="home-healthcare-section" className="max-w-7xl mx-auto py-10 px-4 text-left page-section scroll-mt-32">
-            <div className="border-b border-slate-100 pb-5 mb-8">
-              <span className="text-medical-green text-xs font-bold uppercase tracking-widest block mb-1">Medziva home visits</span>
-              <h1 className="text-3xl font-black text-blue-950">At-Home Vetted Vistation Services</h1>
-              <p className="text-slate-500 text-sm mt-1 max-w-xl">
-                DHA-certified nurse visitations, home physiotherapists, elderly support providers, speech therapists, and child wellness companions available around the clock.
-              </p>
-            </div>
+        {activeTab === 'services' && currentServiceRoute && (
+          <div className="max-w-7xl mx-auto py-10 px-4 text-left page-section scroll-mt-32">
+            {currentServiceRoute === 'nursing-care-at-home' &&
+              renderServiceGroup(
+                'home-healthcare-section',
+                'Nursing Care at Home',
+                'Nursing Care at Home',
+                'Generic nurse visits, wound dressing, catheterisation, and prescription-based IV antibiotics available with AED pricing as shown.',
+                nursingServices,
+              )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredServices.map((srv, index) => {
-                const isFirstPhysiotherapy = srv.category === 'physiotherapy' && filteredServices.findIndex((item) => item.category === 'physiotherapy') === index;
-                const isFirstDoctorOnCall = srv.category === 'doctor-on-call' && filteredServices.findIndex((item) => item.category === 'doctor-on-call') === index;
-                const isFirstLongTermCare = (srv.id.includes('longterm') || srv.title.toLowerCase().includes('long-term')) && filteredServices.findIndex((item) => item.id.includes('longterm') || item.title.toLowerCase().includes('long-term')) === index;
-                const isFirstTherapyService = (srv.category === 'speech-therapy' || srv.category === 'occupational-therapy') && filteredServices.findIndex((item) => item.category === 'speech-therapy' || item.category === 'occupational-therapy') === index;
-                const isFirstIvTherapy = srv.category === 'iv-therapy' && filteredServices.findIndex((item) => item.category === 'iv-therapy') === index;
-                const sectionAnchorId =
-                  isFirstPhysiotherapy ? 'physiotherapy-section' :
-                  isFirstDoctorOnCall ? 'doctor-on-call-section' :
-                  isFirstLongTermCare ? 'long-term-care-section' :
-                  isFirstTherapyService ? 'therapy-services-section' :
-                  isFirstIvTherapy ? 'iv-therapy-section' :
-                  undefined;
-                return (
-                <div 
-                  key={srv.id} 
-                  id={sectionAnchorId}
-                  className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between scroll-mt-32"
-                >
-                  <div>
-                    <div className="relative h-44 rounded-2xl overflow-hidden mb-4 border border-slate-100">
-                      <img src={srv.image} alt={srv.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                      <span className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md text-slate-800 text-[10.5px] font-extrabold px-3 py-1 rounded-full shadow-md">
-                        ⏱️ {srv.duration}
-                      </span>
-                    </div>
+            {currentServiceRoute === 'long-term-specialized-care' &&
+              renderServiceGroup(
+                'long-term-care-section',
+                'Long-Term / Specialized Care',
+                'Long-Term / Specialized Care',
+                'Long-term nurse and caregiver deployment options for 30-day, live-in, and daily care requirements.',
+                longTermServices,
+              )}
 
-                    <h3 className="text-sm sm:text-base font-extrabold text-blue-950 line-clamp-1 mb-1">{srv.title}</h3>
-                    <span className="text-[10px] bg-sky-50 text-blue-800 font-bold tracking-wider uppercase px-2 py-0.5 rounded-md inline-block mb-3">
-                      {srv.category.replace('-', ' ')}
-                    </span>
-                    <p className="text-[13px] sm:text-xs text-slate-500 leading-relaxed font-normal mb-5">{srv.description}</p>
-                  </div>
+            {currentServiceRoute === 'physiotherapy-at-home' &&
+              renderServiceGroup(
+                'physiotherapy-section',
+                'Physiotherapy at Home',
+                'Physiotherapy at Home',
+                'At-home physio sessions and weekly treatment plans for recovery and rehab support.',
+                physioServices,
+              )}
 
-                  <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div>
-                      <span className="text-[10px] text-slate-400 font-bold block leading-none uppercase">Starts from</span>
-                      <span className="text-base font-black text-medical-green mt-1 block">AED {srv.price}</span>
-                    </div>
+            {currentServiceRoute === 'doctor-on-call' &&
+              renderServiceGroup(
+                'doctor-on-call-section',
+                'Doctor on Call',
+                'Doctor on Call',
+                'Doctor visits at home or hotel with advance booking windows as shown.',
+                doctorServices,
+              )}
 
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleAddToCart(srv)}
-                        className="bg-blue-950 hover:bg-blue-900 text-white font-bold text-xs py-3 px-4 rounded-xl cursor-pointer transition-all active:scale-95 flex-grow text-center whitespace-nowrap"
-                      >
-                        Add to Cart
-                      </button>
-                      <button
-                        onClick={() => triggerServiceBooking(srv.title, srv.price)}
-                        className="bg-medical-green hover:bg-emerald-600 text-white font-bold text-xs py-3 px-4 rounded-xl cursor-pointer transition-all active:scale-95 flex-grow text-center whitespace-nowrap"
-                      >
-                        Book Now
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                );
-              })}
-            </div>
+            {currentServiceRoute === 'speech-and-language-therapy' &&
+              renderServiceGroup(
+                'speech-therapy-section',
+                'Speech and Language Therapy',
+                'Speech and Language Therapy',
+                'Speech language therapy sessions arranged at home with advance booking.',
+                speechServices,
+              )}
+
+            {currentServiceRoute === 'occupational-therapy' &&
+              renderServiceGroup(
+                'occupational-therapy-section',
+                'Occupational Therapy',
+                'Occupational Therapy',
+                'Occupational therapy sessions arranged at home with advance booking.',
+                occupationalServices,
+              )}
+
+            {currentServiceRoute === 'iv-therapy' &&
+              renderServiceGroup(
+                'iv-therapy-section',
+                'IV Therapy',
+                'IV Therapy',
+                'IV therapy and drip packages listed in the home healthcare pricing data.',
+                ivServices,
+              )}
           </div>
         )}
 
         {/* Dedicated view: LAB TESTS page */}
         {activeTab === 'lab-tests' && (
-          <div id="lab-tests-section" className="max-w-7xl mx-auto py-10 px-4 text-left page-section scroll-mt-32">
+          <div id={currentLabTestsSectionId || 'lab-tests-section'} className="max-w-7xl mx-auto py-10 px-4 text-left page-section scroll-mt-32">
             <div id="std-sexual-health-section" className="scroll-mt-32" aria-hidden="true" />
             <div id="specialized-diagnostic-tests-section" className="scroll-mt-32" aria-hidden="true" />
             <div id="genetic-testing-section" className="scroll-mt-32" aria-hidden="true" />
+            <div id="customize-lab-package-section" className="scroll-mt-32" aria-hidden="true" />
             <div className="border-b border-slate-100 pb-5 mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div>
-                <span className="text-medical-green text-xs font-bold uppercase tracking-widest block mb-1">Accurate diagnostic reporting</span>
-                <h1 className="text-3xl font-black text-blue-950">At-Home Laboratory Diagnostics</h1>
+                {activeSectionId !== 'customize-lab-package-section' && (
+                  <span className="text-medical-green text-xs font-bold uppercase tracking-widest block mb-1">
+                    Lab Tests at Home
+                  </span>
+                )}
+                <h1 className="text-3xl font-black text-blue-950">
+                  {activeSectionId === 'customize-lab-package-section'
+                    ? 'Create your own Package'
+                    : LAB_TESTS_PAGE_COPY[currentLabTestsRoute || DEFAULT_LAB_TESTS_ROUTE]?.title || 'Lab Tests at Home'}
+                </h1>
                 <p className="text-slate-500 text-sm mt-1 max-w-xl">
-                  Save time and prevent clinic queues. Vetted care officers conduct safe blood drawings straight at your dining table, with certified reports matched in 12 hours.
+                  {activeSectionId === 'customize-lab-package-section'
+                    ? 'Choose individual lab tests with 12 hours prior booking. All services will be provided in Dubai and SHJ only.'
+                    : LAB_TESTS_PAGE_COPY[currentLabTestsRoute || DEFAULT_LAB_TESTS_ROUTE]?.description || 'Lab tests at home with 12 hours prior booking slots.'}
                 </p>
               </div>
+              {currentLabTestsRoute && (
+                <div className="relative w-full md:max-w-sm">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={labTestsAtHomeSearch}
+                    onChange={(event) => setLabTestsAtHomeSearch(event.target.value)}
+                    placeholder="Search this section"
+                    className="w-full h-12 rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-700 shadow-2xs focus:outline-hidden focus:border-medical-green"
+                  />
+                </div>
+              )}
+              {currentLabTestsRoute && (
+                <div className="bg-emerald-50 text-medical-green border border-emerald-100 rounded-xl px-4 py-3 text-xs font-black">
+                  {displayedLabServices.length} / {LAB_TESTS_AT_HOME_EXPECTED_COUNTS[currentLabTestsRoute] || displayedLabServices.length} records
+                </div>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {db.services.filter(s => s.category === 'lab-tests').map((srv, index, list) => {
-                const isFirstRoutineBloodTest = srv.subcategory === 'routine-blood-tests' && list.findIndex((item) => item.subcategory === 'routine-blood-tests') === index;
-                const labSectionAnchorId = isFirstRoutineBloodTest ? 'routine-blood-tests-section' : undefined;
-                return (
-                <div 
-                  key={srv.id} 
-                  id={labSectionAnchorId}
-                  className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between scroll-mt-32"
-                >
-                  <div>
-                    <div className="relative h-44 rounded-2xl overflow-hidden mb-4 border border-slate-100">
-                      <img src={srv.image} alt={srv.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                      <span className="absolute bottom-3 right-3 bg-red-50 text-red-600 text-[10.5px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
-                        Partner Vetted Labs
-                      </span>
-                    </div>
+            {activeSectionId === 'customize-lab-package-section' ? (
+              <>
+                <div className="flex flex-col sm:flex-row items-stretch justify-center gap-4 mb-8">
+                  <div className="relative w-full sm:max-w-xl">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      value={customLabSearch}
+                      onChange={(event) => setCustomLabSearch(event.target.value)}
+                      placeholder="Search for Tests"
+                      className="w-full h-14 rounded-xl border border-slate-300 bg-white pl-11 pr-4 text-sm text-slate-700 focus:outline-hidden focus:border-medical-green"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="h-14 px-8 rounded-xl bg-medical-green hover:bg-emerald-600 text-white text-sm font-black transition-colors cursor-pointer"
+                  >
+                    Filter
+                  </button>
+                </div>
 
-                    <h3 className="text-sm sm:text-base font-extrabold text-blue-950 line-clamp-1 mb-1">{srv.title}</h3>
-                    <p className="text-[13px] sm:text-xs text-slate-500 leading-relaxed font-normal mb-5">{srv.description}</p>
-                    {(srv.who || srv.prep || srv.result) && (
-                      <div className="space-y-2 mb-5">
-                        {srv.who && (
-                          <p className="text-[11px] text-slate-600 leading-relaxed">
-                            <span className="font-extrabold text-blue-950">Who:</span> {srv.who}
-                          </p>
-                        )}
-                        {srv.prep && (
-                          <p className="text-[11px] text-slate-600 leading-relaxed">
-                            <span className="font-extrabold text-blue-950">Prep:</span> {srv.prep}
-                          </p>
-                        )}
-                        {srv.result && (
-                          <p className="text-[11px] text-slate-600 leading-relaxed">
-                            <span className="font-extrabold text-blue-950">Result:</span> {srv.result}
-                          </p>
+                {displayedLabServices.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {displayedLabServices.map((srv) => {
+                      const isAdded = cart.some((item) => item.product.id === srv.id);
+                      const testCode = srv.attributes?.find((item: any) => item.label === 'Test Code')?.value;
+                      return (
+                        <div
+                          key={srv.id}
+                          className="bg-white rounded-2xl border border-slate-200 px-4 py-3 min-h-[92px] flex items-start justify-between gap-4 shadow-2xs"
+                        >
+                          <div className="min-w-0">
+                            {srv.popular && (
+                              <span className="inline-block bg-amber-500 text-white text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-wider shadow mb-1.5">
+                                Popular
+                              </span>
+                            )}
+                            <h3 className="text-sm font-extrabold text-blue-950 leading-snug line-clamp-2 min-h-[36px]">{srv.title}</h3>
+                            <div className="flex flex-wrap items-center gap-1.5 mt-1 text-xs">
+                              <span className="text-medical-green font-black">AED {formatAedWhole(srv.price)}</span>
+                              <span className="text-slate-400 font-semibold">1 Biomarkers</span>
+                            </div>
+                            {testCode && (
+                              <p className="text-[11px] text-slate-500 mt-1 line-clamp-1">{testCode}</p>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleAddToCart(srv)}
+                            className={`shrink-0 rounded-xl px-3 py-2 text-[11px] font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                              isAdded
+                                ? 'bg-emerald-50 text-medical-green border border-emerald-200'
+                                : 'bg-medical-blue text-white hover:bg-blue-900'
+                            }`}
+                          >
+                            <ShoppingCart className="w-3.5 h-3.5" />
+                            <span>{isAdded ? 'Added' : 'Add to Cart'}</span>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-16 bg-white border border-slate-100 rounded-2xl">
+                    <p className="text-slate-400 text-sm font-medium">No tests match your search.</p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {displayedLabServices.map((srv) => {
+                  const visibleAttributes = getVisibleLabAttributes(srv);
+                  return (
+                  <div 
+                    key={srv.id} 
+                    className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between scroll-mt-32"
+                  >
+                    <div>
+                      <div className="relative h-44 rounded-2xl overflow-hidden mb-4 border border-slate-100">
+                        <img
+                          src={getServiceImage(srv)}
+                          alt={srv.title}
+                          className={getServiceImageClassName(srv)}
+                          referrerPolicy="no-referrer"
+                          onError={(event) => handleServiceImageError(event, srv)}
+                        />
+                        {srv.popular && (
+                          <span className="absolute top-3 left-3 bg-amber-500 text-white text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider shadow">
+                            Popular
+                          </span>
                         )}
                       </div>
-                    )}
-                  </div>
 
-                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] text-slate-400 font-bold block leading-none uppercase">Inclusive sample fee</span>
-                      <span className="text-base font-black text-medical-green mt-1 block">AED {srv.price}</span>
+                      <h3 className="text-sm sm:text-base font-extrabold text-blue-950 leading-snug line-clamp-2 min-h-[40px] mb-1">{srv.title}</h3>
+                      {srv.bookingNotice && (
+                        <div className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-full mb-4">
+                          <Clock className="w-3 h-3" />
+                          <span>{srv.bookingNotice}</span>
+                        </div>
+                      )}
+                      {visibleAttributes.length > 0 && (
+                        <div className="space-y-2 mb-5">
+                          {visibleAttributes.map((item: any) => (
+                            <p key={`${srv.id}-${item.label}`} className="text-[11px] text-slate-600 leading-relaxed whitespace-pre-line">
+                              <span className="font-extrabold text-blue-950">{item.label}:</span> {item.value}
+                            </p>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
-                    <button
-                      onClick={() => triggerServiceBooking(srv.title, srv.price)}
-                      className="bg-medical-green hover:bg-emerald-600 text-white font-bold text-xs py-3 px-5 rounded-xl cursor-pointer transition-all"
-                    >
-                      Book Blood Draw
-                    </button>
+                    <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-bold block leading-none uppercase">{srv.category === 'lab-tests-at-home' ? 'Price' : 'Inclusive sample fee'}</span>
+                        <span className="text-base font-black text-medical-green mt-1 block">AED {formatAedWhole(srv.price)}</span>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleAddToCart(srv)}
+                          className="bg-medical-blue hover:bg-blue-900 text-white font-bold text-xs py-3 px-4 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-1.5"
+                        >
+                          <ShoppingCart className="w-4 h-4" />
+                          Add to Cart
+                        </button>
+                        <button
+                          onClick={() => triggerServiceBooking(srv.title, srv.price)}
+                          className="bg-medical-green hover:bg-emerald-600 text-white font-bold text-xs py-3 px-5 rounded-xl cursor-pointer transition-all"
+                        >
+                          Book Now
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
         {/* Dedicated view: PRODUCTS eCommerce Page */}
-        {activeTab === 'products' && (
-          <div id="products-page-section" className="max-w-7xl mx-auto py-10 px-4 text-left page-section scroll-mt-32">
+        {activeTab === 'products' && currentProductRoute && (
+          <div id={PRODUCT_SECTION_ID_BY_ROUTE[currentProductRoute] || 'products-page-section'} className="max-w-7xl mx-auto py-10 px-4 text-left page-section scroll-mt-32">
             <div className="border-b border-slate-100 pb-5 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
-                <h1 className="text-3xl font-black text-blue-950">Equipment Rental</h1>
+                <h1 className="text-3xl font-black text-blue-950">{PRODUCT_PAGE_COPY[currentProductRoute]?.title || 'Products'}</h1>
                 <p className="text-slate-500 text-sm mt-1 max-w-xl">
-                  Order certified blood sugar glucometers, digital thermometer readers, posture support belts, oxygenators or isolate whey proteins delivered under UAE free shipping safety.
+                  {PRODUCT_PAGE_COPY[currentProductRoute]?.description || 'Order certified healthcare products delivered under UAE free shipping safety.'}
                 </p>
               </div>
 
@@ -765,23 +1891,25 @@ function MainApp() {
             </div>
 
             {/* Grid display with real-time searches */}
-            {filteredProducts.length > 0 ? (
+            {displayedProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {filteredProducts.map((prod) => (
+                {displayedProducts.map((prod) => (
                   <div
                     key={prod.id}
                     className="bg-white rounded-3xl border border-slate-200/80 p-4 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between"
                   >
                     <div>
                       <div className="h-44 w-full flex items-center justify-center rounded-2xl overflow-hidden mb-4 bg-slate-50/50 relative">
-                        <img src={prod.image} alt={prod.name} className="max-h-36 max-w-full object-contain mix-blend-multiply" referrerPolicy="no-referrer" />
-                        <span className="absolute top-2 left-2 bg-emerald-50 border border-emerald-100 text-medical-green text-[9px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider">
-                          DHA Vetted
-                        </span>
+                        <img
+                          src={prod.image}
+                          alt={prod.name}
+                          className={prod.subcategory === 'rent-medical-equipments' || prod.subcategory === 'buy-medical-equipments' || prod.subcategory === 'supplements' ? 'h-full w-full rounded-2xl object-cover' : 'max-h-36 max-w-full object-contain mix-blend-multiply'}
+                          referrerPolicy="no-referrer"
+                        />
                       </div>
 
                       <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
-                        {prod.brand || 'Medziva Store'}
+                        {prod.brand || 'MedZiva Store'}
                       </span>
                       <h3 className="text-sm font-extrabold text-blue-950 mt-0.5 leading-snug line-clamp-1">
                         {prod.name}
@@ -789,13 +1917,18 @@ function MainApp() {
                       <p className="text-xs text-slate-500 mt-1 mb-4 line-clamp-2 min-h-[32px]">
                         {prod.subtitle}
                       </p>
+                      {prod.subcategory === 'rent-medical-equipments' && (
+                        <div className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-full mb-4">
+                          <Clock className="w-3 h-3" />
+                          <span>{prod.attributes?.find((item) => item.label === 'Booking notice')?.value}</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                       <div className="flex flex-col">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-sm font-black text-medical-green">AED {prod.price}</span>
-                          <span className="text-[10px] font-medium text-slate-400 line-through">AED {prod.originalPrice}</span>
+                          <span className="text-sm font-black text-medical-green">AED {formatAedWhole(prod.price)}</span>
                         </div>
                         <span className="text-[9px] text-slate-400 leading-none mt-1 font-semibold">Free Express Shipping available</span>
                       </div>
@@ -831,7 +1964,7 @@ function MainApp() {
             <div id="preventive-health-packages-section" className="scroll-mt-32" aria-hidden="true" />
             <div id="womens-health-packages-section" className="scroll-mt-32" aria-hidden="true" />
             <div className="border-b border-slate-100 pb-5 mb-8">
-              <span className="text-medical-green text-xs font-bold uppercase tracking-widest block mb-1">Medziva comprehensive checkups</span>
+              <span className="text-medical-green text-xs font-bold uppercase tracking-widest block mb-1">MedZiva comprehensive checkups</span>
               <h1 className="text-3xl font-black text-blue-950">Vetted At-Home Clinical Packages</h1>
               <p className="text-slate-500 text-sm mt-1 max-w-xl">
                 Full physical cardiovascular evaluations, diabetes profile bundles, endocrine screenings, and comprehensive elder care monthly subscriptions designed for optimized families.
@@ -842,7 +1975,7 @@ function MainApp() {
               {[
                 {
                   id: 'hp-premium',
-                  title: 'Medziva Platinum Comprehensive Pack',
+                  title: 'MedZiva Platinum Comprehensive Pack',
                   desc: 'Our gold standard full physical evaluation. Covers full profile lipids, diabetes checks, liver/kidney counts, heavy vitamins profile, and an at-home clinician consult.',
                   bullets: ['Complete lipid panel & HbA1c', 'Liver & kidney metrics assessment', 'Clinician visiting consult included', 'Qualified blood sample collection'],
                   price: 499,
@@ -930,9 +2063,9 @@ function MainApp() {
                     <div>
                       <span className="text-[10px] text-slate-400 font-bold block leading-none uppercase">Full package cost</span>
                       <div className="flex items-baseline gap-2 mt-1">
-                        <span className="text-base font-black text-medical-green leading-none">AED {pack.price}</span>
+                        <span className="text-base font-black text-medical-green leading-none">AED {formatAedWhole(pack.price)}</span>
                         {pack.oldPrice && (
-                          <span className="text-xs font-medium text-slate-400 line-through leading-none">AED {pack.oldPrice}</span>
+                          <span className="text-xs font-medium text-slate-400 line-through leading-none">AED {formatAedWhole(pack.oldPrice)}</span>
                         )}
                       </div>
                     </div>
@@ -955,7 +2088,7 @@ function MainApp() {
           <div className="max-w-7xl mx-auto py-10 px-4 text-left page-section">
             <div className="border-b border-slate-100 pb-5 mb-8">
               <span className="text-medical-green text-xs font-bold uppercase tracking-widest block mb-1">Elite lifestyle and fitness directory</span>
-              <h1 className="text-3xl font-black text-blue-950">Medziva Wellness &amp; Strength Coaching</h1>
+              <h1 className="text-3xl font-black text-blue-950">MedZiva Wellness &amp; Strength Coaching</h1>
               <p className="text-slate-500 text-sm mt-1 max-w-xl">
                 Certified home stretching coordinators, physical kinetic trainers, dietary nutritionists and mental wellness stress counseling designed for absolute restoration.
               </p>
@@ -969,7 +2102,18 @@ function MainApp() {
                 >
                   <div>
                     <div className="relative h-44 rounded-2xl overflow-hidden mb-4 border border-slate-100">
-                      <img src={srv.image} alt={srv.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      <img
+                        src={getServiceImage(srv)}
+                        alt={srv.title}
+                        className={getServiceImageClassName(srv)}
+                        referrerPolicy="no-referrer"
+                        onError={(event) => handleServiceImageError(event, srv)}
+                      />
+                      {srv.popular && (
+                        <span className="absolute top-3 left-3 bg-amber-500 text-white text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider shadow">
+                          Popular
+                        </span>
+                      )}
                       <span className="absolute bottom-3 right-3 bg-medical-blue text-white text-[10px] font-extrabold px-3 py-1 rounded-full">
                         ⏱️ {srv.duration}
                       </span>
@@ -979,13 +2123,13 @@ function MainApp() {
                     <span className="text-[10px] bg-emerald-50 text-emerald-800 font-bold tracking-wider uppercase px-2 py-0.5 rounded-md inline-block mb-3">
                       {srv.category.replace('-', ' ')}
                     </span>
-                    <p className="text-[13px] sm:text-xs text-slate-500 leading-relaxed font-normal mb-5">{srv.description}</p>
+                    <p className="text-[13px] sm:text-xs text-slate-500 leading-relaxed font-normal mb-5">{srv.shortDescription || srv.description}</p>
                   </div>
 
                   <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
                     <div>
                       <span className="text-[10px] text-slate-400 font-bold block leading-none uppercase">Starting from</span>
-                      <span className="text-base font-black text-medical-green mt-1 block">AED {srv.price}</span>
+                      <span className="text-base font-black text-medical-green mt-1 block">AED {formatAedWhole(srv.price)}</span>
                     </div>
 
                     <button
@@ -1005,18 +2149,16 @@ function MainApp() {
         {activeTab === 'offers' && (
           <div id="offers-section" className="max-w-7xl mx-auto py-10 px-4 text-left scroll-mt-32">
             <div className="border-b border-slate-100 pb-5 mb-8">
-              <span className="text-medical-green text-xs font-bold uppercase tracking-widest block mb-1">Medziva Wellness Campaigns</span>
-              <h1 className="text-3xl font-black text-blue-950">Active Promo Codes &amp; Coupons</h1>
+              <span className="text-medical-green text-xs font-bold uppercase tracking-widest block mb-1">MedZiva Wellness Campaigns</span>
+              <h1 className="text-3xl font-black text-blue-950">Active Promo Code</h1>
               <p className="text-slate-500 text-sm mt-1 max-w-xl">
-                Click any coupon to copy it and apply discounts during your checkout. Stay tuned to weekly health bulletins for more wellness credits.
+                Copy the code and apply it during checkout for savings on MedZiva products and services.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
-                { code: 'DXBHEALTH30', percent: '30%', text: 'Get 30% off any diagnostic lab test. Active for new customer registers.' },
-                { code: 'MEDZIVA20', percent: '20%', text: 'Get 20% off any home nursing consultation over 1 hour.' },
-                { code: 'RENTAL11', percent: '11%', text: 'Get 11% off heavy hospital-bed or wheelchair rental monthly agreements.' }
+                { code: 'MEDZIVA10', percent: '10%', text: 'Get 10% off any product or service, up to AED 100.' }
               ].map((promo, idx) => (
                 <div 
                   key={idx}
@@ -1068,11 +2210,7 @@ function MainApp() {
         {activeTab === 'providers' && (
           <div className="max-w-3xl mx-auto py-12 px-4 text-left">
             <div className="bg-medical-blue text-white p-6 sm:p-10 rounded-t-3xl text-center relative overflow-hidden">
-              <span className="text-emerald-400 text-xs font-extrabold uppercase tracking-widest block mb-1">Medziva Clinician Roster</span>
               <h1 className="text-2xl sm:text-3xl font-black">Join UAE&apos;s Premium Healthcare Network</h1>
-              <p className="text-gray-300 text-xs sm:text-sm mt-2 max-w-lg mx-auto">
-                Are you a DHA-registered nurse, licensed physiotherapist, speech therapist, or certified care agency? Partner with Medziva to connect with premium customers.
-              </p>
             </div>
 
             <div className="bg-white rounded-b-3xl border border-slate-200 border-t-0 p-6 sm:p-8 space-y-6">
@@ -1083,7 +2221,7 @@ function MainApp() {
                   </div>
                   <h4 className="font-extrabold text-medical-blue text-base">Application Dispatched Safely</h4>
                   <p className="text-xs text-slate-500 leading-normal max-w-md mx-auto">
-                    Medziva clinical partner application successfully stored. Our regulatory licensing team will reach out to you within 48 hours for verification of your DHA credentials.
+                    MedZiva clinical partner application successfully stored. Our team will contact you within 48 hours.
                   </p>
                 </div>
               ) : (
@@ -1095,11 +2233,15 @@ function MainApp() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-slate-600">Clinician First Name</label>
-                      <input type="text" placeholder="e.g. Salim" className="w-full text-xs border border-slate-200 rounded-xl p-3" />
+                      <input type="text" placeholder="e.g. Salim" required className="w-full text-xs border border-slate-200 rounded-xl p-3" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-600">DHA License Number</label>
-                      <input type="text" placeholder="e.g. DHA-LIC-12048" className="w-full text-xs border border-slate-200 rounded-xl p-3" />
+                      <label className="text-xs font-bold text-slate-600">Mobile Number</label>
+                      <input type="tel" placeholder="e.g. +971 50 123 4567" required className="w-full text-xs border border-slate-200 rounded-xl p-3" />
+                    </div>
+                    <div className="space-y-1 sm:col-span-2">
+                      <label className="text-xs font-bold text-slate-600">Email Address</label>
+                      <input type="email" placeholder="e.g. clinician@example.com" required className="w-full text-xs border border-slate-200 rounded-xl p-3" />
                     </div>
                   </div>
 
@@ -1119,7 +2261,7 @@ function MainApp() {
                     onClick={() => setProviderApplied(true)}
                     className="w-full bg-medical-green hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl text-xs tracking-wider transition-all shadow-md text-center cursor-pointer"
                   >
-                    SUBMIT PARTNER DOCUMENTATION
+                    SUBMIT
                   </button>
                 </>
               )}
@@ -1134,26 +2276,26 @@ function MainApp() {
               <span className="text-emerald-600 text-xs font-bold uppercase tracking-widest block mb-1">Help Desk</span>
               <h1 className="text-3xl font-black text-blue-950">Customer Support &amp; FAQ Center</h1>
               <p className="text-slate-500 text-sm mt-1">
-                Frequently asked queries about our home visits, order dispatches, certified DHA licenses, and money guarantee rules.
+                Answers about bookings, cancellations, payments, accounts, services, privacy, and legal matters.
               </p>
             </div>
 
-            <div className="space-y-3.5">
-              {[
-                { q: 'How long does the Medziva nurse or therapist take to arrive?', a: 'Once registered securely through the scheduling wizard, the dispatch completes on the exact date and custom hour selected. On-call providers call 15 minutes before arrival.' },
-                { q: 'Are all clinicians officially licensed in United Arab Emirates?', a: 'Yes. Every designated practitioner on the Medziva platform possesses an active registration with the Dubai Health Authority (DHA), has undergone HIPAA medical data reviews, and passed complete criminal background vetting.' },
-                { q: 'Is shipping on medical products and rentals always free?', a: 'All eCommerce purchases and rental agreements over AED 49 qualify for 100% free delivery across all residences of Dubai. For orders below, an express charge of AED 15 gets aggregated.' },
-                { q: 'How does the 30-day health guarantee work?', a: 'If any clinical equipment you purchase displays mechanical flaws or structural issues, we dispatch an officer to retrieve it and credit complete refunds within 24 working hours.' }
-              ].map((faq, idx) => (
-                <div key={idx} className="bg-white rounded-2xl border border-slate-200/70 p-5 shadow-2xs">
-                  <h4 className="text-xs sm:text-sm font-extrabold text-[#11224D] mb-2 flex items-center gap-2">
-                    <HelpCircle className="w-3.5 h-3.5 text-emerald-500" />
-                    <span>{faq.q}</span>
-                  </h4>
-                  <p className="text-xs text-slate-500 leading-relaxed pl-5 font-normal">
-                    {faq.a}
-                  </p>
-                </div>
+            <div className="space-y-8">
+              {FAQ_SECTIONS.map((section) => (
+                <section key={section.title}>
+                  <h2 className="text-lg font-black text-blue-950 mb-3">{section.title}</h2>
+                  <div className="space-y-3.5">
+                    {section.items.map((faq) => (
+                      <div key={faq.question} className="bg-white rounded-2xl border border-slate-200/70 p-5 shadow-2xs">
+                        <h3 className="text-xs sm:text-sm font-extrabold text-[#11224D] mb-2 flex items-center gap-2">
+                          <HelpCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                          <span>{faq.question}</span>
+                        </h3>
+                        <p className="text-xs text-slate-500 leading-relaxed pl-5">{faq.answer}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
               ))}
             </div>
 
@@ -1191,150 +2333,227 @@ function MainApp() {
           </div>
         )}
 
+        {activeTab === 'privacy' && (
+          <div className="max-w-4xl mx-auto py-12 px-4 text-left">
+            <div className="border-b border-slate-100 pb-5 mb-8">
+              <span className="text-emerald-600 text-xs font-bold uppercase tracking-widest block mb-1">Legal</span>
+              <h1 className="text-3xl font-black text-blue-950">Privacy Policy</h1>
+            </div>
+            <div className="space-y-6">
+              {PRIVACY_SECTIONS.map((section) => (
+                <section key={section.title} className="bg-white rounded-2xl border border-slate-200/70 p-5 sm:p-6">
+                  <h2 className="text-base font-black text-blue-950 mb-3">{section.title}</h2>
+                  <div className="space-y-3">
+                    {section.paragraphs.map((paragraph) => (
+                      <p key={paragraph} className="text-sm text-slate-600 leading-7">{paragraph}</p>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'terms' && (
+          <div className="max-w-4xl mx-auto py-12 px-4 text-left">
+            <div className="border-b border-slate-100 pb-5 mb-8">
+              <span className="text-emerald-600 text-xs font-bold uppercase tracking-widest block mb-1">Dubai, United Arab Emirates</span>
+              <h1 className="text-3xl font-black text-blue-950">Terms &amp; Conditions</h1>
+            </div>
+            <div className="space-y-5">
+              {TERMS_SECTIONS.map((section) => (
+                <section id={section.id} key={section.title} className="bg-white rounded-2xl border border-slate-200/70 p-5 sm:p-6 scroll-mt-32">
+                  <h2 className="text-base font-black text-blue-950 mb-3">{section.title}</h2>
+                  {section.paragraphs?.map((paragraph) => (
+                    <p key={paragraph} className="text-sm text-slate-600 leading-7 mb-3 last:mb-0">{paragraph}</p>
+                  ))}
+                  {section.bullets && (
+                    <ul className="list-disc pl-5 space-y-2 text-sm text-slate-600 leading-6">
+                      {section.bullets.map((item) => <li key={item}>{item}</li>)}
+                    </ul>
+                  )}
+                </section>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <AnimatePresence>
+          {serviceDetails && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-950/70 p-3 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                className="relative flex max-h-[calc(100dvh-1.5rem)] w-full max-w-xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl"
+              >
+                <button
+                  type="button"
+                  onClick={() => setServiceDetails(null)}
+                  className="absolute right-3 top-3 z-20 rounded-full bg-white p-2 text-slate-600 shadow-lg hover:text-slate-900 cursor-pointer"
+                  aria-label="Close service details"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+
+                <div className="h-44 shrink-0 bg-slate-100 sm:h-52">
+                  <img
+                    src={getServiceImage(serviceDetails)}
+                    alt={serviceDetails.title}
+                    className="h-full w-full object-cover"
+                    referrerPolicy="no-referrer"
+                    onError={(event) => handleServiceImageError(event, serviceDetails)}
+                  />
+                </div>
+
+                <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-5 sm:p-6">
+                  <div>
+                    <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-medical-green">
+                      {serviceDetails.category.replaceAll('-', ' ')}
+                    </span>
+                    <h2 className="mt-3 text-xl font-black leading-tight text-blue-950 sm:text-2xl">
+                      {serviceDetails.title}
+                    </h2>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      {serviceDetails.fullDescription || serviceDetails.description}
+                    </p>
+                  </div>
+
+                  {serviceDetails.inclusions?.length ? (
+                    <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                      <h3 className="mb-2 text-xs font-black uppercase tracking-wider text-slate-500">Included</h3>
+                      <div className="space-y-2">
+                        {serviceDetails.inclusions.map((item) => (
+                          <div key={item} className="flex items-start gap-2 text-xs text-slate-600">
+                            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-medical-green" />
+                            <span>{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {getVisibleServiceDetailAttributes(serviceDetails).length ? (
+                    <div className="space-y-3 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                      {getVisibleServiceDetailAttributes(serviceDetails).map(([label, value]) => (
+                        <div key={label}>
+                          <h3 className="mb-1 text-xs font-black uppercase tracking-wider text-slate-500">{label}</h3>
+                          <p className="whitespace-pre-line text-xs leading-5 text-slate-600">{String(value)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50 to-blue-50 p-4">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Price</p>
+                      <p className="text-2xl font-black text-medical-green">
+                        {serviceDetails.price > 0 ? `AED ${formatAedWhole(serviceDetails.price)}` : 'Enquiry Only'}
+                      </p>
+                    </div>
+                    {serviceDetails.bookingNotice && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600">
+                        <Clock className="h-3.5 w-3.5 text-medical-green" />
+                        {serviceDetails.bookingNotice}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col-reverse gap-3 sm:flex-row">
+                    <button
+                      type="button"
+                      onClick={() => setServiceDetails(null)}
+                      className="w-full rounded-xl border-2 border-slate-200 px-5 py-3 text-xs font-bold text-slate-700 hover:bg-slate-50 sm:w-32 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const selected = serviceDetails;
+                        setServiceDetails(null);
+                        if (selected.enquiryOnly || selected.price <= 0) {
+                          triggerServiceEnquiry(selected.title);
+                        } else {
+                          triggerServiceBooking(selected.title, selected.price);
+                        }
+                      }}
+                      className="flex w-full flex-1 items-center justify-center gap-2 rounded-xl bg-medical-green px-5 py-3 text-xs font-extrabold text-white hover:bg-emerald-600 cursor-pointer"
+                    >
+                      <CalendarClock className="h-4 w-4" />
+                      {serviceDetails.enquiryOnly || serviceDetails.price <= 0 ? 'ENQUIRE' : 'CONFIRM & BOOK'}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
       </main>
 
       {/* Mobile Bottom Tab Bar - Only visible on mobile */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40 px-2 py-2 safe-area-bottom bottom-nav-bar">
-        {showBottomServicesMenu && (
-          <div className="absolute left-4 right-4 bottom-full mb-2 rounded-2xl border border-slate-100 bg-white shadow-2xl overflow-hidden">
-            <button
-              onClick={() => setShowBottomHomeHealthcareMenu((current) => !current)}
-              className={`w-full flex items-center justify-between gap-3 px-4 py-3 text-left border-b border-slate-50 ${
-                activeTab === 'services' ? 'bg-teal-50 text-medical-green' : 'text-slate-600'
-              }`}
-            >
-              <span className="flex items-center gap-3">
-                <Activity className="w-4 h-4 text-medical-blue" />
-                <span className="text-xs font-bold">Home Healthcare</span>
-              </span>
-              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showBottomHomeHealthcareMenu ? 'rotate-180' : ''}`} />
-            </button>
-
-            {showBottomHomeHealthcareMenu && (
-              <div className="border-b border-slate-50 bg-slate-50/40 py-1">
-                {[
-                  { label: 'Nursing Care at Home', tab: 'services' as ActiveTab, sectionId: 'home-healthcare-section', icon: Activity },
-                  { label: 'Physiotherapy at Home', tab: 'services' as ActiveTab, sectionId: 'physiotherapy-section', icon: Activity },
-                  { label: 'Doctor on Call', tab: 'services' as ActiveTab, sectionId: 'doctor-on-call-section', icon: Activity },
-                  { label: 'Long-Term / Specialized Care', tab: 'services' as ActiveTab, sectionId: 'long-term-care-section', icon: Activity },
-                  { label: 'Therapy Services', tab: 'services' as ActiveTab, sectionId: 'therapy-services-section', icon: Activity },
-                ].map((item) => {
-                  const Icon = item.icon;
-                  const isActive = activeSectionId === item.sectionId;
-                  return (
-                    <button
-                      key={item.sectionId}
-                      onClick={() => handleTabChange(item.tab, item.sectionId)}
-                      className={`w-full flex items-center gap-3 px-6 py-2.5 text-left ${
-                        isActive ? 'text-medical-green' : 'text-slate-600'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4 text-medical-blue" />
-                      <span className="text-xs font-bold">{item.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            <button
-              onClick={() => handleTabChange('services', 'iv-therapy-section')}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-left border-b border-slate-50 ${
-                activeSectionId === 'iv-therapy-section' ? 'bg-teal-50 text-medical-green' : 'text-slate-600'
-              }`}
-            >
-              <Flame className="w-4 h-4 text-medical-blue" />
-              <span className="text-xs font-bold">IV Therapy</span>
-            </button>
-
-            <button
-              onClick={() => setShowBottomLabTestsMenu((current) => !current)}
-              className={`w-full flex items-center justify-between gap-3 px-4 py-3 text-left ${
-                activeTab === 'lab-tests' || activeTab === 'health-packages' ? 'bg-teal-50 text-medical-green' : 'text-slate-600'
-              }`}
-            >
-              <span className="flex items-center gap-3">
-                <Beaker className="w-4 h-4 text-medical-blue" />
-                <span className="text-xs font-bold">Lab Tests at Home</span>
-              </span>
-              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showBottomLabTestsMenu ? 'rotate-180' : ''}`} />
-            </button>
-
-            {showBottomLabTestsMenu && (
-              <div className="bg-slate-50/40 py-1">
-                {[
-                  { label: 'Routine Blood Tests', tab: 'lab-tests' as ActiveTab, sectionId: 'routine-blood-tests-section', icon: Beaker },
-                  { label: 'Preventive Health Packages', tab: 'health-packages' as ActiveTab, sectionId: 'preventive-health-packages-section', icon: Beaker },
-                  { label: "Men's Health Packages", tab: 'health-packages' as ActiveTab, sectionId: 'mens-health-packages-section', icon: Beaker },
-                  { label: "Women's Health Packages", tab: 'health-packages' as ActiveTab, sectionId: 'womens-health-packages-section', icon: Beaker },
-                  { label: 'STD / Sexual Health', tab: 'lab-tests' as ActiveTab, sectionId: 'std-sexual-health-section', icon: Beaker },
-                  { label: 'Specialized Diagnostic Tests', tab: 'lab-tests' as ActiveTab, sectionId: 'specialized-diagnostic-tests-section', icon: Beaker },
-                  { label: 'Genetic Testing', tab: 'lab-tests' as ActiveTab, sectionId: 'genetic-testing-section', icon: Beaker },
-                ].map((item) => {
-                  const Icon = item.icon;
-                  const isActive = activeSectionId === item.sectionId;
-                  return (
-                    <button
-                      key={item.sectionId}
-                      onClick={() => handleTabChange(item.tab, item.sectionId)}
-                      className={`w-full flex items-center gap-3 px-6 py-2.5 text-left ${
-                        isActive ? 'text-medical-green' : 'text-slate-600'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4 text-medical-blue" />
-                      <span className="text-xs font-bold">{item.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-        <div className="flex items-center justify-start gap-2 overflow-x-auto no-scrollbar">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-40 px-2 py-2 safe-area-bottom bottom-nav-bar">
+        <div className="grid grid-cols-5 items-center gap-1">
           <button
             onClick={() => handleTabChange('home')}
-            className={`flex min-w-[64px] flex-col items-center gap-1 px-2 py-1.5 rounded-lg transition-all cursor-pointer ${
+            className={`relative flex flex-col items-center gap-0.5 px-1 py-1.5 rounded-xl cursor-pointer ${
               activeTab === 'home' ? 'text-medical-green' : 'text-slate-500'
             }`}
           >
-            <Home className="w-5 h-5" />
-            <span className="text-[10px] font-bold">Home</span>
+            {activeTab === 'home' && <motion.span layoutId="mobile-active-tab" className="absolute inset-0 rounded-xl bg-emerald-50" />}
+            <span className="relative z-10 text-[22px] leading-none" aria-hidden="true">🏠</span>
+            <span className="relative z-10 text-[10px] font-bold">Home</span>
           </button>
           <button
-            onClick={() => setShowBottomServicesMenu((current) => !current)}
-            className={`flex min-w-[64px] flex-col items-center gap-1 px-2 py-1.5 rounded-lg transition-all cursor-pointer ${
+            onClick={() => {
+              handleTabChange('services');
+              window.setTimeout(() => {
+                window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+              }, 0);
+            }}
+            className={`relative flex flex-col items-center gap-0.5 px-1 py-1.5 rounded-xl cursor-pointer ${
               activeTab === 'services' || activeTab === 'lab-tests' ? 'text-medical-green' : 'text-slate-500'
             }`}
           >
-            <Activity className="w-5 h-5" />
-            <span className="text-[10px] font-bold">Services</span>
+            {(activeTab === 'services' || activeTab === 'lab-tests') && <motion.span layoutId="mobile-active-tab" className="absolute inset-0 rounded-xl bg-emerald-50" />}
+            <span className="relative z-10 text-[22px] leading-none" aria-hidden="true">🩺</span>
+            <span className="relative z-10 text-[10px] font-bold">Services</span>
           </button>
           <button
-            onClick={() => handleTabChange('products')}
-            className={`flex min-w-[64px] flex-col items-center gap-1 px-2 py-1.5 rounded-lg transition-all cursor-pointer ${
+            onClick={() => {
+              handleTabChange('products');
+              window.setTimeout(() => {
+                window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+              }, 0);
+            }}
+            className={`relative flex flex-col items-center gap-0.5 px-1 py-1.5 rounded-xl cursor-pointer ${
               activeTab === 'products' ? 'text-medical-green' : 'text-slate-500'
             }`}
           >
-            <ShoppingCart className="w-5 h-5" />
-            <span className="text-[10px] font-bold">Products</span>
+            {activeTab === 'products' && <motion.span layoutId="mobile-active-tab" className="absolute inset-0 rounded-xl bg-emerald-50" />}
+            <span className="relative z-10 text-[22px] leading-none" aria-hidden="true">🛒</span>
+            <span className="relative z-10 text-[10px] font-bold">Shop</span>
           </button>
           <button
             onClick={() => handleTabChange('wellness')}
-            className={`flex min-w-[70px] flex-col items-center gap-1 px-2 py-1.5 rounded-lg transition-all cursor-pointer ${
+            className={`relative flex flex-col items-center gap-0.5 px-1 py-1.5 rounded-xl cursor-pointer ${
               activeTab === 'wellness' ? 'text-medical-green' : 'text-slate-500'
             }`}
           >
-            <User className="w-5 h-5" />
-            <span className="text-[10px] font-bold">Wellness</span>
+            {activeTab === 'wellness' && <motion.span layoutId="mobile-active-tab" className="absolute inset-0 rounded-xl bg-emerald-50" />}
+            <span className="relative z-10 text-[22px] leading-none" aria-hidden="true">❤️</span>
+            <span className="relative z-10 text-[10px] font-bold">Wellness</span>
           </button>
           <button
             onClick={() => handleTabChange('offers')}
-            className={`flex min-w-[64px] flex-col items-center gap-1 px-2 py-1.5 rounded-lg transition-all cursor-pointer ${
+            className={`relative flex flex-col items-center gap-0.5 px-1 py-1.5 rounded-xl cursor-pointer ${
               activeTab === 'offers' ? 'text-medical-green' : 'text-slate-500'
             }`}
           >
-            <Flame className="w-5 h-5" />
-            <span className="text-[10px] font-bold">Offers</span>
+            {activeTab === 'offers' && <motion.span layoutId="mobile-active-tab" className="absolute inset-0 rounded-xl bg-emerald-50" />}
+            <span className="relative z-10 text-[22px] leading-none" aria-hidden="true">🎁</span>
+            <span className="relative z-10 text-[10px] font-bold">Offers</span>
           </button>
         </div>
       </div>
@@ -1366,6 +2585,7 @@ function MainApp() {
         loggedInUserEmail={loggedInUserEmail}
         loggedInUserPhone={loggedInUserPhone}
         loggedInUserAddress={loggedInUserAddress}
+        onAuthOpen={() => setIsAuthOpen(true)}
       />
 
       {/* 7. Interactive Scheduling Wizard dialog */}

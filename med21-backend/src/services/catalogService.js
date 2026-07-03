@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, or } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, or } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import {
   bookings,
@@ -11,7 +11,7 @@ import {
   users,
   vendors,
 } from '../db/schema/index.js';
-import { BOOKING_STATUSES, DEFAULT_SETTINGS_KEY, ENQUIRY_STATUSES } from '../constants/index.js';
+import { BOOKING_STATUSES, DEFAULT_SETTINGS_KEY, ENQUIRY_STATUSES, PAYMENT_STATUSES } from '../constants/index.js';
 import { slugify } from '../utils/slug.js';
 import { HttpError } from '../utils/httpError.js';
 import { nextSequentialId } from '../utils/sequentialId.js';
@@ -21,6 +21,22 @@ import {
 } from './vendorServiceAssignmentService.js';
 
 const defaultImage = 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400';
+const IV_THERAPY_ALLOWED_IDS = new Set([
+  'srv-iv-skin-glow',
+  'srv-iv-hair-skin-nail-care',
+  'srv-iv-energy-weight-loss',
+  'srv-iv-immune-hydration-drip',
+  'srv-iv-antistress-relax',
+  'srv-iv-gut-cleanse-acne-cure',
+  'srv-iv-memory-boost',
+  'srv-iv-surgery-recovery',
+  'srv-iv-women-health-fertilty',
+  'srv-iv-men-power-drip',
+  'srv-iv-liver-detox-after-party',
+  'srv-iv-nad-100',
+  'srv-iv-nad-250',
+  'srv-iv-nad-500',
+]);
 
 const withSubcategories = async (categoryRows) => {
   const subRows = await db.select().from(subcategories);
@@ -35,7 +51,7 @@ const withSubcategories = async (categoryRows) => {
 export const getDatabase = async () => ({
   categories: await getCategories(),
   products: await getProducts(),
-  services: await getServices(),
+  services: await getServices({ includeHidden: true }),
   vendors: await getVendors(),
   settings: await getSettings(),
   bookings: await getBookings(),
@@ -120,11 +136,11 @@ export const createProduct = async (payload) => {
       image: payload.image || 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&q=80&w=400',
       category: payload.category || 'devices-for-rent',
       subcategory: payload.subcategory || '',
-      brand: payload.brand || 'Medziva Store',
+      brand: payload.brand || 'MedZiva Store',
       rating: Number(payload.rating || 5),
       inStock: payload.inStock !== undefined ? payload.inStock : true,
       description: payload.description || '',
-      attributes: Array.isArray(payload.attributes) ? payload.attributes : [],
+      attributes: (Array.isArray(payload.attributes) || (payload.attributes && typeof payload.attributes === 'object')) ? payload.attributes : [],
       vendorPrices: Array.isArray(payload.vendorPrices) ? payload.vendorPrices : [],
     })
     .returning();
@@ -137,24 +153,85 @@ export const deleteProduct = async (id) => {
   return { success: true, deleted };
 };
 
-export const getServices = async () => db.select().from(services);
+const toStringList = (value) => {
+  if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean);
+  if (typeof value === 'string') {
+    return value
+      .split('\n')
+      .flatMap((line) => line.split(','))
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
+const normalizeServicePayload = (payload, { partial = false } = {}) => {
+  const updates = {};
+  const has = (key) => Object.prototype.hasOwnProperty.call(payload, key);
+  const textValue = (key, fallback = '') => (partial && !has(key) ? undefined : (payload[key] || fallback));
+  const assign = (key, value) => {
+    if (!partial || value !== undefined) updates[key] = value;
+  };
+
+  assign('title', payload.title);
+  assign('slug', has('slug') ? slugify(payload.slug) : (payload.title ? slugify(payload.title) : (partial ? undefined : '')));
+  assign('category', textValue('category', 'home-healthcare'));
+  assign('subcategory', textValue('subcategory'));
+  assign('status', textValue('status', 'active'));
+  assign('active', payload.active !== undefined ? Boolean(payload.active) : (partial ? undefined : true));
+  assign('price', payload.price !== undefined ? Number(payload.price) : (partial ? undefined : 0));
+  assign('originalPrice', payload.originalPrice !== undefined ? Number(payload.originalPrice) : (payload.price !== undefined ? Number(payload.price) : (partial ? undefined : 0)));
+  assign('salePrice', payload.salePrice !== undefined ? Number(payload.salePrice) : (payload.price !== undefined ? Number(payload.price) : (partial ? undefined : 0)));
+  assign('currency', textValue('currency', 'AED'));
+  assign('homeVisitFeeIncluded', payload.homeVisitFeeIncluded !== undefined ? Boolean(payload.homeVisitFeeIncluded) : (partial ? undefined : true));
+  assign('duration', textValue('duration', '1 Hour'));
+  assign('estimatedVisitTime', textValue('estimatedVisitTime'));
+  assign('image', textValue('image', defaultImage));
+  assign('shortDescription', partial && !has('shortDescription') && !has('description') ? undefined : (payload.shortDescription || payload.description || ''));
+  assign('fullDescription', partial && !has('fullDescription') && !has('description') ? undefined : (payload.fullDescription || payload.description || ''));
+  assign('description', partial && !has('description') && !has('shortDescription') ? undefined : (payload.description || payload.shortDescription || ''));
+  assign('inclusions', has('inclusions') ? (Array.isArray(payload.inclusions) ? payload.inclusions : toStringList(payload.inclusions)) : (partial ? undefined : []));
+  assign('preparationInstructions', textValue('preparationInstructions'));
+  assign('whoIsItFor', textValue('whoIsItFor'));
+  assign('serviceLocation', textValue('serviceLocation', 'at-home'));
+  assign('availability', textValue('availability'));
+  assign('tags', has('tags') ? (Array.isArray(payload.tags) ? payload.tags : toStringList(payload.tags)) : (partial ? undefined : []));
+  assign('displayPriority', payload.displayPriority !== undefined ? Number(payload.displayPriority) : (partial ? undefined : 100));
+  assign('seoTitle', textValue('seoTitle'));
+  assign('seoDescription', textValue('seoDescription'));
+  assign('popular', payload.popular !== undefined ? Boolean(payload.popular) : (partial ? undefined : false));
+  assign('enquiryOnly', payload.enquiryOnly !== undefined ? Boolean(payload.enquiryOnly) : (partial ? undefined : false));
+  assign('attributes', (Array.isArray(payload.attributes) || (payload.attributes && typeof payload.attributes === 'object')) ? payload.attributes : (partial ? undefined : []));
+  assign('vendorPrices', Array.isArray(payload.vendorPrices) ? payload.vendorPrices : (partial ? undefined : []));
+  assign('bookingNotice', textValue('bookingNotice'));
+  assign('remarks', textValue('remarks'));
+
+  Object.keys(updates).forEach((key) => updates[key] === undefined && delete updates[key]);
+  return updates;
+};
+
+export const getServices = async ({ includeHidden = false } = {}) => {
+  const rows = await db
+    .select()
+    .from(services)
+    .orderBy(asc(services.displayPriority), desc(services.updatedAt));
+
+  const filteredRows = rows.filter((service) => {
+    const isIvTherapy = service.category === 'iv-therapy' || service.subcategory === 'iv-therapy';
+    return !isIvTherapy || IV_THERAPY_ALLOWED_IDS.has(service.id);
+  });
+
+  if (includeHidden) return filteredRows;
+
+  return filteredRows.filter((service) => service.active && service.status === 'active');
+};
 
 export const createService = async (payload) => {
   const [service] = await db
     .insert(services)
     .values({
       id: await nextSequentialId(services, 'srv'),
-      title: payload.title,
-      category: payload.category || 'home-healthcare',
-      subcategory: payload.subcategory || '',
-      price: Number(payload.price || 0),
-      duration: payload.duration || '1 Hour',
-      image: payload.image || defaultImage,
-      description: payload.description || '',
-      popular: payload.popular !== undefined ? payload.popular : false,
-      enquiryOnly: payload.enquiryOnly !== undefined ? payload.enquiryOnly : false,
-      attributes: Array.isArray(payload.attributes) ? payload.attributes : [],
-      vendorPrices: Array.isArray(payload.vendorPrices) ? payload.vendorPrices : [],
+      ...normalizeServicePayload(payload),
     })
     .returning();
   return service;
@@ -164,10 +241,7 @@ export const updateService = async (id, payload) => {
   const [service] = await db
     .update(services)
     .set({
-      ...payload,
-      price: payload.price !== undefined ? Number(payload.price) : undefined,
-      attributes: Array.isArray(payload.attributes) ? payload.attributes : undefined,
-      vendorPrices: Array.isArray(payload.vendorPrices) ? payload.vendorPrices : undefined,
+      ...normalizeServicePayload(payload, { partial: true }),
       updatedAt: new Date(),
     })
     .where(eq(services.id, id))
@@ -254,10 +328,69 @@ export const createBooking = async (payload) => {
       timeSlot: payload.timeSlot || 'Flexible',
       region: payload.region || 'Dubai',
       status: payload.status || BOOKING_STATUSES.PENDING,
+      paymentStatus: payload.paymentStatus || PAYMENT_STATUSES.UNPAID,
+      paymentProvider: payload.paymentProvider || null,
+      paymentAppUtr: payload.paymentAppUtr || null,
+      paymentOrderId: payload.paymentOrderId || null,
+      paymentTransactionUtr: payload.paymentTransactionUtr || null,
+      paymentResponseStatus: payload.paymentResponseStatus || null,
+      paidAt: payload.paidAt ? new Date(payload.paidAt) : null,
       notes: payload.notes || '',
     })
     .returning();
   return booking;
+};
+
+export const attachBookingPayment = async (bookingId, payment = {}) => {
+  if (!bookingId) return null;
+
+  const updates = {
+    paymentStatus: payment.paymentStatus || PAYMENT_STATUSES.PENDING,
+    paymentProvider: payment.paymentProvider || 'ENBDpay',
+    paymentAppUtr: payment.paymentAppUtr || null,
+    paymentOrderId: payment.paymentOrderId || null,
+    paymentTransactionUtr: payment.paymentTransactionUtr || null,
+    paymentResponseStatus: payment.paymentResponseStatus || null,
+    updatedAt: new Date(),
+  };
+
+  const [booking] = await db.update(bookings).set(updates).where(eq(bookings.id, bookingId)).returning();
+  return booking || null;
+};
+
+export const updateBookingPaymentStatus = async (payment = {}) => {
+  const responseStatus = String(payment.responseStatus || payment.paymentResponseStatus || '').toUpperCase();
+  const isPaid = ['CAPTURED', 'AUTHORIZED', 'PROCESSED', 'SUCCESS'].includes(responseStatus);
+  const isFailed = ['FAILED', 'DECLINED', 'REJECTED', 'ERROR', 'AUTHORIZATION_DECLINED'].includes(responseStatus);
+  const isCancelled = ['CANCELLED', 'CANCELED', 'VOIDED'].includes(responseStatus);
+  const paymentStatus = isPaid
+    ? PAYMENT_STATUSES.PAID
+    : isCancelled
+      ? PAYMENT_STATUSES.CANCELLED
+      : isFailed
+        ? PAYMENT_STATUSES.FAILED
+        : PAYMENT_STATUSES.PENDING;
+
+  const updates = {
+    paymentStatus,
+    paymentProvider: 'ENBDpay',
+    paymentAppUtr: payment.appUtr || payment.paymentAppUtr || null,
+    paymentOrderId: payment.orderId || payment.paymentOrderId || null,
+    paymentTransactionUtr: payment.transactionUtr || payment.paymentTransactionUtr || null,
+    paymentResponseStatus: responseStatus || null,
+    paidAt: isPaid ? new Date() : null,
+    updatedAt: new Date(),
+  };
+
+  const predicates = [];
+  if (payment.bookingId) predicates.push(eq(bookings.id, payment.bookingId));
+  if (updates.paymentAppUtr) predicates.push(eq(bookings.paymentAppUtr, updates.paymentAppUtr));
+  if (updates.paymentTransactionUtr) predicates.push(eq(bookings.paymentTransactionUtr, updates.paymentTransactionUtr));
+  if (updates.paymentOrderId) predicates.push(eq(bookings.paymentOrderId, updates.paymentOrderId));
+  if (!predicates.length) return null;
+
+  const [booking] = await db.update(bookings).set(updates).where(or(...predicates)).returning();
+  return booking || null;
 };
 
 export const cancelBooking = async (id) => {
@@ -384,7 +517,7 @@ export const deleteEnquiry = async (id) => {
 export const getSettings = async () => {
   const [row] = await db.select().from(settings).where(eq(settings.key, DEFAULT_SETTINGS_KEY)).limit(1);
   return row || {
-    siteName: 'Medziva Home Healthcare',
+    siteName: 'MedZiva Home Healthcare',
     vatPercent: 5,
     platformFeePercent: 2.5,
     defaultCurrency: 'AED',

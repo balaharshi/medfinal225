@@ -1,0 +1,80 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Constants\AppConstants;
+use App\Models\Setting;
+use App\Models\User;
+use App\Models\Vendor;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+
+class DatabaseSeeder extends Seeder
+{
+    use WithoutModelEvents;
+
+    public function run(): void
+    {
+        Setting::query()->updateOrCreate(['key' => AppConstants::DEFAULT_SETTINGS_KEY], [
+            'site_name' => 'MedZiva Home Healthcare',
+            'vat_percent' => 5,
+            'platform_fee_percent' => 2.5,
+            'default_currency' => 'AED',
+            'support_email' => 'support@medziva.ae',
+            'service_regions' => ['Dubai', 'Sharjah'],
+            'maintenance_mode' => false,
+            'admin_username' => 'admin',
+        ]);
+
+        $vendor = Vendor::query()->updateOrCreate(['email' => 'vendor@medziva.ae'], [
+            'id' => 'v-demo-login',
+            'name' => 'Demo Vendor',
+            'type' => 'Nursing Provider',
+            'contact' => '+971 50 000 0000',
+            'address' => 'Dubai',
+            'password_hash' => Hash::make('Medziva@123'),
+            'active' => true,
+        ]);
+
+        User::query()->updateOrCreate(['email' => 'admin@medziva.ae'], [
+            'id' => 'u-admin-login',
+            'username' => 'admin',
+            'full_name' => 'Admin User',
+            'password_hash' => Hash::make('Medziva@123'),
+            'role' => AppConstants::USER_ROLES['ADMIN'],
+            'is_active' => true,
+        ]);
+
+        User::query()->updateOrCreate(['email' => 'admin@gmail.com'], [
+            'id' => 'u-primary-admin',
+            'full_name' => 'Admin',
+            'password_hash' => Hash::make('admin123'),
+            'role' => AppConstants::USER_ROLES['ADMIN'],
+            'is_active' => true,
+        ]);
+
+        User::query()->updateOrCreate(['email' => 'vendor@medziva.ae'], [
+            'id' => 'u-vendor-login',
+            'username' => 'vendor',
+            'full_name' => 'Demo Vendor',
+            'password_hash' => Hash::make('Medziva@123'),
+            'role' => AppConstants::USER_ROLES['VENDOR'],
+            'vendor_id' => $vendor->id,
+            'is_active' => true,
+        ]);
+
+        User::query()->updateOrCreate(['email' => 'customer@medziva.ae'], [
+            'id' => 'u-customer-login',
+            'username' => 'customer',
+            'full_name' => 'Customer User',
+            'phone' => '+971 50 111 1111',
+            'address' => 'Dubai',
+            'password_hash' => Hash::make('Medziva@123'),
+            'role' => AppConstants::USER_ROLES['CUSTOMER'],
+            'is_active' => true,
+        ]);
+
+        $this->call(IVTherapySeeder::class);
+    }
+}

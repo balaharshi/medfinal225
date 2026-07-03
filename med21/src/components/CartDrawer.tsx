@@ -4,11 +4,15 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { X, Trash2, Plus, Minus, ShoppingBag, CheckCircle } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { X, Trash2, Plus, Minus, ShoppingBag, CheckCircle, Calendar, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import toast from 'react-hot-toast';
 import { CartItem } from '../types';
 import ConfirmDialog from './ConfirmDialog';
+import { createEnbdpayCheckout } from '../services/enbdpay';
+import { createBooking } from '../services/bookings';
+import { formatAedWhole } from '../utils/money';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -21,6 +25,7 @@ interface CartDrawerProps {
   loggedInUserEmail?: string;
   loggedInUserPhone?: string;
   loggedInUserAddress?: string;
+  onAuthOpen?: () => void;
 }
 
 export default function CartDrawer({
@@ -33,18 +38,26 @@ export default function CartDrawer({
   loggedInUser = null,
   loggedInUserEmail = '',
   loggedInUserPhone = '',
-  loggedInUserAddress = ''
+  loggedInUserAddress = '',
+  onAuthOpen
 }: CartDrawerProps) {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState<'cart' | 'confirm' | 'complete'>('cart');
   const [patientAddress, setPatientAddress] = useState('');
   const [patientContact, setPatientContact] = useState('');
+  const [patientEmail, setPatientEmail] = useState('');
   const [mobileNine, setMobileNine] = useState('');
   const [mobileError, setMobileError] = useState('');
   const [patientName, setPatientName] = useState('');
   const [orderId, setOrderId] = useState('');
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [promoCode, setPromoCode] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState('');
+  const [promoError, setPromoError] = useState('');
+  const [countryCode, setCountryCode] = useState('+971');
+  const [dispatchDate, setDispatchDate] = useState('');
+  const [preferredTimeSlot, setPreferredTimeSlot] = useState('08:00 AM - 09:30 AM (Early Morning)');
 
   useEffect(() => {
     if (isOpen && loggedInUser) {
@@ -54,10 +67,18 @@ export default function CartDrawer({
 
   useEffect(() => {
     if (isOpen && loggedInUserPhone) {
-      setMobileNine((prev) => prev || loggedInUserPhone);
-      setPatientContact((prev) => prev || `+971 ${loggedInUserPhone}`);
+      const digits = loggedInUserPhone.replace(/\D/g, '');
+      const localDigits = digits.slice(-9);
+      setMobileNine((prev) => prev || localDigits);
+      setPatientContact((prev) => prev || `${countryCode} ${localDigits}`);
     }
   }, [isOpen, loggedInUserPhone]);
+
+  useEffect(() => {
+    if (isOpen && loggedInUserEmail) {
+      setPatientEmail((prev) => prev || loggedInUserEmail);
+    }
+  }, [isOpen, loggedInUserEmail]);
 
   useEffect(() => {
     if (isOpen && loggedInUserAddress) {
@@ -66,13 +87,35 @@ export default function CartDrawer({
   }, [isOpen, loggedInUserAddress]);
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  const totalCost = Math.round(subtotal * 100) / 100;
+  const discount = appliedPromo === 'MEDZIVA10' ? Math.min(subtotal * 0.1, 100) : 0;
+  const roundedDiscount = Math.round(discount);
+  const totalCost = Math.round(subtotal - discount);
+
+  const applyPromoCode = () => {
+    const normalizedCode = promoCode.trim().toUpperCase();
+    if (normalizedCode !== 'MEDZIVA10') {
+      setAppliedPromo('');
+      setPromoError('Invalid promo code');
+      return;
+    }
+
+    setPromoCode(normalizedCode);
+    setAppliedPromo(normalizedCode);
+    setPromoError('');
+    toast.success('Promo code applied.');
+  };
+
+  const removePromoCode = () => {
+    setPromoCode('');
+    setAppliedPromo('');
+    setPromoError('');
+  };
 
   const handleMobileChange = (val: string) => {
     const cleanVal = val.replace(/\D/g, '');
     if (cleanVal.length <= 9) {
       setMobileNine(cleanVal);
-      const combined = cleanVal ? `+971 ${cleanVal}` : '';
+      const combined = cleanVal ? `${countryCode} ${cleanVal}` : '';
       setPatientContact(combined);
 
       if (cleanVal.length === 0) {
@@ -85,7 +128,7 @@ export default function CartDrawer({
     }
   };
 
-  const handleCheckoutSubmit = (e: React.FormEvent) => {
+  const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
@@ -97,12 +140,22 @@ export default function CartDrawer({
       newErrors.patientAddress = 'Delivery address is required';
     }
 
+    if (!patientEmail.trim()) {
+      newErrors.patientEmail = 'Email address is required';
+    } else if (!/^\S+@\S+\.\S+$/.test(patientEmail)) {
+      newErrors.patientEmail = 'Please enter a valid email address';
+    }
+
     if (!mobileNine) {
       newErrors.mobileNine = 'Mobile contact number is required';
       setMobileError('Mobile contact number is required');
     } else if (mobileNine.length !== 9) {
       newErrors.mobileNine = 'UAE mobile number must be exactly 9 digits';
       setMobileError('UAE mobile number must be exactly 9 digits');
+    }
+
+    if (!dispatchDate) {
+      newErrors.dispatchDate = 'Preferred dispatch date is required';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -112,10 +165,44 @@ export default function CartDrawer({
     }
 
     setFormErrors({});
-    const generatedId = 'MDZ-' + Math.floor(100000 + Math.random() * 900000);
-    setOrderId(generatedId);
-    setCheckoutStep('complete');
-    toast.success('Order confirmed successfully.');
+    setIsCheckingOut(true);
+    try {
+      const itemList = cartItems
+        .map((it) => ('name' in it.product ? it.product.name : it.product.title))
+        .join(', ');
+      const booking = await createBooking({
+        customerName: patientName,
+        customerEmail: patientEmail,
+        customerPhone: patientContact,
+        serviceTitle: `Cart: ${itemList.slice(0, 100)}`,
+        price: totalCost,
+        date: dispatchDate,
+        timeSlot: preferredTimeSlot,
+        region: 'Dubai',
+        status: 'Pending',
+        paymentStatus: 'Unpaid',
+        notes: JSON.stringify({ items: cartItems, address: patientAddress }),
+      });
+      const checkout = await createEnbdpayCheckout({
+        amount: totalCost,
+        description: 'MedZiva product cart',
+        source: 'cart',
+        category: 'Products',
+        bookingId: booking.id,
+        customer: {
+          fullName: patientName,
+          email: patientEmail,
+          phone: patientContact,
+          address: patientAddress,
+        },
+      });
+      setOrderId(booking.id);
+      window.location.assign(checkout.redirectUri);
+    } catch (error) {
+      console.error('Unable to create ENBDpay cart checkout', error);
+      toast.error(error instanceof Error ? error.message : 'Could not open payment checkout.', { id: 'enbdpay-cart' });
+      setIsCheckingOut(false);
+    }
   };
 
   const resetCheckout = () => {
@@ -123,8 +210,13 @@ export default function CartDrawer({
     setIsCheckingOut(false);
     setMobileNine('');
     setMobileError('');
+    setPatientEmail('');
     setPendingDelete(null);
     setFormErrors({});
+    setCountryCode('+971');
+    setDispatchDate('');
+    setPreferredTimeSlot('08:00 AM - 09:30 AM (Early Morning)');
+    removePromoCode();
     onClearCart();
     onClose();
   };
@@ -142,7 +234,7 @@ export default function CartDrawer({
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <>
       <AnimatePresence>
         {isOpen && (
@@ -160,7 +252,7 @@ export default function CartDrawer({
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'tween', duration: 0.3 }}
-              className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl z-50 flex flex-col justify-between"
+              className="fixed inset-y-0 right-0 w-[min(100vw,28rem)] max-w-full bg-white shadow-2xl z-[101] flex flex-col overflow-hidden"
             >
               <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-slate-50/80">
                 <div className="flex items-center gap-2">
@@ -216,7 +308,7 @@ export default function CartDrawer({
                                 {'brand' in item.product ? item.product.brand : item.product.category}
                               </span>
                               <div className="text-xs font-black text-medical-green mt-1">
-                                AED {item.product.price}
+                                AED {formatAedWhole(item.product.price)}
                               </div>
                             </div>
 
@@ -287,6 +379,28 @@ export default function CartDrawer({
                       </div>
 
                       <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-600">Email Address <span className="text-red-600">*</span></label>
+                        <input
+                          type="email"
+                          placeholder="e.g. customer@example.com"
+                          required
+                          value={patientEmail}
+                          onChange={(e) => {
+                            setPatientEmail(e.target.value);
+                            if (formErrors.patientEmail) {
+                              setFormErrors(prev => ({ ...prev, patientEmail: '' }));
+                            }
+                          }}
+                          className={`w-full text-xs border rounded-xl p-3 focus:outline-hidden focus:ring-1 ${
+                            formErrors.patientEmail ? 'border-red-500 focus:ring-red-500 bg-red-50/5' : 'border-slate-200 focus:ring-emerald-500'
+                          }`}
+                        />
+                        {formErrors.patientEmail && (
+                          <p className="text-[10px] font-semibold text-red-600 mt-1">{formErrors.patientEmail}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-1">
                         <label className="text-[11px] font-bold text-slate-600">Home/Apartment Address (Dubai) <span className="text-red-600">*</span></label>
                         <input
                           type="text"
@@ -311,15 +425,33 @@ export default function CartDrawer({
                       <div className="space-y-1">
                         <label className="text-[11px] font-bold text-slate-600">Mobile Number <span className="text-red-600">*</span></label>
                         <div className="relative flex flex-col">
-                          <div className="relative flex items-center">
-                            <span className="absolute left-4.5 text-xs font-extrabold text-slate-500 select-none border-r border-slate-200 pr-3 mr-3.5">
-                              +971
-                            </span>
+                          <div className="flex gap-2">
+                            <select
+                              value={countryCode}
+                              onChange={(e) => {
+                                setCountryCode(e.target.value);
+                                if (mobileNine) {
+                                  setPatientContact(`${e.target.value} ${mobileNine}`);
+                                }
+                              }}
+                              className="w-[6.5rem] shrink-0 text-xs border border-slate-200 rounded-xl p-3 bg-white focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                            >
+                              <option value="+971">+971 (UAE)</option>
+                              <option value="+966">+966 (KSA)</option>
+                              <option value="+974">+974 (Qatar)</option>
+                              <option value="+973">+973 (Bahrain)</option>
+                              <option value="+968">+968 (Oman)</option>
+                              <option value="+965">+965 (Kuwait)</option>
+                              <option value="+20">+20 (Egypt)</option>
+                              <option value="+1">+1 (US/CA)</option>
+                              <option value="+44">+44 (UK)</option>
+                              <option value="+91">+91 (India)</option>
+                            </select>
                             <input
                               type="tel"
                               required
                               maxLength={9}
-                              placeholder="50 123 4567"
+                              placeholder="5X XXX XXXX"
                               value={mobileNine}
                               onChange={(e) => {
                                 handleMobileChange(e.target.value);
@@ -327,7 +459,7 @@ export default function CartDrawer({
                                   setFormErrors(prev => ({ ...prev, mobileNine: '' }));
                                 }
                               }}
-                              className={`w-full text-xs border rounded-xl p-3 pl-18 focus:outline-hidden focus:ring-1 ${
+                              className={`flex-1 min-w-0 text-xs border rounded-xl p-3 focus:outline-hidden focus:ring-1 ${
                                 mobileError || formErrors.mobileNine
                                   ? 'border-red-500 focus:ring-red-500 bg-red-50/5'
                                   : 'border-slate-200 focus:ring-emerald-500'
@@ -343,22 +475,112 @@ export default function CartDrawer({
                       </div>
                     </div>
 
+                    <div className="space-y-3 pt-2">
+                      <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                        Preferred Dispatch Schedule
+                      </h4>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                          Preferred Dispatch Date <span className="text-red-600">*</span>
+                        </label>
+                        <input
+                          type="date"
+                          required
+                          value={dispatchDate}
+                          onChange={(e) => {
+                            setDispatchDate(e.target.value);
+                            if (formErrors.dispatchDate) {
+                              setFormErrors(prev => ({ ...prev, dispatchDate: '' }));
+                            }
+                          }}
+                          className={`w-full text-xs border rounded-xl p-3 focus:outline-hidden focus:ring-1 ${
+                            formErrors.dispatchDate ? 'border-red-500 focus:ring-red-500 bg-red-50/5' : 'border-slate-200 focus:ring-emerald-500'
+                          }`}
+                        />
+                        {formErrors.dispatchDate && (
+                          <p className="text-[10px] font-semibold text-red-600 mt-1">{formErrors.dispatchDate}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5 text-slate-400" />
+                          Preferred Time Slot <span className="text-red-600">*</span>
+                        </label>
+                        <select
+                          value={preferredTimeSlot}
+                          onChange={(e) => setPreferredTimeSlot(e.target.value)}
+                          className="w-full text-xs border border-slate-200 rounded-xl p-3 bg-white focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                        >
+                          <option>08:00 AM - 09:30 AM (Early Morning)</option>
+                          <option>10:00 AM - 11:30 AM (Pre Noon)</option>
+                          <option>12:30 PM - 02:00 PM (Afternoon)</option>
+                          <option>03:00 PM - 04:30 PM (Late Afternoon)</option>
+                          <option>05:30 PM - 07:00 PM (Evening)</option>
+                          <option>08:00 PM - 09:30 PM (Night Shift)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-bold text-slate-600">Promo Code</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={promoCode}
+                          disabled={Boolean(appliedPromo)}
+                          onChange={(event) => {
+                            setPromoCode(event.target.value.toUpperCase());
+                            setPromoError('');
+                          }}
+                          placeholder="Enter promo code"
+                          className={`min-w-0 flex-1 rounded-xl border p-3 text-xs uppercase focus:outline-hidden focus:ring-1 ${
+                            promoError ? 'border-red-500 focus:ring-red-500' : 'border-slate-200 focus:ring-emerald-500'
+                          }`}
+                        />
+                        <button
+                          type="button"
+                          onClick={appliedPromo ? removePromoCode : applyPromoCode}
+                          className={`shrink-0 rounded-xl px-4 text-xs font-bold text-white cursor-pointer ${
+                            appliedPromo ? 'bg-slate-500 hover:bg-slate-600' : 'bg-medical-blue hover:bg-blue-900'
+                          }`}
+                        >
+                          {appliedPromo ? 'Remove' : 'Apply'}
+                        </button>
+                      </div>
+                      {promoError && <p className="text-[10px] font-semibold text-red-600">{promoError}</p>}
+                      {appliedPromo && (
+                        <p className="text-[10px] font-semibold text-medical-green">
+                          MEDZIVA10 applied: 10% off, capped at AED 100.
+                        </p>
+                      )}
+                    </div>
+
                     <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs space-y-2 mt-4">
                       <div className="flex justify-between">
                         <span className="text-slate-500">Subtotal</span>
-                        <span className="font-bold">AED {subtotal}</span>
+                        <span className="font-bold">AED {formatAedWhole(subtotal)}</span>
                       </div>
+                      {discount > 0 && (
+                        <div className="flex justify-between text-medical-green">
+                          <span>Promo discount</span>
+                          <span className="font-bold">− AED {roundedDiscount}</span>
+                        </div>
+                      )}
                       <div className="pt-2 border-t border-slate-200 flex justify-between text-sm">
                         <span className="font-black text-blue-950">Total (inclusive of all tax)</span>
-                        <span className="font-black text-medical-green">AED {totalCost}</span>
+                        <span className="font-black text-medical-green">AED {formatAedWhole(totalCost)}</span>
                       </div>
                     </div>
 
                     <button
                       type="submit"
+                      disabled={isCheckingOut}
                       className="w-full bg-medical-green hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl text-xs tracking-wider transition-all mt-4 cursor-pointer shadow-md text-center"
                     >
-                      CONFIRM &amp; PLACE ORDER
+                      {isCheckingOut ? 'OPENING PAYMENT...' : 'PAY NOW'}
                     </button>
 
                     <button
@@ -378,7 +600,7 @@ export default function CartDrawer({
                     </div>
 
                     <div className="space-y-1">
-                      <h3 className="text-lg font-black text-blue-950">Medziva Dispatch Confirmed!</h3>
+                      <h3 className="text-lg font-black text-blue-950">MedZiva Dispatch Confirmed!</h3>
                       <p className="text-xs text-slate-400">Order Ref: <span className="font-bold text-slate-700">{orderId}</span></p>
                     </div>
 
@@ -394,7 +616,7 @@ export default function CartDrawer({
                         </div>
                         <div className="flex justify-between">
                           <span className="text-[10px] text-slate-400 uppercase font-bold">Contact</span>
-                          <span className="font-bold text-slate-900">{patientContact || '+971-55-XXX-XXXX'}</span>
+                          <span className="font-bold text-slate-900">{mobileNine ? mobileNine.replace(/(\d{2})(\d{3})(\d{4})/, '$1 $2 $3') : '5X XXX XXXX'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-[10px] text-slate-400 uppercase font-bold">Delivery Address</span>
@@ -407,7 +629,7 @@ export default function CartDrawer({
                         {cartItems.map(it => (
                           <div key={it.product.id} className="flex justify-between items-center text-[11.5px]">
                             <span>{'name' in it.product ? it.product.name : it.product.title} <span className="text-slate-400 font-bold">x{it.quantity}</span></span>
-                            <span className="font-bold text-slate-900">AED {it.product.price * it.quantity}</span>
+                          <span className="font-bold text-slate-900">AED {formatAedWhole(it.product.price * it.quantity)}</span>
                           </div>
                         ))}
                       </div>
@@ -415,11 +637,17 @@ export default function CartDrawer({
                       <div className="pt-3.5 space-y-2">
                         <div className="flex justify-between text-[11px] text-slate-500">
                           <span>Checkout Subtotal</span>
-                          <span>AED {subtotal}</span>
+                          <span>AED {formatAedWhole(subtotal)}</span>
                         </div>
+                        {discount > 0 && (
+                          <div className="flex justify-between text-[11px] text-medical-green">
+                            <span>Promo discount</span>
+                            <span>− AED {roundedDiscount}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between text-sm font-black text-slate-900 pt-1.5 border-t border-slate-200">
                           <span className="text-medical-green">Total (inclusive of all tax)</span>
-                          <span>AED {totalCost}</span>
+                          <span>AED {formatAedWhole(totalCost)}</span>
                         </div>
                       </div>
                     </div>
@@ -439,17 +667,25 @@ export default function CartDrawer({
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-xs text-slate-500">
                       <span>Subtotal</span>
-                      <span className="font-bold text-slate-800">AED {subtotal}</span>
+                      <span className="font-bold text-slate-800">AED {formatAedWhole(subtotal)}</span>
                     </div>
                     <div className="flex justify-between text-sm text-blue-950 font-black pt-2 border-t border-slate-200">
                       <span>Total (inclusive of all tax)</span>
-                      <span className="text-medical-green text-base">AED {totalCost}</span>
+                      <span className="text-medical-green text-base">AED {formatAedWhole(totalCost)}</span>
                     </div>
                   </div>
 
                   <button
                     id="cart-checkout-btn"
-                    onClick={() => setCheckoutStep('confirm')}
+                    onClick={() => {
+                      if (!loggedInUser) {
+                        toast.error('Please sign in to proceed with checkout.');
+                        onClose();
+                        onAuthOpen?.();
+                        return;
+                      }
+                      setCheckoutStep('confirm');
+                    }}
                     className="w-full bg-medical-green hover:bg-emerald-600 active:scale-95 text-white py-3.5 rounded-xl text-xs tracking-wider transition-all font-bold cursor-pointer text-center"
                   >
                     PROCEED TO CHECKOUT
@@ -469,6 +705,7 @@ export default function CartDrawer({
           </>
         )}
       </AnimatePresence>
-    </>
+    </>,
+    document.body,
   );
 }

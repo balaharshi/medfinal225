@@ -4,13 +4,16 @@
  */
 
 import React, { useState, useRef } from 'react';
-import { ChevronRight, ChevronLeft, CalendarClock, Heart, Send } from 'lucide-react';
+import { ChevronRight, ChevronLeft, CalendarClock, Heart, Send, Eye } from 'lucide-react';
+import { DEFAULT_HEALTHCARE_SERVICE_IMAGE, resolveHealthcareServiceImage } from '../data';
 import { HealthcareService } from '../types';
+import { formatAedWhole } from '../utils/money';
 
 interface ProductsSectionProps {
   onServiceSelect: (title: string, price: number) => void;
   onServiceEnquire?: (title: string) => void;
   onAddToCart?: (service: HealthcareService) => void;
+  onViewDetails?: (service: HealthcareService) => void;
   onExploreMore: () => void;
   servicesList?: HealthcareService[];
 }
@@ -19,6 +22,7 @@ export default function ProductsSection({
   onServiceSelect, 
   onServiceEnquire, 
   onAddToCart,
+  onViewDetails,
   onExploreMore, 
   servicesList = [] 
 }: ProductsSectionProps) {
@@ -44,14 +48,27 @@ export default function ProductsSection({
     }
   };
 
+  const getServiceImage = (service: HealthcareService) =>
+    resolveHealthcareServiceImage(service).image || DEFAULT_HEALTHCARE_SERVICE_IMAGE;
+
+  const handleServiceImageError = (event: React.SyntheticEvent<HTMLImageElement>, service: HealthcareService) => {
+    const image = event.currentTarget;
+    const fallback = getServiceImage(service);
+    if (image.src.endsWith(fallback) || image.dataset.fallbackApplied === 'true') {
+      image.src = DEFAULT_HEALTHCARE_SERVICE_IMAGE;
+      return;
+    }
+    image.dataset.fallbackApplied = 'true';
+    image.src = fallback;
+  };
+
   return (
-    <section id="products-section" className="bg-slate-50 py-12 px-4 border-b border-slate-100">
+    <section id="products-section" className="bg-slate-50 py-6 px-4 border-b border-slate-100">
       <div className="max-w-7xl mx-auto">
         
         {/* Title Block on Top */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-4">
           <div className="text-left">
-            <div className="h-5 mb-1" aria-hidden="true" />
             <h2 className="text-2xl sm:text-3xl font-extrabold text-medical-blue">
               Popular Services
             </h2>
@@ -90,7 +107,7 @@ export default function ProductsSection({
           {/* Core Horizontal Scroll container */}
           <div
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto no-scrollbar snap-x pb-6 pt-2"
+            className="flex gap-4 overflow-x-auto no-scrollbar snap-x pb-2"
           >
             {servicesList.length > 0 ? (
               servicesList.map((srv) => {
@@ -138,10 +155,11 @@ export default function ProductsSection({
                     {/* Service Image Stage */}
                     <div className="h-28 w-full flex items-center justify-center overflow-hidden relative">
                       <img
-                        src={srv.image || 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400'}
+                        src={getServiceImage(srv)}
                         alt={srv.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         referrerPolicy="no-referrer"
+                        onError={(event) => handleServiceImageError(event, srv)}
                       />
                       {/* Subtle overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -160,6 +178,14 @@ export default function ProductsSection({
                       <p className="text-[11px] sm:text-[10px] text-slate-500 line-clamp-2 leading-relaxed min-h-[26px]">
                         {srv.description}
                       </p>
+                      <button
+                        type="button"
+                        onClick={() => onViewDetails?.(srv)}
+                        className="mt-2 inline-flex items-center gap-1 text-[9px] font-extrabold text-medical-green hover:underline cursor-pointer"
+                      >
+                        <Eye className="w-3 h-3" />
+                        <span>View Details</span>
+                      </button>
                     </div>
 
                     {/* Service Price & Action Call footer */}
@@ -169,7 +195,7 @@ export default function ProductsSection({
                           <div className="flex items-baseline gap-0.5">
                             <span className="text-[8px] text-slate-400 font-extrabold uppercase leading-none">FROM</span>
                             <span className="text-sm font-black text-medical-green">
-                              AED {srv.price}
+                              AED {formatAedWhole(srv.price)}
                             </span>
                           </div>
                         ) : (
@@ -183,7 +209,7 @@ export default function ProductsSection({
                         <div className="grid grid-cols-2 gap-2">
                           <button
                             onClick={() => onAddToCart && onAddToCart(srv)}
-                            className="w-full py-2 bg-blue-950 hover:bg-blue-900 active:scale-95 text-white font-black text-[9px] rounded-lg tracking-wider transition-all duration-300 cursor-pointer flex items-center justify-center gap-1 shadow-lg shadow-blue-950/20"
+                            className="w-full py-2 bg-medical-blue hover:bg-blue-900 active:scale-95 text-white font-black text-[9px] rounded-lg tracking-wider transition-all duration-300 cursor-pointer flex items-center justify-center gap-1 shadow-lg shadow-medical-blue/20"
                           >
                             <span>Add to Cart</span>
                           </button>

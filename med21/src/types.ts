@@ -19,9 +19,13 @@ export interface Product {
   originalPrice: number;
   image: string;
   category: string;
+  subcategory?: string;
   rating?: number;
   brand?: string;
   inStock?: boolean;
+  description?: string;
+  attributes?: any[];
+  vendorPrices?: any[];
 }
 
 export interface CartItem {
@@ -32,17 +36,43 @@ export interface CartItem {
 export interface HealthcareService {
   id: string;
   title: string;
+  slug?: string;
   category: string;
   subcategory?: string;
+  status?: 'draft' | 'active' | 'inactive';
+  active?: boolean;
   price: number;
+  originalPrice?: number;
+  salePrice?: number;
+  currency?: string;
+  homeVisitFeeIncluded?: boolean;
   duration: string;
+  estimatedVisitTime?: string;
   image: string;
+  shortDescription?: string;
+  fullDescription?: string;
   description: string;
+  inclusions?: string[];
+  preparationInstructions?: string;
+  whoIsItFor?: string;
+  serviceLocation?: string;
+  availability?: string;
+  tags?: string[];
+  displayPriority?: number;
+  seoTitle?: string;
+  seoDescription?: string;
   popular: boolean;
   enquiryOnly?: boolean;
   who?: string;
   prep?: string;
   result?: string;
+  bookingNotice?: string;
+  remarks?: string;
+  attributes?: any[];
+  vendorPrices?: Array<{
+    vendorName: string;
+    price: number;
+  }>;
 }
 
 export interface Booking {
@@ -70,5 +100,8 @@ export type ActiveTab =
   | 'offers' 
   | 'providers' 
   | 'support'
+  | 'privacy'
+  | 'terms'
   | 'admin'
-  | 'vendor';
+  | 'vendor'
+  | 'search-results';

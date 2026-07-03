@@ -4,7 +4,8 @@ import { createServer as createViteServer } from "vite";
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
-const BACKEND_URL = process.env.BACKEND_URL || "http://127.0.0.1:5001";
+const configuredBackendUrl = process.env.BACKEND_URL || "";
+const BACKEND_URL = configuredBackendUrl || "http://127.0.0.1:8000";
 
 app.use(express.json());
 

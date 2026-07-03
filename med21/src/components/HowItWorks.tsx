@@ -44,7 +44,7 @@ export default function HowItWorks() {
             SIMPLE &amp; ACCESSIBLE HEALTHCARE
           </span>
           <h2 className="text-2xl sm:text-3.5xl font-extrabold text-[#003B71] tracking-tight">
-            How Medziva Works
+            How MedZiva Works
           </h2>
           <p className="text-slate-500 font-medium text-xs sm:text-sm mt-2 max-w-md mx-auto">
             Book certified home healthcare nurses, therapeutic clinicians, or medical products in 4 easy, reliable steps.

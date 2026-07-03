@@ -31,6 +31,7 @@ import {
   Save
 } from "lucide-react";
 import ConfirmDialog from './ConfirmDialog';
+import SocialAuthButtons from './SocialAuthButtons';
 
 interface VendorDashboardProps {
   triggerToast: (msg: string) => void;
@@ -179,6 +180,42 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     }
   };
 
+  const handleVendorSocialLogin = async (data: any) => {
+    if (data?.user?.role !== "vendor") {
+      const message = "Vendor access requires a linked vendor account. Please sign in with your vendor Google or Apple account.";
+      setAuthError(message);
+      toast.error(message);
+      return;
+    }
+
+    if (data.accessToken) {
+      localStorage.setItem("medziva_vendor_token", data.accessToken);
+    }
+
+    const sessionResponse = await fetch('/api/auth/session', {
+      credentials: 'include',
+      headers: data.accessToken ? { Authorization: `Bearer ${data.accessToken}` } : undefined,
+    });
+    const sessionData = await sessionResponse.json();
+    if (!sessionResponse.ok || !sessionData?.vendor) {
+      const message = "Vendor account is not linked to a provider profile.";
+      setAuthError(message);
+      toast.error(message);
+      return;
+    }
+
+    setIsAuthenticated(true);
+    setVendorData(sessionData.vendor);
+    setIsSessionChecking(false);
+    triggerToast("Welcome back! Vendor dashboard access granted.");
+    reset();
+  };
+
+  const handleVendorSocialError = (message: string) => {
+    setAuthError(message);
+    toast.error(message);
+  };
+
   // Perform logout
   const handleLogout = () => {
     localStorage.removeItem("medziva_vendor_token");
@@ -305,13 +342,13 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
           <div className="absolute bottom-0 left-0 w-36 h-36 bg-blue-50 rounded-full mix-blend-multiply filter blur-xl opacity-70 -ml-12 -mb-12"></div>
 
           <div className="relative text-center space-y-6">
-            <div className="w-16 h-16 bg-purple-950/5 text-purple-950 mx-auto rounded-2xl flex items-center justify-center border border-slate-100">
-              <LockKeyhole className="w-7 h-7 text-purple-950" />
+            <div className="w-20 h-20 bg-white mx-auto rounded-2xl flex items-center justify-center border border-slate-100 shadow-sm p-3">
+              <img src="/newlogo.png" alt="MedZiva Logo" className="h-full w-full object-contain" referrerPolicy="no-referrer" />
             </div>
 
             <div>
               <span className="text-[10px] uppercase font-black tracking-widest text-purple-600 block mb-1">Vendor Portal</span>
-              <h2 className="text-2xl font-black text-blue-950">Medziva Partner Access</h2>
+              <h2 className="text-2xl font-black text-blue-950">MedZiva Partner Access</h2>
               <p className="text-slate-500 text-xs mt-1.5 leading-relaxed">
                 Authorized healthcare providers only. Enter your credentials to manage bookings, services, and profile information.
               </p>
@@ -384,6 +421,13 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                 )}
               </button>
             </form>
+
+            <SocialAuthButtons
+              disabled={authLoading}
+              googlePath="/api/auth/google/vendor"
+              onSuccess={handleVendorSocialLogin}
+              onError={handleVendorSocialError}
+            />
 
             <div className="pt-2 border-t border-slate-100">
               <button

@@ -7,6 +7,9 @@ import React, { useState, useEffect } from 'react';
 import { X, Calendar, Clock, Check, User, Phone, Mail, Award, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { HEALTHCARE_SERVICES, SERVICE_CATEGORIES } from '../data';
 import toast from 'react-hot-toast';
+import { createEnbdpayCheckout } from '../services/enbdpay';
+import { createBooking } from '../services/bookings';
+import { formatAedWhole } from '../utils/money';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -44,6 +47,10 @@ export default function BookingModal({
   const [refId, setRefId] = useState('');
   const [assignedClinician, setAssignedClinician] = useState('');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [isPaymentStarting, setIsPaymentStarting] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState('');
+  const [promoError, setPromoError] = useState('');
 
   // Prefill details for logged in users
   useEffect(() => {
@@ -93,6 +100,32 @@ export default function BookingModal({
     }
   };
 
+  // Find price of selected service
+  const activeServiceObj = HEALTHCARE_SERVICES.find(s => s.title === service);
+  const basePrice = activeServiceObj ? activeServiceObj.price : preselectedPrice || 250;
+  const discount = appliedPromo === 'MEDZIVA10' ? Math.min(basePrice * 0.1, 100) : 0;
+  const roundedDiscount = Math.round(discount);
+  const activePrice = Math.round(basePrice - discount);
+
+  const applyPromoCode = () => {
+    const normalizedCode = promoCode.trim().toUpperCase();
+    if (normalizedCode !== 'MEDZIVA10') {
+      setAppliedPromo('');
+      setPromoError('Invalid promo code');
+      return;
+    }
+    setPromoCode(normalizedCode);
+    setAppliedPromo(normalizedCode);
+    setPromoError('');
+    toast.success('Promo code applied.');
+  };
+
+  const removePromoCode = () => {
+    setPromoCode('');
+    setAppliedPromo('');
+    setPromoError('');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
@@ -127,58 +160,44 @@ export default function BookingModal({
 
     setFormErrors({});
 
-    const generatedRefId = 'MED-B-' + Math.floor(100000 + Math.random() * 900000);
-    const clinicians = [
-      'Dr. Robert Chen, DPT (Licensed Physiotherapist)',
-      'Nurse Sarah Jenkins, RN (Registered Nurse)',
-      'Dr. Amira Al-Masri, SLP (Speech Pathologist)',
-      'Coach Marcus Vance (Certified Personal Trainer)',
-      'Mary Katherine, RN (Elderly Care Specialist)'
-    ];
-    const chosenClinician = clinicians[Math.floor(Math.random() * clinicians.length)];
-    
-    // Attempt backend registration
     try {
-      const response = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerName: patientName,
-          customerEmail: email,
-          customerPhone: phone,
-          serviceTitle: service,
-          serviceId: activeServiceObj?.id,
-          price: activePrice,
-          date: date || new Date().toISOString().split('T')[0],
-          timeSlot: time,
-          region: "Dubai",
-          notes: notes
-        })
+      setIsPaymentStarting(true);
+      toast.loading('Creating booking and opening secure ENBDpay checkout...', { id: 'enbdpay-booking' });
+      const booking = await createBooking({
+        customerName: patientName,
+        customerEmail: email,
+        customerPhone: phone,
+        serviceTitle: service,
+        vendorName: 'Unassigned',
+        serviceId: activeServiceObj?.id ? String(activeServiceObj.id) : null,
+        price: activePrice,
+        date,
+        timeSlot: time,
+        region: 'Dubai',
+        status: 'Pending',
+        paymentStatus: 'Unpaid',
+        notes,
       });
-
-      if (!response.ok) {
-        toast.error('Booking could not be saved. Please try again.');
-      }
+      const checkout = await createEnbdpayCheckout({
+        amount: activePrice,
+        description: `MedZiva booking ${service}`,
+        source: 'booking',
+        category: 'Healthcare',
+        bookingId: booking.id,
+        customer: {
+          fullName: patientName,
+          email,
+          phone,
+          address: notes || 'Dubai',
+        },
+      });
+      toast.dismiss('enbdpay-booking');
+      window.location.assign(checkout.redirectUri);
+      return;
     } catch (err) {
-      console.error("Non-blocking failure writing live backend booking, showing local ticket fallback:", err);
-      toast.error('Could not connect to booking service. Please try again.');
-    }
-    
-    setRefId(generatedRefId);
-    setAssignedClinician(chosenClinician);
-    
-    // Show success toast notification
-    if (onSuccessToast) {
-      onSuccessToast('Booking confirmed successfully! Your appointment has been scheduled.');
-    } else {
-      toast.success('Booking confirmed successfully! Your appointment has been scheduled.');
-    }
-    
-    // Trigger booking success callback for redirect (if provided, don't show internal success view)
-    if (onBookingSuccess) {
-      onBookingSuccess();
-    } else {
-      setSuccess(true);
+      console.error('Unable to create ENBDpay booking checkout:', err);
+      toast.error(err instanceof Error ? err.message : 'Could not open payment checkout.', { id: 'enbdpay-booking' });
+      setIsPaymentStarting(false);
     }
   };
 
@@ -192,12 +211,11 @@ export default function BookingModal({
     setDate('');
     setNotes('');
     setFormErrors({});
+    setPromoCode('');
+    setAppliedPromo('');
+    setPromoError('');
     onClose();
   };
-
-  // Find price of selected service
-  const activeServiceObj = HEALTHCARE_SERVICES.find(s => s.title === service);
-  const activePrice = activeServiceObj ? activeServiceObj.price : preselectedPrice || 250;
 
   if (!isOpen) return null;
 
@@ -212,7 +230,7 @@ export default function BookingModal({
               {success ? 'Booking Success Ticket' : 'Schedule Healthcare Visit'}
             </h3>
             <p className="text-[11.5px] text-slate-500 font-medium">
-              {success ? 'Your professional at-home appointment' : 'DHA-certified care straight to your dynamic location.'}
+              {success ? 'Your professional at-home appointment' : 'Professional care straight to your location.'}
             </p>
           </div>
           <button
@@ -232,7 +250,7 @@ export default function BookingModal({
               <div className="bg-emerald-50 text-emerald-800 border border-emerald-100 p-3 rounded-2xl flex items-start gap-2.5 text-xs">
                 <ShieldAlert className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                 <span>
-                  All Medziva home clinical dispatches follow strict health controls. Your designated professional arrives fully equipped with sterile materials.
+                  All MedZiva home clinical dispatches follow strict health controls. Your designated professional arrives fully equipped with sterile materials.
                 </span>
               </div>
 
@@ -246,7 +264,7 @@ export default function BookingModal({
                 >
                   {servicesList.map((s, idx) => (
                     <option key={idx} value={s.title}>
-                      {s.title} (AED {s.price})
+                      {s.title} (AED {formatAedWhole(s.price)})
                     </option>
                   ))}
                 </select>
@@ -400,19 +418,63 @@ export default function BookingModal({
                 />
               </div>
 
-              {/* Price representation */}
-              <div className="pt-2 flex items-center justify-between border-t border-slate-100">
-                <div className="flex flex-col">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase leading-none">Consultation Fee</span>
-                  <span className="text-base font-black text-medical-green mt-1">AED {activePrice}</span>
+              {/* Promo Code */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-600">Promo Code</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={promoCode}
+                    disabled={Boolean(appliedPromo)}
+                    onChange={(event) => {
+                      setPromoCode(event.target.value.toUpperCase());
+                      setPromoError('');
+                    }}
+                    placeholder="Enter promo code"
+                    className={`min-w-0 flex-1 rounded-xl border p-3 text-xs uppercase focus:outline-hidden focus:ring-1 ${
+                      promoError ? 'border-red-500 focus:ring-red-500' : 'border-slate-200 focus:ring-emerald-500'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={appliedPromo ? removePromoCode : applyPromoCode}
+                    className={`shrink-0 rounded-xl px-4 text-xs font-bold text-white cursor-pointer ${
+                      appliedPromo ? 'bg-slate-500 hover:bg-slate-600' : 'bg-medical-blue hover:bg-blue-900'
+                    }`}
+                  >
+                    {appliedPromo ? 'Remove' : 'Apply'}
+                  </button>
                 </div>
-                
-                <button
-                  type="submit"
-                  className="bg-medical-green hover:bg-[#0fd08f] hover:scale-102 hover:shadow-md text-white font-bold text-xs tracking-wider py-3.5 px-6 rounded-xl transition-all cursor-pointer"
-                >
-                  CONFIRM APPOINTMENT
-                </button>
+                {promoError && <p className="text-[10px] font-semibold text-red-600">{promoError}</p>}
+                {appliedPromo && (
+                  <p className="text-[10px] font-semibold text-medical-green">
+                    MEDZIVA10 applied: 10% off, capped at AED 100.
+                  </p>
+                )}
+              </div>
+
+              {/* Price representation */}
+              <div className="pt-2 border-t border-slate-100 space-y-2">
+                {discount > 0 && (
+                  <div className="flex justify-between text-xs text-medical-green">
+                    <span className="font-bold">Promo discount</span>
+                    <span className="font-bold">− AED {formatAedWhole(roundedDiscount)}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase leading-none">Consultation Fee</span>
+                    <span className="text-base font-black text-medical-green mt-1">AED {formatAedWhole(activePrice)}</span>
+                  </div>
+                  
+                  <button
+                    type="submit"
+                    disabled={isPaymentStarting}
+                    className="bg-medical-green hover:bg-[#0fd08f] hover:scale-102 hover:shadow-md text-white font-bold text-xs tracking-wider py-3.5 px-6 rounded-xl transition-all cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  >
+                    {isPaymentStarting ? 'OPENING PAYMENT...' : 'PAY NOW'}
+                  </button>
+                </div>
               </div>
 
             </form>
@@ -477,7 +539,7 @@ export default function BookingModal({
                 {/* Cost segment */}
                 <div className="pt-3.5 flex justify-between items-baseline text-sm">
                   <span className="font-bold text-slate-500">Consultation Fee Paid</span>
-                  <span className="text-base font-black text-emerald-600">AED {activePrice}</span>
+                  <span className="text-base font-black text-emerald-600">AED {formatAedWhole(activePrice)}</span>
                 </div>
 
               </div>

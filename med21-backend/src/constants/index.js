@@ -13,6 +13,14 @@ export const BOOKING_STATUSES = {
   CANCELLED: 'Canceled',
 };
 
+export const PAYMENT_STATUSES = {
+  UNPAID: 'Unpaid',
+  PENDING: 'Pending',
+  PAID: 'Paid',
+  FAILED: 'Failed',
+  CANCELLED: 'Canceled',
+};
+
 export const ENQUIRY_STATUSES = {
   PENDING_RESPONSE: 'Pending Response',
   ANSWERED: 'Answered',

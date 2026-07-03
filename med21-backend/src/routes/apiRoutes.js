@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as controller from '../controllers/catalogController.js';
 import * as authController from '../controllers/authController.js';
+import * as paymentController from '../controllers/paymentController.js';
 import * as vendorServiceAssignmentController from '../controllers/vendorServiceAssignmentController.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { HttpError } from '../utils/httpError.js';
@@ -39,6 +40,10 @@ const requireVendorSelfOrAdmin = async (req, _res, next) => {
 router.get('/health', (_req, res) => res.json({ status: 'ok', service: 'medziva-backend' }));
 router.get('/db', ...requireAdmin, asyncHandler(controller.getDatabase));
 
+router.post('/payments/enbd/create', asyncHandler(paymentController.createEnbdpayCheckout));
+router.get('/payments/enbd/status', asyncHandler(paymentController.getEnbdpayStatus));
+router.post('/payments/enbd/webhook', asyncHandler(paymentController.enbdpayWebhook));
+
 router.get('/categories', asyncHandler(controller.getCategories));
 router.post('/categories', ...requireAdmin, categoryValidator, validateRequest, asyncHandler(controller.createCategory));
 router.patch('/category/:id', ...requireAdmin, categoryValidator, validateRequest, asyncHandler(controller.updateCategory));
@@ -53,6 +58,7 @@ router.get('/products', asyncHandler(controller.getProducts));
 router.post('/products', ...requireAdmin, productValidator, validateRequest, asyncHandler(controller.createProduct));
 router.delete('/products/:id', ...requireAdmin, asyncHandler(controller.deleteProduct));
 
+router.get('/services/all', ...requireAdmin, asyncHandler(controller.getAllServices));
 router.get('/services', asyncHandler(controller.getServices));
 router.post('/services', ...requireAdmin, serviceValidator, validateRequest, asyncHandler(controller.createService));
 router.patch('/service/:id', ...requireAdmin, serviceValidator, validateRequest, asyncHandler(controller.updateService));

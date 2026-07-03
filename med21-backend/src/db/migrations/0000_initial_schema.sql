@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS products (
   image text NOT NULL,
   category text NOT NULL DEFAULT 'devices-for-rent',
   subcategory text NOT NULL DEFAULT '',
-  brand text NOT NULL DEFAULT 'Medziva Store',
+  brand text NOT NULL DEFAULT 'MedZiva Store',
   rating real NOT NULL DEFAULT 5,
   in_stock boolean NOT NULL DEFAULT true,
   description text NOT NULL DEFAULT '',
@@ -97,6 +97,13 @@ CREATE TABLE IF NOT EXISTS bookings (
   time_slot text NOT NULL DEFAULT 'Flexible',
   region text NOT NULL DEFAULT 'Dubai',
   status text NOT NULL DEFAULT 'Pending',
+  payment_status text NOT NULL DEFAULT 'Unpaid',
+  payment_provider text,
+  payment_app_utr text,
+  payment_order_id text,
+  payment_transaction_utr text,
+  payment_response_status text,
+  paid_at timestamptz,
   notes text NOT NULL DEFAULT '',
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
@@ -118,7 +125,7 @@ CREATE TABLE IF NOT EXISTS enquiries (
 
 CREATE TABLE IF NOT EXISTS settings (
   key text PRIMARY KEY,
-  site_name text NOT NULL DEFAULT 'Medziva Home Healthcare',
+  site_name text NOT NULL DEFAULT 'MedZiva Home Healthcare',
   vat_percent real NOT NULL DEFAULT 5,
   platform_fee_percent real NOT NULL DEFAULT 2.5,
   default_currency text NOT NULL DEFAULT 'AED',

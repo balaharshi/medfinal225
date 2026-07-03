@@ -9,7 +9,7 @@ import { appPgTable } from './table.js';
 
 export const settings = appPgTable('settings', {
   key: text('key').primaryKey(),
-  siteName: text('site_name').notNull().default('Medziva Home Healthcare'),
+  siteName: text('site_name').notNull().default('MedZiva Home Healthcare'),
   vatPercent: real('vat_percent').notNull().default(5),
   platformFeePercent: real('platform_fee_percent').notNull().default(2.5),
   defaultCurrency: text('default_currency').notNull().default('AED'),

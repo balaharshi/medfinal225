@@ -6,7 +6,7 @@
       "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
       "slug": "home-healthcare",
       "type": "service",
-      "description": "DHA licensed nurses providing premium in-home clinical care, wound antiseptic dressing, and support.",
+      "description": "Nurses providing premium in-home clinical care, wound antiseptic dressing, and support.",
       "subcategories": [
         {
           "id": "sub-general-nurse",
@@ -53,7 +53,7 @@
     {
       "id": "cat-speech",
       "title": "Speech and Language Therapy",
-      "image": "https://images.unsplash.com/photo-1622445262465-2481c4574875?auto=format&fit=crop&q=80&w=400",
+      "image": "/speach.png",
       "slug": "speech-therapy",
       "type": "service",
       "description": "Interactive and professional diagnostic testing for children and adult communicational speech issues.",
@@ -84,7 +84,7 @@
       "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
       "slug": "iv-therapy",
       "type": "service",
-      "description": "DHA licensed nurse administered intravenous nutrient drips, energy infusions, and premium age reversal NAD+.",
+      "description": "Nurse-administered intravenous nutrient drips, energy infusions, and premium age reversal NAD+.",
       "subcategories": [
         {
           "id": "sub-wellness-drip",
@@ -163,7 +163,7 @@
       ],
       "vendorPrices": [
         {
-          "vendorName": "Medziva Pharmacy",
+          "vendorName": "MedZiva Pharmacy",
           "price": 139
         },
         {
@@ -205,7 +205,7 @@
       ],
       "vendorPrices": [
         {
-          "vendorName": "Medziva Pharmacy",
+          "vendorName": "MedZiva Pharmacy",
           "price": 59
         },
         {
@@ -243,7 +243,7 @@
       ],
       "vendorPrices": [
         {
-          "vendorName": "Medziva Pharmacy",
+          "vendorName": "MedZiva Pharmacy",
           "price": 149
         },
         {
@@ -281,7 +281,7 @@
       ],
       "vendorPrices": [
         {
-          "vendorName": "Medziva Pharmacy",
+          "vendorName": "MedZiva Pharmacy",
           "price": 149
         },
         {
@@ -300,106 +300,500 @@
       "id": "srv-generic-nurse",
       "title": "Generic Nurse Visit",
       "category": "home-healthcare",
-      "price": 200,
+      "price": 250,
       "duration": "1 Hour (Min 3 hrs)",
       "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
-      "description": "Experienced registered nurses for checkups, injection preparation, or general clinical assistance at home.",
-      "popular": true
+      "description": "Expert nursing support brought to you — routine care, recovery assistance, and health monitoring, all in one visit.",
+      "popular": true,
+      "bookingNotice": "12 hours prior booking for Vendor 1 and 2, 24 hours prioir for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Olives Al Noor Home Healthcare LLC",
+          "price": 200
+        },
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 300
+        }
+      ]
     },
     {
       "id": "srv-wound-small",
-      "title": "Wound care and Surgical Dressing-Small",
+      "title": "Wound care  and Surgical Dressing-Small",
       "category": "home-healthcare",
       "price": 500,
       "duration": "1 Session",
       "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
-      "description": "Standard clinical dressing for small incisions or wounds focusing on premium sanitary and infection controls.",
-      "popular": false
+      "description": "Precise, hygienic care for minor wounds and small surgical sites — cleaned, dressed, and monitored by a trained nurse to support faster healing and prevent infection.",
+      "popular": false,
+      "bookingNotice": "12 hours prior booking for Vendor 1 and 2, 24 hours prioir for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Olives Al Noor Home Healthcare LLC",
+          "price": 300
+        },
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 400
+        }
+      ]
     },
     {
       "id": "srv-wound-medium",
-      "title": "Wound care and Surgical Dressing-Medium",
+      "title": "Wound care  and Surgical Dressing-Medium",
       "category": "home-healthcare",
       "price": 650,
       "duration": "1 Session",
       "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
-      "description": "Specialized antiseptic cleaning and surgical dressing application for medium-sized post-operative wounds.",
-      "popular": false
+      "description": "Precise, hygienic care for minor wounds and medium surgical sites — cleaned, dressed, and monitored by a trained nurse to support faster healing and prevent infection.",
+      "popular": false,
+      "bookingNotice": "12 hours prior booking for Vendor 1 and 2, 24 hours prioir for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Olives Al Noor Home Healthcare LLC",
+          "price": 500
+        },
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 500
+        }
+      ]
     },
     {
       "id": "srv-wound-large",
-      "title": "Wound care and Surgical Dressing-Large",
+      "title": "Wound care  and Surgical Dressing-Large",
       "category": "home-healthcare",
       "price": 1000,
       "duration": "1 Session",
       "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
-      "description": "Advanced sterile surgical dressing & intensive wound debridement overview for large ulcers, skin incisions or bedsores.",
-      "popular": false
+      "description": "Precise, hygienic care for minor wounds and large surgical sites — cleaned, dressed, and monitored by a trained nurse to support faster healing and prevent infection.",
+      "popular": false,
+      "bookingNotice": "12 hours prior booking for Vendor 1 and 2, 24 hours prioir for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Olives Al Noor Home Healthcare LLC",
+          "price": 750
+        },
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 700
+        }
+      ]
     },
     {
-      "id": "srv-longterm-nursing",
-      "title": "Long term Nursing Care",
+      "id": "srv-catheterisation-female",
+      "title": "Catheterisation at home",
       "category": "home-healthcare",
-      "price": 0,
-      "duration": "Hourly / Monthly",
-      "image": "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
-      "description": "Customized long-term home nursing schedules supervised by senior certified DHA health specialists.",
-      "popular": true,
-      "enquiryOnly": true
-    },
-    {
-      "id": "srv-elderly-longterm",
-      "title": "Elderly and Long term care",
-      "category": "home-healthcare",
-      "price": 0,
-      "duration": "Daily / Weekly",
-      "image": "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
-      "description": "Supportive elder assistance, companionship, nutritional checks, and daily activities management.",
-      "popular": true,
-      "enquiryOnly": true
-    },
-    {
-      "id": "srv-post-surgery",
-      "title": "Post Surgery Recovery",
-      "category": "home-healthcare",
-      "price": 0,
-      "duration": "Custom Basis",
+      "price": 850,
+      "duration": "1 Session",
       "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
-      "description": "Clinical profile tracking, wound audit, therapeutic guidance and supportive recovery following hospital discharges.",
+      "description": "Safe, sterile catheter insertion and care delivered in the comfort of your home — performed by a trained clinical nurse with full privacy, dignity, and clinical precision.",
       "popular": false,
-      "enquiryOnly": true
+      "bookingNotice": "12 hours prior booking for Vendor 1 and 2, 24 hours prioir for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Olives Al Noor Home Healthcare LLC",
+          "price": 650
+        },
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 500
+        }
+      ]
     },
     {
-      "id": "srv-chronic-clinical",
-      "title": "Chronic Disease management",
+      "id": "srv-iv-antibiotics-prescription",
+      "title": "IV antibiotics at home (with Dr Prescription)",
       "category": "home-healthcare",
-      "price": 0,
-      "duration": "Continuous",
-      "image": "https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&q=80&w=400",
-      "description": "Certified chronic wellness and clinical oversight targeting diabetes, high blood pressure, asthma, or COPD.",
+      "price": 750,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
+      "description": "Complete your antibiotic course from the comfort of home — a qualified nurse administers your prescribed IV treatment safely and efficiently, so you recover without the hospital stay.",
       "popular": false,
-      "enquiryOnly": true
+      "bookingNotice": "12 hours prior booking for Vendor 1 and 2, 24 hours prioir for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Olives Al Noor Home Healthcare LLC",
+          "price": 500
+        },
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 500
+        }
+      ]
     },
     {
-      "id": "srv-palliative",
-      "title": "Palliative care",
-      "category": "home-healthcare",
-      "price": 0,
-      "duration": "Continuous",
-      "image": "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&q=80&w=400",
-      "description": "Compassionate multi-disciplinary support focusing on pain relief, symptom reduction, and spiritual alignment.",
+      "id": "srv-longterm-dha-rn-live-in-30-days",
+      "title": "DHA REGISTERED NURSE-24 HOURS LIVE IN - 30 DAYS - 1 STAFF",
+      "category": "long-term-care",
+      "price": 25000,
+      "duration": "30 DAYS - 1 STAFF",
+      "image": "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
+      "description": "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
       "popular": false,
-      "enquiryOnly": true
+      "bookingNotice": "24 hours prior booking for Vendor 1 and 2, 4 days prior notice for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Olives Al Noor Home Healthcare LLC",
+          "price": 18000
+        },
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 19500
+        }
+      ]
+    },
+    {
+      "id": "srv-longterm-dha-ventillator-trach-peg-24-hours-30-days",
+      "title": "DHA REGISTERED NURSE TO MANAGE VENTILLATOR/TRACH & PEG-24 hours - 30days - 1 STAFF",
+      "category": "long-term-care",
+      "price": 28000,
+      "duration": "30days - 1 STAFF",
+      "image": "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
+      "description": "A DHA-licensed nurse dedicated to your care — managing patients on ventilator support, tracheostomy, or PEG feeding",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking for Vendor 1 and 2, 4 days prior notice for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Olives Al Noor Home Healthcare LLC",
+          "price": 28000
+        }
+      ]
+    },
+    {
+      "id": "srv-longterm-dha-nurse-1-plus-1-live-in-30-days",
+      "title": "DHA REGISTERED NURSE-24 HOURS LIVE IN - 30 DAYS - 2 STAFF( 1+1)-12 HOURS EACH PER SHIFT",
+      "category": "long-term-care",
+      "price": 30000,
+      "duration": "30 DAYS - 2 STAFF( 1+1)-12 HOURS EACH PER SHIFT",
+      "image": "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
+      "description": "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking for Vendor 1 and 2, 4 days prior notice for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Olives Al Noor Home Healthcare LLC",
+          "price": 23000
+        },
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 25500
+        }
+      ]
+    },
+    {
+      "id": "srv-longterm-dha-nurse-12-hours-30-days",
+      "title": "DHA REGISTERED NURSE-12 HOURS - 30 DAYS - 1 STAFF",
+      "category": "long-term-care",
+      "price": 15000,
+      "duration": "30 DAYS - 1 STAFF",
+      "image": "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
+      "description": "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking for Vendor 1 and 2, 4 days prior notice for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Olives Al Noor Home Healthcare LLC",
+          "price": 13000
+        },
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 12000
+        }
+      ]
+    },
+    {
+      "id": "srv-longterm-dha-nurse-8-hours-30-days",
+      "title": "DHA REGISTERED NURSE-8 HOURS - 30 DAYS - 1 STAFF",
+      "category": "long-term-care",
+      "price": 10000,
+      "duration": "30 DAYS - 1 STAFF",
+      "image": "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
+      "description": "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking for Vendor 1 and 2, 4 days prior notice for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Olives Al Noor Home Healthcare LLC",
+          "price": 9000
+        }
+      ]
+    },
+    {
+      "id": "srv-longterm-dha-nurse-less-than-12-hours-30-days",
+      "title": "DHA REGISTERED NURSE-LESS THAN 12 HOURS/DAY - 30 DAYS - 1 STAFF",
+      "category": "long-term-care",
+      "price": 13000,
+      "duration": "30 DAYS - 1 STAFF",
+      "image": "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
+      "description": "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking for Vendor 1 and 2, 4 days prior notice for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 11000
+        }
+      ]
+    },
+    {
+      "id": "srv-longterm-dha-nurse-rn-an-live-in-per-day",
+      "title": "DHA REGISTERED NURSE-24 HOURS LIVE IN - 1 DAY - 1 STAFF",
+      "category": "long-term-care",
+      "price": 1500,
+      "duration": "1 DAY - 1 STAFF",
+      "image": "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
+      "description": "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking for Vendor 1 and 2, 4 days prior notice for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Olives Al Noor Home Healthcare LLC",
+          "price": 800
+        },
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 1300
+        }
+      ]
+    },
+    {
+      "id": "srv-longterm-dha-nurse-24-hours-per-day-1-plus-1",
+      "title": "DHA REGISTERED NURSE-24 HOURS LIVE IN - 1 DAY - 2 STAFF( 1+1)-12 HOURS EACH PER SHIFT",
+      "category": "long-term-care",
+      "price": 2500,
+      "duration": "1 DAY - 2 STAFF( 1+1)-12 HOURS EACH PER SHIFT",
+      "image": "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
+      "description": "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking for Vendor 1 and 2, 4 days prior notice for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Olives Al Noor Home Healthcare LLC",
+          "price": 1250
+        },
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 1800
+        }
+      ]
+    },
+    {
+      "id": "srv-longterm-dha-nurse-12-hours-per-day",
+      "title": "DHA REGISTERED NURSE-12 HOURS - 1 DAY - 1 STAFF",
+      "category": "long-term-care",
+      "price": 1000,
+      "duration": "1 DAY - 1 STAFF",
+      "image": "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
+      "description": "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking for Vendor 1 and 2, 4 days prior notice for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Olives Al Noor Home Healthcare LLC",
+          "price": 850
+        },
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 700
+        }
+      ]
+    },
+    {
+      "id": "srv-longterm-dha-nurse-less-than-12-hours-per-day",
+      "title": "DHA REGISTERED NURSE-LESS THAN 12 HOURS - 1 DAY - 1 STAFF",
+      "category": "long-term-care",
+      "price": 125,
+      "duration": "1 DAY - 1 STAFF",
+      "image": "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
+      "description": "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking for Vendor 1 and 2, 4 days prior notice for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 450
+        }
+      ],
+      "remarks": "AED 125/hour"
+    },
+    {
+      "id": "srv-longterm-caregiver-live-in-30-days",
+      "title": "CARE GIVER -24 HOURS LIVE IN - 30 DAYS - 1 STAFF",
+      "category": "long-term-care",
+      "price": 17000,
+      "duration": "30 DAYS - 1 STAFF",
+      "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+      "description": "Continuous, compassionate support from a live-in caregiver -helping with daily activities, mobility, and wellbeing, day and night.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking for Vendor 1 and 2, 4 days prior notice for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 15000
+        }
+      ]
+    },
+    {
+      "id": "srv-longterm-caregiver-24-hours-30-days-1-plus-1",
+      "title": "CARE GIVER -24 HOURS LIVE IN - 30 DAYS - 2 STAFF( 1+1)-12 HOURS EACH PER SHIFT",
+      "category": "long-term-care",
+      "price": 25000,
+      "duration": "30 DAYS - 2 STAFF( 1+1)-12 HOURS EACH PER SHIFT",
+      "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+      "description": "Continuous, compassionate support from a live-in caregiver -helping with daily activities, mobility, and wellbeing, day and night.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking for Vendor 1 and 2, 4 days prior notice for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 20000
+        }
+      ]
+    },
+    {
+      "id": "srv-longterm-caregiver-12-hours-30-days",
+      "title": "CARE GIVER -12 HOURS - 30 DAYS - 1 STAFF",
+      "category": "long-term-care",
+      "price": 12000,
+      "duration": "30 DAYS - 1 STAFF",
+      "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+      "description": "Continuous, compassionate support from a live-in caregiver -helping with daily activities, mobility, and wellbeing, day and night.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking for Vendor 1 and 2, 4 days prior notice for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 9000
+        }
+      ]
+    },
+    {
+      "id": "srv-longterm-caregiver-less-than-12-hours-30-days",
+      "title": "CARE GIVER -LESS THAN 12 HOURS/DAY - 30 DAYS - 1 STAFF",
+      "category": "long-term-care",
+      "price": 11000,
+      "duration": "30 DAYS - 1 STAFF",
+      "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+      "description": "Continuous, compassionate support from a live-in caregiver -helping with daily activities, mobility, and wellbeing, day and night.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking for Vendor 1 and 2, 4 days prior notice for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 8000
+        }
+      ]
+    },
+    {
+      "id": "srv-longterm-caregiver-live-in-per-day",
+      "title": "CARE GIVER --24 HOURS LIVE IN - 1 DAY - 1 STAFF",
+      "category": "long-term-care",
+      "price": 850,
+      "duration": "1 DAY - 1 STAFF",
+      "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+      "description": "Continuous, compassionate support from a live-in caregiver -helping with daily activities, mobility, and wellbeing, day and night.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking for Vendor 1 and 2, 4 days prior notice for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 650
+        }
+      ]
+    },
+    {
+      "id": "srv-longterm-caregiver-24-hours-per-day-1-plus-1",
+      "title": "CARE GIVER -24 HOURS LIVE IN - 1 DAY - 2 STAFF( 1+1)-12 HOURS EACH PER SHIFT",
+      "category": "long-term-care",
+      "price": 1050,
+      "duration": "1 DAY - 2 STAFF( 1+1)-12 HOURS EACH PER SHIFT",
+      "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+      "description": "Continuous, compassionate support from a live-in caregiver -helping with daily activities, mobility, and wellbeing, day and night.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking for Vendor 1 and 2, 4 days prior notice for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 800
+        }
+      ]
+    },
+    {
+      "id": "srv-longterm-caregiver-12-hours-per-day",
+      "title": "CARE GIVER -12 HOURS - 1 DAY - 1 STAFF",
+      "category": "long-term-care",
+      "price": 700,
+      "duration": "1 DAY - 1 STAFF",
+      "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+      "description": "Continuous, compassionate support from a live-in caregiver -helping with daily activities, mobility, and wellbeing, day and night.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking for Vendor 1 and 2, 4 days prior notice for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 500
+        }
+      ]
+    },
+    {
+      "id": "srv-longterm-caregiver-less-than-12-hours-per-day",
+      "title": "CARE GIVER -LESS THAN 12 HOURS - 1 DAY - 1 STAFF",
+      "category": "long-term-care",
+      "price": 650,
+      "duration": "1 DAY - 1 STAFF",
+      "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+      "description": "Continuous, compassionate support from a live-in caregiver -helping with daily activities, mobility, and wellbeing, day and night.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking for Vendor 1 and 2, 4 days prior notice for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 450
+        }
+      ]
     },
     {
       "id": "srv-physiotherapy",
-      "title": "Physiotherapy",
+      "title": "Physiotherapy- 1 hour session",
       "category": "physiotherapy",
-      "price": 450,
-      "duration": "1 Session",
+      "price": 400,
+      "duration": "1 Hour",
       "image": "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=400",
-      "description": "Personalized muscle recovery, mobility restoration and skeletal manipulation with a certified physiotherapist.",
-      "popular": true
+      "description": "A dedicated hour with a certified physiotherapist to assess, treat, and rehabilitate — helping you move better, recover faster,",
+      "popular": true,
+      "bookingNotice": "12 hours prior booking for Vendor 1 and 2, 24 hours prioir for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Olives Al Noor Home Healthcare LLC",
+          "price": 300
+        },
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 300
+        }
+      ]
+    },
+    {
+      "id": "srv-physiotherapy-week-6",
+      "title": "physiotherapy- 1 hour session/week-6 sessions",
+      "category": "physiotherapy",
+      "price": 2000,
+      "duration": "6 Sessions",
+      "image": "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=400",
+      "description": "A dedicated hour with a certified physiotherapist to assess, treat, and rehabilitate — helping you move better, recover faster,",
+      "popular": false,
+      "bookingNotice": "12 hours prior booking for Vendor 1 and 2, 24 hours prioir for Vendor 3",
+      "vendorPrices": [
+        {
+          "vendorName": "Olives Al Noor Home Healthcare LLC",
+          "price": 1500
+        },
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 1620
+        }
+      ]
     },
     {
       "id": "srv-dr-home",
@@ -408,18 +802,38 @@
       "price": 500,
       "duration": "30 Min Session",
       "image": "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400",
-      "description": "DHA Licensed Primary Care Doctor visit at your home for standard diagnostic evaluation and acute symptom relief.",
-      "popular": true
+      "description": "A qualified doctor visits you for consultations, diagnosis, and treatment — no waiting rooms, no commute.",
+      "popular": true,
+      "vendorPrices": [
+        {
+          "vendorName": "Olives Al Noor Home Healthcare LLC",
+          "price": 400
+        },
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 250
+        }
+      ]
     },
     {
       "id": "srv-dr-hotel",
       "title": "Doctor at Hotel",
       "category": "doctor-on-call",
-      "price": 500,
+      "price": 1000,
       "duration": "30 Min Session",
       "image": "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400",
-      "description": "Urgent premium doctor dispatch directly to your hotel room or suite with treatment prescriptions and checkups.",
-      "popular": false
+      "description": "A qualified doctor brought to your hotel — expert diagnosis and treatment, right where you are in the city.",
+      "popular": false,
+      "vendorPrices": [
+        {
+          "vendorName": "Olives Al Noor Home Healthcare LLC",
+          "price": 800
+        },
+        {
+          "vendorName": "Doctor Plus Home Healthcare",
+          "price": 250
+        }
+      ]
     },
     {
       "id": "srv-speech-therapy-hour",
@@ -427,9 +841,16 @@
       "category": "speech-therapy",
       "price": 400,
       "duration": "1 Hour Session",
-      "image": "https://images.unsplash.com/photo-1622445262465-2481c4574875?auto=format&fit=crop&q=80&w=400",
-      "description": "Interactions and communication exercises addressing expressive articulation, speech issues, or swallow patterns.",
-      "popular": true
+      "image": "/speach.png",
+      "description": "Structured sessions addressing speech delays, articulation challenges, and swallowing difficulties — delivered by a qualified speech and language specialist.",
+      "popular": true,
+      "bookingNotice": "24 hours prior booking",
+      "vendorPrices": [
+        {
+          "vendorName": "Ephatha",
+          "price": 300
+        }
+      ]
     },
     {
       "id": "srv-occupational-therapy-hour",
@@ -438,138 +859,185 @@
       "price": 400,
       "duration": "1 Hour Session",
       "image": "https://images.unsplash.com/photo-1581594693702-fbdc51b2763b?auto=format&fit=crop&q=80&w=400",
-      "description": "Functional recovery programs targeting motor skill recovery, joint alignment, and day-to-day work autonomy support.",
-      "popular": true
+      "description": "Practical, goal-driven sessions helping you regain independence in daily tasks — from fine motor skills and cognitive function to adaptive techniques for work, home, and life.",
+      "popular": true,
+      "bookingNotice": "24 hours prior booking",
+      "vendorPrices": [
+        {
+          "vendorName": "Ephatha",
+          "price": 300
+        }
+      ]
     },
     {
       "id": "srv-iv-skin-glow",
       "title": "Skin Glow IV Therapy",
       "category": "iv-therapy",
-      "price": 999,
+      "price": 850,
       "duration": "1 Session",
       "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
-      "description": "Premium Glutathione and Vitamin C infusion designed to nourish skin radiance, fight hyperpigmentation and clarify complexion.",
-      "popular": true
+      "description": "This powerful blend of antioxidants and vitamins promotes a radiant complexion by reducing oxidative stress and improving skin health.",
+      "popular": true,
+      "bookingNotice": "24 hours prior booking",
+      "vendorPrices": [],
+      "attributes": {
+        "key_ingredients": "Alpha Lipoic Acid\nZinc Sulphate\nSelenium\nVitamin C",
+        "clinical_benefits": "● Brightens skin and improves tone\n● Reduces signs of aging and oxidative stress\n● Promotes collagen synthesis and skin elasticity",
+        "disclaimer": "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      }
     },
     {
-      "id": "srv-iv-hair-loss",
-      "title": "Hair Loss IV Therapy",
+      "id": "srv-iv-hair-skin-nail-care",
+      "title": "Hair,Skin & Nail care IV Therapy",
       "category": "iv-therapy",
-      "price": 999,
+      "price": 850,
       "duration": "1 Session",
-      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
-      "description": "Biotin-fortified medical infusion to support hair follicle strengths, stimulate locks growth and reverse scalp thinning.",
-      "popular": false
+      "image": "https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=400",
+      "description": "For those looking to improve the appearance and health of their hair, nails and skin, this drip delivers essential nutrients to promote regenration and hydration.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking",
+      "vendorPrices": [],
+      "attributes": {
+        "key_ingredients": "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nBiotin\nZinc Sulphate\nMagnesium Chloride",
+        "clinical_benefits": "● Promotes healthy hair growth and nail strength\n● Enhances skin hydration and elasticity\n● Reduces inflammation and supports skin healing",
+        "disclaimer": "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      }
     },
     {
-      "id": "srv-iv-skin-hair-wellness",
-      "title": "Skin and Hair wellness IV Drip",
+      "id": "srv-iv-energy-weight-loss",
+      "title": "Energy & Weight loss IV Therapy",
       "category": "iv-therapy",
-      "price": 999,
+      "price": 900,
       "duration": "1 Session",
-      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
-      "description": "Synergistic beauty blend of vital amino acids and high-dose trace elements for complete dermal and hair density enhancement.",
-      "popular": false
+      "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+      "description": "Supports your metabolism and energy levels with its potent blend of vitamins, minerals and amino acids. Ideal for patients dealing with fatigue, weight management issues or those seeking enhaced ahtletic performance",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking",
+      "vendorPrices": [],
+      "attributes": {
+        "key_ingredients": "Vitamin B1\nVitamin B6\nVitamin B12\nCarnitine\nAlpha Lipoic Acid\nZinc Sulphate\nMagnesium Chloride",
+        "clinical_benefits": "● Boosts energy and endurance\n● Enhances fat metabolism\n● Reduces exercise-related fatigue and muscle cramps",
+        "disclaimer": "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      }
     },
     {
-      "id": "srv-iv-energy-booster",
-      "title": "Energy Booster IV Therapy",
+      "id": "srv-iv-immune-hydration-drip",
+      "title": "Immune & Hydration drip",
       "category": "iv-therapy",
-      "price": 999,
+      "price": 799,
       "duration": "1 Session",
-      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
-      "description": "Recharging clinical fluid loaded with B-complex vitamins, helping to overcome physical lethargy and restore peak muscle performance.",
-      "popular": true
+      "image": "https://images.unsplash.com/photo-1629904858656-aa8c3b3f39ca?auto=format&fit=crop&q=80&w=400",
+      "description": "Strenghten your immune defenses and ensure optimal hydration with this drip, formulated to help fight infections and promote recovery from illness.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking",
+      "vendorPrices": [],
+      "attributes": {
+        "key_ingredients": "Vitamin C\nZinc Sulphate\nMagnesium Chloride\nN-Acetylcysteine (NAC)\nSelenium",
+        "clinical_benefits": "● Supports immune system function\n● Enhances hydration and recovery\n● Reduces oxidative stress and inflammation",
+        "disclaimer": "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      }
     },
     {
-      "id": "srv-iv-immune-booster",
-      "title": "Immune Booster IV Therapy",
-      "category": "iv-therapy",
-      "price": 1100,
-      "duration": "1 Session",
-      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
-      "description": "Super-defense mineral shield combined with high zinc formulation to ward off seasonal cold, flu, and chronic immune vulnerabilities.",
-      "popular": true
-    },
-    {
-      "id": "srv-iv-hangover",
-      "title": "Hangover IV Therapy",
-      "category": "iv-therapy",
-      "price": 999,
-      "duration": "1 Session",
-      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
-      "description": "Hyper-hydration therapeutic recipe neutralizing free radicals, curing severe migraines, and restoring electrolyte balance.",
-      "popular": false
-    },
-    {
-      "id": "srv-iv-liver-detox",
-      "title": "Liver Detox IV Therapy",
-      "category": "iv-therapy",
-      "price": 1100,
-      "duration": "1 Session",
-      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
-      "description": "In-depth hepatic flushing combining strong hepatoprotective elements to clear internal toxins and liver cell stress.",
-      "popular": false
-    },
-    {
-      "id": "srv-iv-antistress",
-      "title": "Antistress and Antoixidant IV Therapy",
-      "category": "iv-therapy",
-      "price": 1299,
-      "duration": "1 Session",
-      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
-      "description": "Premium neural calming blend containing calming magnesium and powerful antioxidants to defeat stress, fatigue, and burnout.",
-      "popular": false
-    },
-    {
-      "id": "srv-iv-female-balance",
-      "title": "Female Balance IV Therapy",
+      "id": "srv-iv-antistress-relax",
+      "title": "Antistress/Relax IV Therapy",
       "category": "iv-therapy",
       "price": 899,
       "duration": "1 Session",
-      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
-      "description": "Specially engineered mineral balancing infusion to optimize hormonal health, soothe PMS muscle cramps and improve sleep cycles.",
-      "popular": false
+      "image": "https://images.unsplash.com/photo-1544367563-12123d8965cd?auto=format&fit=crop&q=80&w=400",
+      "description": "Reduces mental fatigue and sharpens focus while promoting relaxation and reducing stress",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking",
+      "vendorPrices": [],
+      "attributes": {
+        "key_ingredients": "Vitamin B1\nVitamin B6\nVitamin B12\nCarnitine\nAlpha Lipoic Acid\nZinc Sulphate\nMagnesium Chloride",
+        "clinical_benefits": "● Supports neurotransmitter function for sharper focus\n● Promotes better concentration\n● Magnesium and B vitamins help soothe the nervous system, leading to a more relaxed state of mind",
+        "disclaimer": "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      }
     },
     {
-      "id": "srv-iv-memory-boost",
-      "title": "Memory Boost IV Therapy",
+      "id": "srv-iv-gut-cleanse-acne-cure",
+      "title": "Gut cleanse & Acne Cure IV Therapy",
       "category": "iv-therapy",
-      "price": 999,
+      "price": 899,
       "duration": "1 Session",
-      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
-      "description": "Critical neuro-support factors designed to optimize cognitive focus, elevate retention speeds and clear mental fog.",
-      "popular": false
+      "image": "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=400",
+      "description": "Designed to improve gut health, reduce inflammation, and support clearer skin through targeted hydration and nutrient support.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking",
+      "vendorPrices": [],
+      "attributes": {
+        "key_ingredients": "Vitamin B Complex (B1, B5, B6, B12)\nMagnesium Chloride\nZinc Sulphate\nN-Acetylcysteine (NAC)\nL-Glutamine\nAlpha Lipoic Acid (ALA)\nAscorbic Acid (Vitamin C)",
+        "clinical_benefits": "● Sebum Regulation: Vitamins and zinc decrease oil production\n● Anti Inflammatory Effects: Magnesium, NAC, ALA and Vitamin C minimizes inflammation\n● Anti Oxidant Support: NAC, ALA and Vitamin C combat oxidative stress\n● Gut Health Improvement: L-Glutamine enhances gut health, reducing systemic inflammation",
+        "disclaimer": "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      }
     },
     {
-      "id": "srv-iv-vitamin-mix",
-      "title": "Vitamin Mix IV Therapy",
+      "id": "srv-iv-surgery-recovery",
+      "title": "Surgery recovery IV Therapy",
       "category": "iv-therapy",
-      "price": 999,
+      "price": 899,
       "duration": "1 Session",
-      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
-      "description": "Wellness cocktails featuring an intensive spectrum of 12 vital micronutrients for complete physical restoration.",
-      "popular": false
+      "image": "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
+      "description": "This drip is specifically designed to support recovery following surgery by providing hydration, vitamins, and nutrients that support healing.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking",
+      "vendorPrices": [],
+      "attributes": {
+        "key_ingredients": "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nNiacinamide\nVitamin B2\nMagnesium Chloride\nZinc Sulphate\nIron III Hydroxide Sucrose\nL-Glutamine\nFolic Acid\nAscorbic Acid",
+        "clinical_benefits": "● Enhances Healing: Vitamins and amino acids promote tissue repair and recovery\n● Reduced Inflammation: Ingredients like Niacinamide and Vitamin C help mitigate inflammation\n● Support for immune function: Zinc and Vitamin B6 boost immune response\n● Energy production: B vitamins facilitate energy metabolism to support recovery",
+        "disclaimer": "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      }
     },
     {
-      "id": "srv-iv-iron-boost",
-      "title": "Iron Boost IV Therapy",
+      "id": "srv-iv-women-health-fertilty",
+      "title": "Women Health/Fertilty IV Therapy",
       "category": "iv-therapy",
-      "price": 999,
+      "price": 899,
       "duration": "1 Session",
-      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
-      "description": "Highly bioavailable medical iron replacement therapy to correct chronic fatigue and optimize blood cell oxygenation.",
-      "popular": false
+      "image": "https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&q=80&w=400",
+      "description": "Targeted IV support for women health, fertility wellness, hydration, and micronutrient balance.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking",
+      "vendorPrices": [],
+      "attributes": {
+        "key_ingredients": "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nVitamin B2\nMagnesium Chloride\nZinc Sulphate\nAscorbic Acid\nN-Acetylcysteine\nSelenium",
+        "clinical_benefits": "● Enhances women's fertility and health by improving egg quality, regulating hormones and reducing oxidative stress\n● Boosts energy and balances hormones\n● Provides antioxidant protection, promoting reproductive wellness",
+        "disclaimer": "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      }
     },
     {
-      "id": "srv-iv-gut-support",
-      "title": "Gut support IV Therapy",
+      "id": "srv-iv-men-power-drip",
+      "title": "Men Power IV drip",
       "category": "iv-therapy",
-      "price": 999,
+      "price": 839,
       "duration": "1 Session",
-      "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
-      "description": "Soothing hydration flush focused on digestion health, reducing gut lining irritation and promoting healthy bowel absorption.",
-      "popular": false
+      "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+      "description": "IV drip support for men power, wellness, energy, hydration, and recovery.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking",
+      "vendorPrices": [],
+      "attributes": {
+        "key_ingredients": "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nMagnesium Chloride\nZinc Sulphate\nL-Glutamine\nL-Arginine\nAscorbic Acid\nTaurine\nSelenium",
+        "clinical_benefits": "● Supports men's sexual performance by boosting energy, improving blood flow and enhancing overall vitality\n● Stimulates nitric oxide production promoting better circulation and erectile function\n● Zinc Sulphate aids testosterone synthesis",
+        "disclaimer": "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      }
+    },
+    {
+      "id": "srv-iv-liver-detox-after-party",
+      "title": "Liver Detox drip/After Party",
+      "category": "iv-therapy",
+      "price": 899,
+      "duration": "1 Session",
+      "image": "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
+      "description": "Liver detox and after-party drip support for hydration, detoxification, and recovery.",
+      "popular": false,
+      "bookingNotice": "24 hours prior booking",
+      "vendorPrices": [],
+      "attributes": {
+        "key_ingredients": "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nCarnitine\nAlpha Lipoic Acid\nZinc Sulphate\nMagnesium Chloride",
+        "clinical_benefits": "● Supports detoxification and liver function\n● Reduces oxidative stress on the liver\n● Enhances fat metabolism and energy production",
+        "disclaimer": "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      }
     },
     {
       "id": "srv-iv-nad-100",
@@ -579,33 +1047,54 @@
       "duration": "1 Session",
       "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
       "description": "Moderate Nicotinamide Adenine Dinucleotide (NAD+) infusion initiating mitochondrial DNA repairs and cell revitalization.",
-      "popular": false
+      "popular": false,
+      "bookingNotice": "24 hours prior booking",
+      "vendorPrices": [],
+      "attributes": {
+        "key_ingredients": "NAD+ 100mg",
+        "clinical_benefits": "● Enhances cellular repair and regeneration\n● Boosts energy and combats fatigue\n● Supports anti-aging and overall vitality",
+        "disclaimer": "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      }
     },
     {
       "id": "srv-iv-nad-250",
       "title": "Antiaging with NAD 250mg IV Therapy",
       "category": "iv-therapy",
-      "price": 1299,
+      "price": 1199,
       "duration": "1 Session",
       "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
       "description": "Strong clinical NAD+ infusion activating deep sirtuin enzymes to boost cellular lifespan, energy, and anti-aging defenses.",
-      "popular": false
+      "popular": false,
+      "bookingNotice": "24 hours prior booking",
+      "vendorPrices": [],
+      "attributes": {
+        "key_ingredients": "NAD+ 250mg",
+        "clinical_benefits": "● Enhances cellular repair and regeneration\n● Boosts energy and combats fatigue\n● Supports anti-aging and overall vitality",
+        "disclaimer": "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      }
     },
     {
       "id": "srv-iv-nad-500",
       "title": "Antiaging with NAD 500mg IV Therapy",
       "category": "iv-therapy",
-      "price": 1499,
+      "price": 1699,
       "duration": "1 Session",
       "image": "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
       "description": "Vigorous longevity infusion delivering 500mg pure medical NAD+ to optimize cognitive neuro-protection and full systemic age reversal.",
-      "popular": true
+      "popular": true,
+      "bookingNotice": "24 hours prior booking",
+      "vendorPrices": [],
+      "attributes": {
+        "key_ingredients": "NAD+ 500mg",
+        "clinical_benefits": "● Enhances cellular repair and regeneration\n● Boosts energy and combats fatigue\n● Supports anti-aging and overall vitality",
+        "disclaimer": "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      }
     }
   ],
   "vendors": [
     {
       "id": "v-1",
-      "name": "Medziva Pharmacy",
+      "name": "MedZiva Pharmacy",
       "type": "Pharmacy",
       "contact": "+971 4 123 4567",
       "rating": 4.9,
@@ -632,7 +1121,7 @@
     },
     {
       "id": "v-4",
-      "name": "Medziva Nurse Team",
+      "name": "MedZiva Nurse Team",
       "type": "Nursing Provider",
       "contact": "+971 4 555 7788",
       "rating": 5,
@@ -650,7 +1139,7 @@
     }
   ],
   "settings": {
-    "siteName": "Medziva Home Healthcare",
+    "siteName": "MedZiva Home Healthcare",
     "vatPercent": 5,
     "platformFeePercent": 2.5,
     "defaultCurrency": "AED",
@@ -669,7 +1158,7 @@
       "customerName": "Fatima Ahmed",
       "customerEmail": "fatima.ahmed@example.com",
       "serviceTitle": "At-Home General Nursing Consultation",
-      "vendorName": "Medziva Nurse Team",
+      "vendorName": "MedZiva Nurse Team",
       "price": 250,
       "date": "2026-05-18",
       "region": "Dubai",
@@ -691,7 +1180,7 @@
       "customerName": "Kamal Al-Sharif",
       "customerEmail": "kamal.sh@example.com",
       "serviceTitle": "Complete Blood Count (CBC) with differential",
-      "vendorName": "Medziva Pharmacy",
+      "vendorName": "MedZiva Pharmacy",
       "price": 99,
       "date": "2026-05-20",
       "region": "Sharjah",
@@ -724,7 +1213,7 @@
       "customerName": "Muna Al-Ketbi",
       "customerEmail": "muna.k@example.com",
       "serviceTitle": "Elderly and Long term care",
-      "vendorName": "Medziva Nurse Team",
+      "vendorName": "MedZiva Nurse Team",
       "price": 1200,
       "date": "2026-05-20",
       "region": "Dubai",
@@ -734,8 +1223,8 @@
       "id": "b-1779326253164",
       "customerName": "Bala",
       "customerEmail": "bala@gmail.com",
-      "serviceTitle": "Wound care and Surgical Dressing-Small",
-      "vendorName": "Medziva Nurse Team",
+      "serviceTitle": "Wound Care and Surgical Dressing-Small",
+      "vendorName": "MedZiva Nurse Team",
       "price": 500,
       "date": "2026-05-21",
       "timeSlot": "10:00 AM - 11:30 AM (Pre Noon)",
@@ -748,8 +1237,8 @@
       "id": "b-1779326614937",
       "customerName": "Bala",
       "customerEmail": "bala@gmail.com",
-      "serviceTitle": "Wound care and Surgical Dressing-Medium",
-      "vendorName": "Medziva Nurse Team",
+      "serviceTitle": "Wound Care and Surgical Dressing-Medium",
+      "vendorName": "MedZiva Nurse Team",
       "price": 650,
       "date": "2026-05-27",
       "timeSlot": "03:00 PM - 04:30 PM (Late Afternoon)",
@@ -762,8 +1251,8 @@
       "id": "b-1779326792998",
       "customerName": "Bala",
       "customerEmail": "bala@gmail.com",
-      "serviceTitle": "Wound care and Surgical Dressing-Small",
-      "vendorName": "Medziva Nurse Team",
+      "serviceTitle": "Wound Care and Surgical Dressing-Small",
+      "vendorName": "MedZiva Nurse Team",
       "price": 500,
       "date": "2026-05-28",
       "timeSlot": "09:00 AM - 10:00 AM (Morning)",
@@ -776,8 +1265,8 @@
       "id": "b-1779333369059",
       "customerName": "Bala",
       "customerEmail": "bala@gmail.com",
-      "serviceTitle": "Wound care and Surgical Dressing-Medium",
-      "vendorName": "Medziva Nurse Team",
+      "serviceTitle": "Wound Care and Surgical Dressing-Medium",
+      "vendorName": "MedZiva Nurse Team",
       "price": 650,
       "date": "2026-05-22",
       "timeSlot": "09:00 AM - 10:00 AM (Morning)",
@@ -790,8 +1279,8 @@
       "id": "b-1779338557706",
       "customerName": "Bala",
       "customerEmail": "bala@gmail.com",
-      "serviceTitle": "Wound care and Surgical Dressing-Medium",
-      "vendorName": "Medziva Nurse Team",
+      "serviceTitle": "Wound Care and Surgical Dressing-Medium",
+      "vendorName": "MedZiva Nurse Team",
       "price": 650,
       "date": "2026-05-22",
       "timeSlot": "09:00 AM - 10:00 AM (Morning)",
@@ -804,8 +1293,8 @@
       "id": "b-1779338660693",
       "customerName": "Bala",
       "customerEmail": "bala@gmail.com",
-      "serviceTitle": "Wound care and Surgical Dressing-Small",
-      "vendorName": "Medziva Nurse Team",
+      "serviceTitle": "Wound Care and Surgical Dressing-Small",
+      "vendorName": "MedZiva Nurse Team",
       "price": 500,
       "date": "2026-05-22",
       "timeSlot": "09:00 AM - 10:00 AM (Morning)",
@@ -818,8 +1307,8 @@
       "id": "b-1779338718642",
       "customerName": "Bala",
       "customerEmail": "bala@gmail.com",
-      "serviceTitle": "Wound care and Surgical Dressing-Small",
-      "vendorName": "Medziva Nurse Team",
+      "serviceTitle": "Wound Care and Surgical Dressing-Small",
+      "vendorName": "MedZiva Nurse Team",
       "price": 500,
       "date": "2026-05-22",
       "timeSlot": "09:00 AM - 10:00 AM (Morning)",
@@ -832,8 +1321,8 @@
       "id": "b-1779338833073",
       "customerName": "Bala",
       "customerEmail": "bala@gmail.com",
-      "serviceTitle": "Wound care and Surgical Dressing-Small",
-      "vendorName": "Medziva Nurse Team",
+      "serviceTitle": "Wound Care and Surgical Dressing-Small",
+      "vendorName": "MedZiva Nurse Team",
       "price": 500,
       "date": "2026-05-22",
       "timeSlot": "09:00 AM - 10:00 AM (Morning)",
@@ -846,8 +1335,8 @@
       "id": "b-1779338914646",
       "customerName": "Bala",
       "customerEmail": "bala@gmail.com",
-      "serviceTitle": "Wound care and Surgical Dressing-Small",
-      "vendorName": "Medziva Nurse Team",
+      "serviceTitle": "Wound Care and Surgical Dressing-Small",
+      "vendorName": "MedZiva Nurse Team",
       "price": 500,
       "date": "2026-05-22",
       "timeSlot": "09:00 AM - 10:00 AM (Morning)",

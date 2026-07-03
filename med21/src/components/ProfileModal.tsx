@@ -137,7 +137,7 @@ export default function ProfileModal({
     
     onSave(nameVal.trim(), emailVal.trim(), mobileNine, addressVal.trim());
     setIsSaved(true);
-    onSuccessToast('Your premium Medziva profile has been updated!');
+    onSuccessToast('Your premium MedZiva profile has been updated!');
     setTimeout(() => {
       onClose();
     }, 1200);
@@ -202,7 +202,7 @@ export default function ProfileModal({
                 </div>
                 <div>
                   <h4 className="text-sm font-black text-slate-800">Changes Saved Successfully</h4>
-                  <p className="text-xs text-slate-500 mt-1">Your profile settings are synchronized across all Medziva bookings.</p>
+                  <p className="text-xs text-slate-500 mt-1">Your profile settings are synchronized across all MedZiva bookings.</p>
                 </div>
               </div>
             ) : (

@@ -17,7 +17,7 @@ app.use(cookieParser());
 app.use(morgan(env.nodeEnv === 'production' ? 'combined' : 'dev'));
 
 app.get('/', (_req, res) => {
-  res.json({ message: 'Medziva Node.js API is running' });
+  res.json({ message: 'MedZiva Node.js API is running' });
 });
 
 app.use(routes);

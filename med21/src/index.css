@@ -52,11 +52,6 @@ body {
 
 /* Mobile-specific styles */
 @media (max-width: 768px) {
-  /* Hide HeaderTopBar on mobile */
-  #header-top-bar {
-    display: none;
-  }
-
   /* 1. Tab bar clipping fix */
   .tab-navigation {
     overflow-x: auto;

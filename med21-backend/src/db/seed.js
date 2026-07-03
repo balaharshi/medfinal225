@@ -18,6 +18,8 @@ import { DEFAULT_SETTINGS_KEY, USER_ROLES } from '../constants/index.js';
 import { hashPassword } from '../utils/password.js';
 import { logger } from '../utils/logger.js';
 import { nextSequentialId } from '../utils/sequentialId.js';
+import { HOME_HEALTHCARE_CATEGORIES, HOME_HEALTHCARE_SERVICES } from '../../../shared/homeHealthcareCatalog.js';
+import { LAB_TESTS_AT_HOME_SERVICES } from '../../../shared/labTestsAtHomeCatalog.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -36,8 +38,26 @@ const loadSeedData = () => {
   return JSON.parse(fs.readFileSync(sourceDbPath, 'utf8'));
 };
 
+const mergeById = (baseRows = [], overrideRows = []) => {
+  const merged = new Map();
+  baseRows.forEach((row) => merged.set(row.id, row));
+  overrideRows.forEach((row) => merged.set(row.id, row));
+  return Array.from(merged.values());
+};
+
 export const seedDatabase = async () => {
-  const data = loadSeedData();
+  const seedData = loadSeedData();
+  const data = {
+    ...seedData,
+    categories: mergeById(seedData.categories, HOME_HEALTHCARE_CATEGORIES),
+    services: mergeById(
+      mergeById(
+        (seedData.services || []).filter((service) => service.category !== 'home-healthcare' && service.category !== 'lab-tests-at-home'),
+        LAB_TESTS_AT_HOME_SERVICES,
+      ),
+      HOME_HEALTHCARE_SERVICES,
+    ),
+  };
   const categoryIdMap = new Map();
   const serviceIdMap = new Map();
   const vendorIdMap = new Map();
@@ -79,7 +99,7 @@ export const seedDatabase = async () => {
         image: product.image,
         category: product.category || 'devices-for-rent',
         subcategory: product.subcategory || '',
-        brand: product.brand || 'Medziva Store',
+        brand: product.brand || 'MedZiva Store',
         rating: Number(product.rating || 5),
         inStock: product.inStock !== false,
         description: product.description || '',
@@ -104,11 +124,30 @@ export const seedDatabase = async () => {
         enquiryOnly: !!service.enquiryOnly,
         attributes: service.attributes || [],
         vendorPrices: service.vendorPrices || [],
+        bookingNotice: service.bookingNotice || '',
+        remarks: service.remarks || '',
       })).map((service, index) => {
         serviceIdMap.set(data.services[index].id, service.id);
         return service;
       }),
     );
+  }
+
+  if (Array.isArray(data.services)) {
+    const ivServices = data.services.filter(
+      (s) => (s.category === 'iv-therapy' || s.subcategory === 'iv-therapy') && s.attributes && Object.keys(s.attributes).length > 0
+    );
+    for (const svc of ivServices) {
+      const updated = await db.update(services)
+        .set({ attributes: svc.attributes, vendorPrices: svc.vendorPrices || [] })
+        .where(eq(services.id, svc.id))
+        .returning();
+      if (updated.length === 0) {
+        await db.update(services)
+          .set({ attributes: svc.attributes, vendorPrices: svc.vendorPrices || [] })
+          .where(eq(services.title, svc.title));
+      }
+    }
   }
 
   if (Array.isArray(data.vendors) && !(await hasRows(vendors))) {
@@ -180,7 +219,7 @@ export const seedDatabase = async () => {
         customerEmail: booking.customerEmail || 'guest@example.com',
         customerPhone: booking.customerPhone || '',
         serviceTitle: booking.serviceTitle,
-        vendorName: booking.vendorName || 'Medziva Premium Provider',
+        vendorName: booking.vendorName || 'MedZiva Premium Provider',
         vendorId: booking.vendorId ? vendorIdMap.get(booking.vendorId) || booking.vendorId : null,
         serviceId: booking.serviceId ? serviceIdMap.get(booking.serviceId) || booking.serviceId : null,
         price: Number(booking.price || 0),
@@ -214,7 +253,7 @@ export const seedDatabase = async () => {
     .insert(settings)
     .values({
       key: DEFAULT_SETTINGS_KEY,
-      siteName: appSettings.siteName || 'Medziva Home Healthcare',
+      siteName: appSettings.siteName || 'MedZiva Home Healthcare',
       vatPercent: Number(appSettings.vatPercent || 5),
       platformFeePercent: Number(appSettings.platformFeePercent || 2.5),
       defaultCurrency: appSettings.defaultCurrency || 'AED',
@@ -257,14 +296,14 @@ export const seedDatabase = async () => {
       email: 'admin@gmail.com',
       fullName: 'Admin',
       passwordHash: demoCustomerPasswordHash,
-      role: USER_ROLES.CUSTOMER,
+      role: USER_ROLES.ADMIN,
     })
     .onConflictDoUpdate({
       target: users.email,
       set: {
         fullName: 'Admin',
         passwordHash: demoCustomerPasswordHash,
-        role: USER_ROLES.CUSTOMER,
+        role: USER_ROLES.ADMIN,
         updatedAt: new Date(),
       },
     });

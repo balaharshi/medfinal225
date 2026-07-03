@@ -44,10 +44,15 @@ import {
   X,
   User,
   Stethoscope,
-  Activity
+  Activity,
+  Star,
+  CreditCard
 } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import ConfirmDialog from "./ConfirmDialog";
+import SocialAuthButtons from "./SocialAuthButtons";
+import { HEALTHCARE_SERVICES } from "../data";
+import { subscribeToNotifications } from "../services/pusherClient";
 
 interface AdminDashboardProps {
   db: {
@@ -65,9 +70,14 @@ interface AdminLoginFormValues {
 }
 
 export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDashboardProps) {
+  const hasStoredAdminSession = typeof window !== "undefined" && (
+    localStorage.getItem("medziva_admin_auth") === "true" ||
+    !!localStorage.getItem("medziva_admin_token")
+  );
+
   // Login Authentication States
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isSessionChecking, setIsSessionChecking] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(hasStoredAdminSession);
+  const [isSessionChecking, setIsSessionChecking] = useState(!hasStoredAdminSession);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
   const {
@@ -109,6 +119,21 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const [customRequestSearch, setCustomRequestSearch] = useState("");
   const [customRequestStatusFilter, setCustomRequestStatusFilter] = useState<"all" | "Pending Response" | "Answered" | "Closed">("all");
 
+  const getAdminRequestInit = (init: RequestInit = {}) => {
+    const token = localStorage.getItem("medziva_admin_token");
+    const headers = new Headers(init.headers || {});
+
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+
+    return {
+      ...init,
+      credentials: "include" as const,
+      headers,
+    };
+  };
+
   // Filtered vendors list
   const filteredVendors = vendorsList.filter((v) => {
     const matchesFilter = 
@@ -136,6 +161,12 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       (b.customerEmail && b.customerEmail.toLowerCase().includes(bookingSearch.toLowerCase()));
     return matchesFilter && matchesSearch;
   });
+  const getPaymentBadgeClass = (paymentStatus?: string) => {
+    if (paymentStatus === "Paid") return "bg-emerald-50 text-emerald-700";
+    if (paymentStatus === "Failed" || paymentStatus === "Canceled") return "bg-rose-50 text-rose-700";
+    if (paymentStatus === "Pending") return "bg-blue-50 text-blue-700";
+    return "bg-slate-100 text-slate-600";
+  };
   const filteredCustomServiceRequests = enquiriesList.filter((request) => {
     const query = customRequestSearch.trim().toLowerCase();
     const matchesSearch =
@@ -149,6 +180,32 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     return matchesSearch && matchesStatus;
   });
   const selectedServiceVendor = vendorsList.find((vendor) => vendor.id === selectedVendorServiceVendorId);
+  const normalizeServiceImageKey = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/&/g, "and")
+      .replace(/[^a-z0-9]+/g, "")
+      .trim();
+  const frontendServiceImageByKey = useMemo(() => {
+    const entries = HEALTHCARE_SERVICES.flatMap((service) => {
+      const normalizedTitle = normalizeServiceImageKey(service.title || "");
+      return [
+        [String(service.id || ""), service.image],
+        [String(service.title || "").trim().toLowerCase(), service.image],
+        [normalizedTitle, service.image],
+        [`${service.category || ""}:${service.subcategory || ""}`, service.image],
+        [`${service.category || ""}:`, service.image],
+      ];
+    });
+    return new Map(entries.filter(([key]) => Boolean(key)) as Array<[string, string]>);
+  }, []);
+  const getServiceRecordImage = (service: any) =>
+    frontendServiceImageByKey.get(String(service.id || "")) ||
+    frontendServiceImageByKey.get(String(service.title || "").trim().toLowerCase()) ||
+    frontendServiceImageByKey.get(normalizeServiceImageKey(String(service.title || ""))) ||
+    frontendServiceImageByKey.get(`${service.category || ""}:${service.subcategory || ""}`) ||
+    frontendServiceImageByKey.get(`${service.category || ""}:`) ||
+    service.image;
   const filteredVendorServiceAssignments = vendorServiceAssignments.filter((service) => {
     const query = vendorServiceSearch.trim().toLowerCase();
     if (!query) return true;
@@ -246,7 +303,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     };
   });
   const [settingsData, setSettingsData] = useState<any>({
-    siteName: "Medziva Home Healthcare",
+    siteName: "MedZiva Home Healthcare",
     vatPercent: 5,
     defaultCurrency: "AED",
     supportEmail: "support@medziva.ae",
@@ -273,18 +330,35 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   // Service Form
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
   const [srvTitle, setSrvTitle] = useState("");
+  const [srvSlug, setSrvSlug] = useState("");
+  const [srvStatus, setSrvStatus] = useState<"draft" | "active" | "inactive">("active");
+  const [srvActive, setSrvActive] = useState(true);
   const [srvCategory, setSrvCategory] = useState("");
   const [srvSubcategory, setSrvSubcategory] = useState("");
   const [srvPrice, setSrvPrice] = useState("");
+  const [srvOriginalPrice, setSrvOriginalPrice] = useState("");
+  const [srvVisitFeeIncluded, setSrvVisitFeeIncluded] = useState(true);
   const [srvDuration, setSrvDuration] = useState("1 Hour");
+  const [srvEstimatedVisitTime, setSrvEstimatedVisitTime] = useState("");
   const [srvImage, setSrvImage] = useState("");
+  const [srvShortDesc, setSrvShortDesc] = useState("");
   const [srvDesc, setSrvDesc] = useState("");
+  const [srvFullDesc, setSrvFullDesc] = useState("");
+  const [srvInclusions, setSrvInclusions] = useState("");
+  const [srvPreparation, setSrvPreparation] = useState("");
+  const [srvWhoFor, setSrvWhoFor] = useState("");
+  const [srvLocation, setSrvLocation] = useState("at-home");
+  const [srvAvailability, setSrvAvailability] = useState("");
+  const [srvTags, setSrvTags] = useState("");
+  const [srvDisplayPriority, setSrvDisplayPriority] = useState("100");
+  const [srvSeoTitle, setSrvSeoTitle] = useState("");
+  const [srvSeoDescription, setSrvSeoDescription] = useState("");
   const [srvPopular, setSrvPopular] = useState(false);
   const [srvAttributes, setSrvAttributes] = useState<Array<{ name: string; value: string }>>([
-    { name: "Practitioner Level", value: "DHA-Certified Specialist" }
+    { name: "Practitioner Level", value: "Certified Specialist" }
   ]);
   const [srvVendors, setSrvVendors] = useState<Array<{ vendorName: string; price: number }>>([
-    { vendorName: "Medziva Nurse Team", price: 0 }
+    { vendorName: "MedZiva Nurse Team", price: 0 }
   ]);
 
   // Vendor Creator Form
@@ -296,6 +370,10 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const [editingVendorId, setEditingVendorId] = useState<string | null>(null);
   const [isVendorEditModalOpen, setIsVendorEditModalOpen] = useState(false);
   const [isServiceEditModalOpen, setIsServiceEditModalOpen] = useState(false);
+  const [previewingService, setPreviewingService] = useState<any>(null);
+  const [serviceSearch, setServiceSearch] = useState("");
+  const [serviceCategoryFilter, setServiceCategoryFilter] = useState("all");
+  const [serviceStatusFilter, setServiceStatusFilter] = useState<"all" | "active" | "inactive" | "draft" | "featured">("all");
   const [isBookingViewModalOpen, setIsBookingViewModalOpen] = useState(false);
   const [viewingBooking, setViewingBooking] = useState<any>(null);
   const [pendingConfirm, setPendingConfirm] = useState<{
@@ -320,25 +398,33 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   });
 
   useEffect(() => {
-    localStorage.removeItem("medziva_admin_auth");
-  }, []);
-
-  useEffect(() => {
     const hydrateSession = async () => {
+      const hasStoredSession = (
+        localStorage.getItem("medziva_admin_auth") === "true" ||
+        !!localStorage.getItem("medziva_admin_token")
+      );
+
       try {
-        const token = localStorage.getItem("medziva_admin_token");
-        const response = await fetch('/api/auth/session', {
-          credentials: 'include',
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
+        const response = await fetch('/api/auth/session', getAdminRequestInit());
         if (response.ok) {
           const data = await response.json();
-          if (data?.user?.role === 'admin') {
+          if (data?.user?.role === 'admin' || data?.user?.role === 'super_admin') {
             setIsAuthenticated(true);
+            localStorage.setItem("medziva_admin_auth", "true");
+            return;
           }
         }
+
+        if (hasStoredSession) {
+          localStorage.removeItem("medziva_admin_auth");
+          localStorage.removeItem("medziva_admin_token");
+        }
+        setIsAuthenticated(false);
       } catch (error) {
         console.error('Failed to restore admin session', error);
+        if (!hasStoredSession) {
+          setIsAuthenticated(false);
+        }
       } finally {
         setIsSessionChecking(false);
       }
@@ -351,36 +437,52 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const fetchAdminData = async () => {
     setIsLoadingData(true);
     try {
-      const [resVendors, resUsers, resBookings, resSettings, resEnquiries, resCategories] = await Promise.all([
-        fetch("/api/vendors"),
-        fetch("/api/users"),
-        fetch("/api/bookings"),
-        fetch("/api/settings"),
-        fetch("/api/enquiries"),
-        fetch("/api/categories")
+      const loadJson = async (url: string) => {
+        const response = await fetch(url, getAdminRequestInit());
+        if (!response.ok) {
+          throw new Error(`${url} failed with ${response.status}`);
+        }
+        return response.json();
+      };
+
+      const [vendorsResult, usersResult, bookingsResult, settingsResult, enquiriesResult, categoriesResult] = await Promise.allSettled([
+        loadJson("/api/vendors"),
+        loadJson("/api/users"),
+        loadJson("/api/bookings"),
+        loadJson("/api/settings"),
+        loadJson("/api/enquiries"),
+        loadJson("/api/categories"),
       ]);
-      
-      if (resVendors.ok) {
-        const list = await resVendors.json();
-        setVendorsList(list);
+
+      if (vendorsResult.status === "fulfilled") {
+        setVendorsList(vendorsResult.value);
+      } else {
+        console.error("Unable to load vendors", vendorsResult.reason);
       }
-      if (resUsers.ok) {
-        const list = await resUsers.json();
-        setUsersList(list);
+
+      if (usersResult.status === "fulfilled") {
+        setUsersList(usersResult.value);
+      } else {
+        console.error("Unable to load users", usersResult.reason);
       }
-      if (resBookings.ok) {
-        const list = await resBookings.json();
-        setBookingsList(list);
+
+      if (bookingsResult.status === "fulfilled") {
+        setBookingsList(bookingsResult.value);
+      } else {
+        console.error("Unable to load bookings", bookingsResult.reason);
       }
-      if (resEnquiries.ok) {
-        const list = await resEnquiries.json();
-        setEnquiriesList(list);
+
+      if (enquiriesResult.status === "fulfilled") {
+        setEnquiriesList(enquiriesResult.value);
+      } else {
+        console.error("Unable to load enquiries", enquiriesResult.reason);
       }
-      if (resSettings.ok) {
-        const data = await resSettings.json();
+
+      if (settingsResult.status === "fulfilled") {
+        const data = settingsResult.value;
         setSettingsData(data);
         setSettingsForm({
-          siteName: data.siteName || "Medziva Home Healthcare",
+          siteName: data.siteName || "MedZiva Home Healthcare",
           vatPercent: Number(data.vatPercent) || 5,
           defaultCurrency: data.defaultCurrency || "AED",
           supportEmail: data.supportEmail || "support@medziva.ae",
@@ -388,12 +490,16 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
           maintenanceMode: !!data.maintenanceMode,
           adminPassword: ""
         });
+      } else {
+        console.error("Unable to load settings", settingsResult.reason);
       }
-      if (resCategories.ok) {
-        const categories = await resCategories.json();
-        setCategoriesList(categories);
+
+      if (categoriesResult.status === "fulfilled") {
+        setCategoriesList(categoriesResult.value);
+      } else {
+        console.error("Unable to load categories", categoriesResult.reason);
       }
-      // Also refresh the db prop to get updated categories
+
       onRefresh();
     } catch (e) {
       console.error("Error retrieving dashboard admin streams", e);
@@ -410,6 +516,49 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   }, [isAuthenticated]);
 
   useEffect(() => {
+    if (!isAuthenticated) return undefined;
+
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") {
+        fetchAdminData();
+      }
+    };
+
+    window.addEventListener("focus", refreshWhenVisible);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === "visible" && (activePane === "dashboard" || activePane === "bookings")) {
+        fetchAdminData();
+      }
+    }, 15000);
+
+    return () => {
+      window.removeEventListener("focus", refreshWhenVisible);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+      window.clearInterval(intervalId);
+    };
+  }, [activePane, isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return undefined;
+
+    return subscribeToNotifications((payload) => {
+      const eventName = String(payload.event || "");
+      const action = String(payload.action || "");
+      const message = String(payload.message || "");
+      const isNewBooking =
+        eventName === "appointment:update" &&
+        (action === "created" || (!action && message.toLowerCase().includes("new appointment booked")));
+
+      if (!isNewBooking) return;
+
+      toast.success(message || "New booking received.");
+      fetchAdminData();
+    });
+  }, [isAuthenticated]);
+
+  useEffect(() => {
     if (!selectedVendorServiceVendorId && vendorsList.length > 0) {
       setSelectedVendorServiceVendorId(vendorsList[0].id);
     }
@@ -419,9 +568,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     if (!vendorId) return;
 
     try {
-      const response = await fetch(`/api/vendors/${vendorId}/service-assignments`, {
-        credentials: "include",
-      });
+      const response = await fetch(`/api/vendors/${vendorId}/service-assignments`, getAdminRequestInit());
       if (response.ok) {
         setVendorServiceAssignments(await response.json());
       }
@@ -473,11 +620,14 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     if (!selectedVendorDetails) return;
     const nextActive = !selectedVendorDetails.active;
     try {
-      const response = await fetch(`/api/vendor/${selectedVendorDetails.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ active: nextActive }),
-      });
+      const response = await fetch(
+        `/api/vendor/${selectedVendorDetails.id}`,
+        getAdminRequestInit({
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ active: nextActive }),
+        })
+      );
       if (!response.ok) throw new Error("Unable to update vendor status");
       triggerToast(`Vendor ${nextActive ? "activated" : "deactivated"} successfully.`);
       await fetchAdminData();
@@ -501,12 +651,14 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     );
 
     try {
-      const response = await fetch(`/api/vendors/${selectedVendorServiceVendorId}/service-assignments/${serviceId}`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled }),
-      });
+      const response = await fetch(
+        `/api/vendors/${selectedVendorServiceVendorId}/service-assignments/${serviceId}`,
+        getAdminRequestInit({
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled }),
+        })
+      );
 
       if (!response.ok) {
         await fetchVendorServiceAssignments();
@@ -530,12 +682,14 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     );
 
     try {
-      const response = await fetch(`/api/vendors/${selectedVendorServiceVendorId}/service-assignments/bulk`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ serviceIds, enabled }),
-      });
+      const response = await fetch(
+        `/api/vendors/${selectedVendorServiceVendorId}/service-assignments/bulk`,
+        getAdminRequestInit({
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ serviceIds, enabled }),
+        })
+      );
 
       if (!response.ok) {
         await fetchVendorServiceAssignments();
@@ -565,9 +719,18 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       const data = await response.json();
 
       if (response.ok && data?.success) {
+        const role = data?.user?.role;
+        if (role !== "admin" && role !== "super_admin") {
+          const message = "Admin access requires an admin account. Please sign in with admin credentials.";
+          setAuthError(message);
+          toast.error(message);
+          return;
+        }
+
         if (data.accessToken) {
           localStorage.setItem("medziva_admin_token", data.accessToken);
         }
+        localStorage.setItem("medziva_admin_auth", "true");
         setIsAuthenticated(true);
         setIsSessionChecking(false);
         triggerToast("Access Granted. Welcome back to Admin Operations Center.");
@@ -586,9 +749,34 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     }
   };
 
+  const handleAdminSocialLogin = async (data: any) => {
+    const role = data?.user?.role;
+    if (role !== "admin" && role !== "super_admin") {
+      const message = "Admin access requires an admin account. Please sign in with an admin Google or Apple account.";
+      setAuthError(message);
+      toast.error(message);
+      return;
+    }
+
+    if (data.accessToken) {
+      localStorage.setItem("medziva_admin_token", data.accessToken);
+    }
+    localStorage.setItem("medziva_admin_auth", "true");
+    setIsAuthenticated(true);
+    setIsSessionChecking(false);
+    triggerToast("Access Granted. Welcome back to Admin Operations Center.");
+    reset();
+  };
+
+  const handleAdminSocialError = (message: string) => {
+    setAuthError(message);
+    toast.error(message);
+  };
+
   // Perform logout
   const handleLogout = () => {
     setIsAuthenticated(false);
+    localStorage.removeItem("medziva_admin_auth");
     localStorage.removeItem("medziva_admin_token");
     fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => undefined);
     triggerToast("Logged out of session. Data sealed console-wide.");
@@ -599,6 +787,205 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     const selectedCatObj = categoriesList.find(c => c.slug === srvCategory || c.id === srvCategory);
     return selectedCatObj?.subcategories || [];
   }, [srvCategory, categoriesList]);
+
+  const slugifyServiceTitle = (value: string) =>
+    value
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+  const parseLines = (value: string) =>
+    value
+      .split(/\n|,/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+  const resetServiceForm = () => {
+    setEditingServiceId(null);
+    setSrvTitle("");
+    setSrvSlug("");
+    setSrvStatus("active");
+    setSrvActive(true);
+    setSrvCategory("");
+    setSrvSubcategory("");
+    setSrvPrice("");
+    setSrvOriginalPrice("");
+    setSrvVisitFeeIncluded(true);
+    setSrvDuration("1 Hour");
+    setSrvEstimatedVisitTime("");
+    setSrvImage("");
+    setSrvShortDesc("");
+    setSrvDesc("");
+    setSrvFullDesc("");
+    setSrvInclusions("");
+    setSrvPreparation("");
+    setSrvWhoFor("");
+    setSrvLocation("at-home");
+    setSrvAvailability("");
+    setSrvTags("");
+    setSrvDisplayPriority("100");
+    setSrvSeoTitle("");
+    setSrvSeoDescription("");
+    setSrvPopular(false);
+    setSrvAttributes([{ name: "Practitioner Level", value: "Certified Specialist" }]);
+    setSrvVendors([{ vendorName: "MedZiva Nurse Team", price: 0 }]);
+  };
+
+  const hydrateServiceForm = (service: any) => {
+    setSrvTitle(service.title || "");
+    setSrvSlug(service.slug || slugifyServiceTitle(service.title || ""));
+    setSrvStatus(service.status || (service.active === false ? "inactive" : "active"));
+    setSrvActive(service.active !== false);
+    setSrvCategory(service.category || "");
+    setSrvSubcategory(service.subcategory || "");
+    setSrvPrice(String(service.salePrice || service.price || ""));
+    setSrvOriginalPrice(String(service.originalPrice || service.price || ""));
+    setSrvVisitFeeIncluded(service.homeVisitFeeIncluded !== false);
+    setSrvDuration(service.duration || "1 Hour");
+    setSrvEstimatedVisitTime(service.estimatedVisitTime || "");
+    setSrvImage(service.image || "");
+    setSrvShortDesc(service.shortDescription || service.description || "");
+    setSrvDesc(service.description || "");
+    setSrvFullDesc(service.fullDescription || service.description || "");
+    setSrvInclusions((service.inclusions || []).join("\n"));
+    setSrvPreparation(service.preparationInstructions || "");
+    setSrvWhoFor(service.whoIsItFor || "");
+    setSrvLocation(service.serviceLocation || "at-home");
+    setSrvAvailability(service.availability || "");
+    setSrvTags((service.tags || []).join(", "));
+    setSrvDisplayPriority(String(service.displayPriority ?? 100));
+    setSrvSeoTitle(service.seoTitle || "");
+    setSrvSeoDescription(service.seoDescription || "");
+    setSrvPopular(service.popular || false);
+    setSrvAttributes(service.attributes || [{ name: "Practitioner Level", value: "Certified Specialist" }]);
+    setSrvVendors(service.vendorPrices || [{ vendorName: "MedZiva Nurse Team", price: Number(service.price) || 0 }]);
+  };
+
+  const uniqueServiceCount = useMemo(() => {
+    const seen = new Set<string>();
+    return db.services.filter((service) => {
+      const key = `${(service.title || "").trim().toLowerCase()}::${service.category || ""}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).length;
+  }, [db.services]);
+
+  const filteredServiceRecords = useMemo(() => {
+    const query = serviceSearch.trim().toLowerCase();
+    const seen = new Set<string>();
+    return db.services
+      .filter((service) => {
+        const dedupeKey = `${(service.title || "").trim().toLowerCase()}::${service.category || ""}`;
+        if (seen.has(dedupeKey)) return false;
+        seen.add(dedupeKey);
+        const searchable = [
+          service.title,
+          service.slug,
+          service.category,
+          service.subcategory,
+          service.description,
+          service.shortDescription,
+          service.fullDescription,
+          ...(service.tags || []),
+        ].join(" ").toLowerCase();
+        const matchesSearch = !query || searchable.includes(query);
+        const matchesCategory = serviceCategoryFilter === "all" || service.category === serviceCategoryFilter;
+        const matchesStatus =
+          serviceStatusFilter === "all" ||
+          (serviceStatusFilter === "featured" && service.popular) ||
+          (serviceStatusFilter === "active" && service.active !== false && (service.status || "active") === "active") ||
+          (serviceStatusFilter === "inactive" && (service.active === false || service.status === "inactive")) ||
+          (serviceStatusFilter === "draft" && service.status === "draft");
+        return matchesSearch && matchesCategory && matchesStatus;
+      })
+      .sort((a, b) => (Number(a.displayPriority ?? 100) - Number(b.displayPriority ?? 100)) || a.title.localeCompare(b.title));
+  }, [db.services, serviceSearch, serviceCategoryFilter, serviceStatusFilter]);
+
+  const handleServiceImageUpload = (file?: File) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setSrvImage(String(reader.result || ""));
+    reader.readAsDataURL(file);
+  };
+
+  const handleToggleServiceActive = async (service: any) => {
+    const nextActive = service.active === false || service.status === "inactive";
+    const nextStatus = nextActive ? "active" : "inactive";
+    try {
+      const response = await fetch(`/api/service/${service.id}`, getAdminRequestInit({
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: service.title,
+          price: service.price,
+          active: nextActive,
+          status: nextStatus,
+        }),
+      }));
+      if (!response.ok) throw new Error("Unable to update service status");
+      triggerToast(`${service.title} marked ${nextStatus}.`);
+      onRefresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to update service status");
+    }
+  };
+
+  const handleToggleServicePopular = async (service: any) => {
+    const nextPopular = !service.popular;
+    try {
+      const response = await fetch(`/api/service/${service.id}`, getAdminRequestInit({
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: service.title,
+          price: service.price,
+          popular: nextPopular,
+        }),
+      }));
+      if (!response.ok) throw new Error("Unable to update popular status");
+      triggerToast(`${service.title} ${nextPopular ? "marked as Popular" : "removed from Popular"}.`);
+      onRefresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to update popular status");
+    }
+  };
+
+  const confirmToggleServiceActive = (service: any) => {
+    const isCurrentlyVisible = service.active !== false && (service.status || "active") === "active";
+    requestConfirm(
+      isCurrentlyVisible ? "Deactivate Service?" : "Activate Service?",
+      isCurrentlyVisible
+        ? `"${service.title}" will be hidden from the public website but kept safely in admin records.`
+        : `"${service.title}" will become visible on the public website services list.`,
+      () => handleToggleServiceActive(service),
+      isCurrentlyVisible ? "Deactivate" : "Activate"
+    );
+  };
+
+  const handleDuplicateService = (service: any) => {
+    hydrateServiceForm({
+      ...service,
+      title: `${service.title || "Service"} Copy`,
+      slug: `${service.slug || slugifyServiceTitle(service.title || "service")}-copy`,
+      status: "draft",
+      active: false,
+      popular: false,
+    });
+    setEditingServiceId(null);
+    setIsServiceEditModalOpen(false);
+    triggerToast("Service duplicated into the form as a draft.");
+  };
+
+  const confirmDuplicateService = (service: any) => {
+    requestConfirm(
+      "Duplicate Service?",
+      `"${service.title}" will be copied into the editor as a new draft. You can review and publish it after changes.`,
+      () => handleDuplicateService(service),
+      "Duplicate"
+    );
+  };
 
 
   // --- HANDLERS FOR SERVICE CREATION ---
@@ -634,31 +1021,14 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   // --- SERVICES CRUD OPERATIONS ---
   const handleEditService = (service: any) => {
     setEditingServiceId(service.id);
-    setSrvTitle(service.title);
-    setSrvCategory(service.category);
-    setSrvSubcategory(service.subcategory || "");
-    setSrvPrice(String(service.price));
-    setSrvDuration(service.duration || "1 Hour");
-    setSrvImage(service.image || "");
-    setSrvDesc(service.description || "");
-    setSrvPopular(service.popular || false);
-    setSrvAttributes(service.attributes || [{ name: "Practitioner Level", value: "DHA-Certified Specialist" }]);
-    setSrvVendors(service.vendorPrices || [{ vendorName: "Medziva Nurse Team", price: 0 }]);
-    setIsServiceEditModalOpen(true);
+    hydrateServiceForm(service);
+    setIsServiceEditModalOpen(false);
+    setActivePane("services");
+    triggerToast("Service loaded into the editor.");
   };
 
   const handleCancelServiceEdit = () => {
-    setEditingServiceId(null);
-    setSrvTitle("");
-    setSrvCategory("");
-    setSrvSubcategory("");
-    setSrvPrice("");
-    setSrvDuration("1 Hour");
-    setSrvImage("");
-    setSrvDesc("");
-    setSrvPopular(false);
-    setSrvAttributes([{ name: "Practitioner Level", value: "DHA-Certified Specialist" }]);
-    setSrvVendors([{ vendorName: "Medziva Nurse Team", price: 0 }]);
+    resetServiceForm();
     setIsServiceEditModalOpen(false);
   };
 
@@ -672,17 +1042,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   };
 
   const handleCancelEdit = () => {
-    setEditingServiceId(null);
-    setSrvTitle("");
-    setSrvCategory("");
-    setSrvSubcategory("");
-    setSrvPrice("");
-    setSrvDuration("1 Hour");
-    setSrvImage("");
-    setSrvDesc("");
-    setSrvPopular(false);
-    setSrvAttributes([{ name: "Practitioner Level", value: "DHA-Certified Specialist" }]);
-    setSrvVendors([{ vendorName: "Medziva Nurse Team", price: 0 }]);
+    resetServiceForm();
   };
 
   const handleCreateService = async (e: React.FormEvent) => {
@@ -707,22 +1067,44 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       const url = isEdit ? `/api/service/${editingServiceId}` : "/api/services";
       const method = isEdit ? "PATCH" : "POST";
       
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: srvTitle,
-          category: srvCategory || "home-healthcare",
-          subcategory: srvSubcategory,
-          price: Number(srvPrice),
-          duration: srvDuration,
-          image: srvImage || "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
-          description: srvDesc || "No description provided.",
-          popular: srvPopular,
-          attributes: cleanedAttrs,
-          vendorPrices: cleanedVendors
+      const response = await fetch(
+        url,
+        getAdminRequestInit({
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: srvTitle,
+            slug: srvSlug || slugifyServiceTitle(srvTitle),
+            category: srvCategory || "home-healthcare",
+            subcategory: srvSubcategory,
+            status: srvStatus,
+            active: srvActive && srvStatus === "active",
+            price: Number(srvPrice),
+            salePrice: Number(srvPrice),
+            originalPrice: Number(srvOriginalPrice || srvPrice),
+            currency: "AED",
+            homeVisitFeeIncluded: srvVisitFeeIncluded,
+            duration: srvDuration,
+            estimatedVisitTime: srvEstimatedVisitTime,
+            image: srvImage || "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+            shortDescription: srvShortDesc || srvDesc,
+            description: srvDesc || "No description provided.",
+            fullDescription: srvFullDesc || srvDesc || "No description provided.",
+            inclusions: parseLines(srvInclusions),
+            preparationInstructions: srvPreparation,
+            whoIsItFor: srvWhoFor,
+            serviceLocation: srvLocation,
+            availability: srvAvailability,
+            tags: parseLines(srvTags),
+            displayPriority: Number(srvDisplayPriority || 100),
+            seoTitle: srvSeoTitle,
+            seoDescription: srvSeoDescription,
+            popular: srvPopular,
+            attributes: cleanedAttrs,
+            vendorPrices: cleanedVendors
+          })
         })
-      });
+      );
 
       if (response.ok) {
         triggerToast(`Service "${srvTitle}" ${isEdit ? 'updated' : 'added'} successfully!`);
@@ -746,10 +1128,10 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const handleDeleteService = async (id: string, name: string) => {
     requestConfirm(
       "Delete Service?",
-      `Permanently wipe "${name}" from server medical records?`,
+      `This will permanently remove "${name}" from the service catalog and admin records.`,
       async () => {
         try {
-          const response = await fetch(`/api/service/${id}`, { method: "DELETE" });
+          const response = await fetch(`/api/service/${id}`, getAdminRequestInit({ method: "DELETE" }));
           if (response.ok) {
             triggerToast(`${name} deleted from active catalog.`);
             onRefresh();
@@ -761,7 +1143,8 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
           console.error(err);
           toast.error("Unable to delete service right now.");
         }
-      }
+      },
+      "Delete Service"
     );
   };
 
@@ -801,16 +1184,19 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         : "/api/categories";
       const method = isEdit ? "PATCH" : "POST";
       
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: catName,
-          image: catImage || "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
-          description: catDesc,
-          type: "service"
+      const response = await fetch(
+        url,
+        getAdminRequestInit({
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: catName,
+            image: catImage || "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+            description: catDesc,
+            type: "service"
+          })
         })
-      });
+      );
 
       if (response.ok) {
         const newCategory = await response.json();
@@ -843,7 +1229,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       `Scrub Category "${label}"? This deletes child elements of metadata.`,
       async () => {
         try {
-          const res = await fetch(`/api/category/${id}`, { method: "DELETE" });
+          const res = await fetch(`/api/category/${id}`, getAdminRequestInit({ method: "DELETE" }));
           if (res.ok) {
             triggerToast(`Category "${label}" deleted.`);
             onRefresh();
@@ -873,11 +1259,14 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`/api/subcategories/${parentCatId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: subName })
-      });
+      const response = await fetch(
+        `/api/subcategories/${parentCatId}`,
+        getAdminRequestInit({
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: subName })
+        })
+      );
 
       if (response.ok) {
         triggerToast(`Subcategory "${subName}" bound perfectly!`);
@@ -900,7 +1289,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       `Delete subcategory "${subName}"?`,
       async () => {
         try {
-          const res = await fetch(`/api/subcategory/${catId}/${subId}`, { method: "DELETE" });
+          const res = await fetch(`/api/subcategory/${catId}/${subId}`, getAdminRequestInit({ method: "DELETE" }));
           if (res.ok) {
             triggerToast(`Specialty subcategory cleared.`);
             onRefresh();
@@ -957,17 +1346,20 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         : "/api/vendors";
       const method = isEdit ? "PATCH" : "POST";
       
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: vendorName,
-          contact: vendorContact,
-          address: vendorAddress,
-          commission: Number(vendorCommission),
-          active: vendorActive
+      const response = await fetch(
+        url,
+        getAdminRequestInit({
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: vendorName,
+            contact: vendorContact,
+            address: vendorAddress,
+            commission: Number(vendorCommission),
+            active: vendorActive
+          })
         })
-      });
+      );
 
       if (response.ok) {
         triggerToast(`Vendor "${vendorName}" ${isEdit ? 'updated' : 'committed'} successfully!`);
@@ -991,7 +1383,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       `Sever vendor relationship with "${name}"?`,
       async () => {
         try {
-          const res = await fetch(`/api/vendors/${id}`, { method: "DELETE" });
+          const res = await fetch(`/api/vendors/${id}`, getAdminRequestInit({ method: "DELETE" }));
           if (res.ok) {
             triggerToast(`Vendor relationship deactivated and cleared.`);
             if (selectedVendorDetailsId === id) {
@@ -1037,11 +1429,14 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         payload.adminPassword = settingsForm.adminPassword.trim();
       }
       
-      const response = await fetch("/api/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+      const response = await fetch(
+        "/api/settings",
+        getAdminRequestInit({
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        })
+      );
 
       if (response.ok) {
         triggerToast(`Operational variables updated and persisted successfully.`);
@@ -1078,7 +1473,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       "Are you sure you want to mark this scheduled customer visit as CANCELED?",
       async () => {
         try {
-          const res = await fetch(`/api/booking/${id}`, { method: "DELETE" });
+          const res = await fetch(`/api/booking/${id}`, getAdminRequestInit({ method: "DELETE" }));
           if (res.ok) {
             triggerToast("Calendar visit logged as canceled.");
             fetchAdminData();
@@ -1107,11 +1502,14 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const handleUpdateEnquiryStatus = async (id: string, currentStatus: string) => {
     const targetStatus = currentStatus === "Pending Response" ? "Answered" : "Closed";
     try {
-      const res = await fetch(`/api/enquiryStatus/${id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: targetStatus })
-      });
+      const res = await fetch(
+        `/api/enquiryStatus/${id}`,
+        getAdminRequestInit({
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: targetStatus })
+        })
+      );
       if (res.ok) {
         triggerToast(`Inquiry marked as ${targetStatus} successfully!`);
         fetchAdminData();
@@ -1127,7 +1525,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       "Are you sure you want to delete this enquiry from records?",
       async () => {
         try {
-          const res = await fetch(`/api/enquiry/${id}`, { method: "DELETE" });
+          const res = await fetch(`/api/enquiry/${id}`, getAdminRequestInit({ method: "DELETE" }));
           if (res.ok) {
             triggerToast("Enquiry deleted.");
             fetchAdminData();
@@ -1321,13 +1719,13 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
           <div className="absolute bottom-0 left-0 w-36 h-36 bg-emerald-50 rounded-full mix-blend-multiply filter blur-xl opacity-70 -ml-12 -mb-12"></div>
 
           <div className="relative text-center space-y-6">
-            <div className="w-16 h-16 bg-blue-950/5 text-blue-950 mx-auto rounded-2xl flex items-center justify-center border border-slate-100">
-              <LockKeyhole className="w-7 h-7 text-blue-950" />
+            <div className="w-20 h-20 bg-white mx-auto rounded-2xl flex items-center justify-center border border-slate-100 shadow-sm p-3">
+              <img src="/newlogo.png" alt="MedZiva Logo" className="h-full w-full object-contain" referrerPolicy="no-referrer" />
             </div>
 
             <div>
               <span className="text-[10px] uppercase font-black tracking-widest text-emerald-600 block mb-1">Authenticated Domain</span>
-              <h2 className="text-2xl font-black text-blue-950">Medziva Backend Gate</h2>
+              <h2 className="text-2xl font-black text-blue-950">MedZiva Backend Gate</h2>
               <p className="text-slate-500 text-xs mt-1.5 leading-relaxed">
                 Authorized clinical personnel only. Enter ERP login credentials to manage inventory, catalog categories, active providers and live audit logs.
               </p>
@@ -1401,19 +1799,26 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
               </button>
             </form>
 
+            <SocialAuthButtons
+              disabled={authLoading}
+              googlePath="/api/auth/google/admin"
+              onSuccess={handleAdminSocialLogin}
+              onError={handleAdminSocialError}
+            />
+
             <div className="pt-2 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => {
                   reset({
-                    username: "admin",
+                    username: "admin@gmail.com",
                     password: "admin123",
                   });
                   triggerToast("Demo parameters auto-populated. Press Authenticate to proceed!");
                 }}
                 className="text-xs text-medical-green hover:text-emerald-700 font-bold hover:underline transition-all"
               >
-                Suggest Demo Operator Parameters (admin / admin123)
+                Suggest Demo Operator Parameters (admin@gmail.com / admin123)
               </button>
             </div>
           </div>
@@ -1692,12 +2097,21 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                         }`}>
                           {book.status || "Pending"}
                         </span>
+                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${getPaymentBadgeClass(book.paymentStatus)}`}>
+                          {book.paymentStatus === "Paid" ? "Paid" : `Payment ${book.paymentStatus || "Unpaid"}`}
+                        </span>
                       </div>
                       <p className="text-xs text-slate-600 font-medium">{book.serviceTitle}</p>
                       <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-slate-400 font-semibold pt-0.5">
                         <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-slate-350" /> {book.date} {book.timeSlot}</span>
                         <span>Provider: <strong className="text-slate-500">{book.vendorName}</strong></span>
                         {book.customerEmail && <span className="flex items-center gap-1"><Mail className="w-3 h-3 text-slate-350" /> {book.customerEmail}</span>}
+                        {(book.paymentTransactionUtr || book.paymentAppUtr) && (
+                          <span className="flex items-center gap-1">
+                            <CreditCard className="w-3 h-3 text-slate-350" />
+                            {book.paymentTransactionUtr || book.paymentAppUtr}
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -1765,7 +2179,10 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                     type="text" 
                     placeholder="e.g. Elderly Daily Companionship" 
                     value={srvTitle} 
-                    onChange={e => setSrvTitle(e.target.value)} 
+                    onChange={e => {
+                      setSrvTitle(e.target.value);
+                      if (!editingServiceId) setSrvSlug(slugifyServiceTitle(e.target.value));
+                    }} 
                     className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-medical-green"
                   />
                   {adminFormErrors.srvTitle && <p className="text-red-600 text-xs mt-1">{adminFormErrors.srvTitle}</p>}
@@ -1783,7 +2200,34 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase">Consult Price (AED) <span className="text-red-600">*</span></label>
+                  <label className="text-[11px] font-bold text-slate-500 uppercase">Slug</label>
+                  <input
+                    type="text"
+                    placeholder="doctor-at-home"
+                    value={srvSlug}
+                    onChange={e => setSrvSlug(slugifyServiceTitle(e.target.value))}
+                    className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase">Status</label>
+                  <select
+                    value={srvStatus}
+                    onChange={e => {
+                      const nextStatus = e.target.value as "draft" | "active" | "inactive";
+                      setSrvStatus(nextStatus);
+                      setSrvActive(nextStatus === "active");
+                    }}
+                    className="w-full text-xs p-2.5 bg-white border border-slate-200 rounded-lg focus:outline-none"
+                  >
+                    <option value="active">Active</option>
+                    <option value="draft">Draft</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase">Sale Price (AED) <span className="text-red-600">*</span></label>
                   <input 
                     required 
                     type="number" 
@@ -1802,6 +2246,16 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                   {adminFormErrors.srvPrice && <p className="text-red-600 text-xs mt-1">{adminFormErrors.srvPrice}</p>}
                 </div>
                 <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase">Original Price (AED)</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 300"
+                    value={srvOriginalPrice}
+                    onChange={e => setSrvOriginalPrice(e.target.value)}
+                    className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
                   <label className="text-[11px] font-bold text-slate-500 uppercase">Parent Department</label>
                   <select 
                     value={srvCategory} 
@@ -1816,6 +2270,17 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                       <option key={c.id} value={c.slug}>{c.title}</option>
                     ))}
                   </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase">Estimated Visit Time</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 45-60 mins"
+                    value={srvEstimatedVisitTime}
+                    onChange={e => setSrvEstimatedVisitTime(e.target.value)}
+                    className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none"
+                  />
                 </div>
 
                 <div className="space-y-1 sm:col-span-2">
@@ -1836,11 +2301,30 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-slate-500 uppercase">Image Banner URL</label>
-                <input 
-                  type="text" 
-                  placeholder="https://images.unsplash.com/..." 
-                  value={srvImage} 
-                  onChange={e => setSrvImage(e.target.value)} 
+                <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
+                  <input 
+                    type="text" 
+                    placeholder="https://images.unsplash.com/..." 
+                    value={srvImage} 
+                    onChange={e => setSrvImage(e.target.value)} 
+                    className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none"
+                  />
+                  <label className="inline-flex items-center justify-center gap-2 px-3 py-2.5 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 cursor-pointer hover:bg-slate-50">
+                    <ImageIcon className="w-3.5 h-3.5" />
+                    Upload
+                    <input type="file" accept="image/*" className="hidden" onChange={e => handleServiceImageUpload(e.target.files?.[0])} />
+                  </label>
+                </div>
+                {srvImage && <img src={srvImage} alt="Service preview" className="mt-2 h-24 w-full object-cover rounded-lg border border-slate-150" />}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-500 uppercase">Short Description</label>
+                <textarea
+                  rows={2}
+                  placeholder="Card/listing summary"
+                  value={srvShortDesc}
+                  onChange={e => setSrvShortDesc(e.target.value)}
                   className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none"
                 />
               </div>
@@ -1858,7 +2342,65 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                 {adminFormErrors.srvDesc && <p className="text-red-600 text-xs mt-1">{adminFormErrors.srvDesc}</p>}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1 sm:col-span-2">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase">Full Description</label>
+                  <textarea rows={3} value={srvFullDesc} onChange={e => setSrvFullDesc(e.target.value)} placeholder="Detail page copy" className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase">What Is Included</label>
+                  <textarea rows={3} value={srvInclusions} onChange={e => setSrvInclusions(e.target.value)} placeholder="One item per line" className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase">Preparation Instructions</label>
+                  <textarea rows={3} value={srvPreparation} onChange={e => setSrvPreparation(e.target.value)} placeholder="Before visit/test instructions" className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase">Who Is It For</label>
+                  <textarea rows={2} value={srvWhoFor} onChange={e => setSrvWhoFor(e.target.value)} placeholder="Target patient/customer" className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase">Availability</label>
+                  <input type="text" value={srvAvailability} onChange={e => setSrvAvailability(e.target.value)} placeholder="Daily, 9 AM - 9 PM" className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase">Service Location</label>
+                  <select value={srvLocation} onChange={e => setSrvLocation(e.target.value)} className="w-full text-xs p-2.5 bg-white border border-slate-200 rounded-lg focus:outline-none">
+                    <option value="at-home">At Home</option>
+                    <option value="clinic">Clinic</option>
+                    <option value="hotel">Hotel</option>
+                    <option value="home-hotel">Home / Hotel</option>
+                    <option value="all">All Locations</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase">Display Priority</label>
+                  <input type="number" value={srvDisplayPriority} onChange={e => setSrvDisplayPriority(e.target.value)} className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none" />
+                </div>
+                <div className="space-y-1 sm:col-span-2">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase">Tags</label>
+                  <input type="text" value={srvTags} onChange={e => setSrvTags(e.target.value)} placeholder="elderly care, urgent, female nurse" className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase">SEO Title</label>
+                  <input type="text" value={srvSeoTitle} onChange={e => setSrvSeoTitle(e.target.value)} className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase">SEO Meta Description</label>
+                  <input type="text" value={srvSeoDescription} onChange={e => setSrvSeoDescription(e.target.value)} className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                  <input type="checkbox" checked={srvActive} onChange={e => setSrvActive(e.target.checked)} className="w-4 h-4 text-emerald-600 accent-emerald-500" />
+                  Active on website
+                </label>
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                  <input type="checkbox" checked={srvVisitFeeIncluded} onChange={e => setSrvVisitFeeIncluded(e.target.checked)} className="w-4 h-4 text-emerald-600 accent-emerald-500" />
+                  Home visit included
+                </label>
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
                 <input 
                   type="checkbox" 
                   id="srvPopular" 
@@ -1866,7 +2408,6 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                   onChange={e => setSrvPopular(e.target.checked)} 
                   className="w-4 h-4 text-emerald-600 accent-emerald-500"
                 />
-                <label htmlFor="srvPopular" className="text-xs font-bold text-slate-700 cursor-pointer">
                   Feature prominently on Home Carousel
                 </label>
               </div>
@@ -1885,21 +2426,54 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
             {/* Right: Existing List */}
             <div className="lg:col-span-6 bg-white border border-slate-200 rounded-3xl p-5 shadow-2xs">
               <div className="border-b border-slate-100 pb-2 mb-4 flex justify-between items-center">
-                <h4 className="font-extrabold text-blue-950 text-sm">Active Services Records</h4>
+                <h4 className="font-extrabold text-blue-950 text-sm">Service Records</h4>
                 <span className="text-[10px] bg-slate-50 text-slate-500 font-bold px-2 py-0.5 rounded-full">
-                  {db.services.length} items
+                  {filteredServiceRecords.length} / {uniqueServiceCount} items
                 </span>
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
+                <input
+                  type="search"
+                  value={serviceSearch}
+                  onChange={e => setServiceSearch(e.target.value)}
+                  placeholder="Search services..."
+                  className="sm:col-span-3 w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none"
+                />
+                <select value={serviceCategoryFilter} onChange={e => setServiceCategoryFilter(e.target.value)} className="w-full text-xs p-2.5 bg-white border border-slate-200 rounded-lg">
+                  <option value="all">All departments</option>
+                  {categoriesList.filter(c => c.type === "service").map(c => (
+                    <option key={c.id} value={c.slug}>{c.title}</option>
+                  ))}
+                </select>
+                <select value={serviceStatusFilter} onChange={e => setServiceStatusFilter(e.target.value as any)} className="w-full text-xs p-2.5 bg-white border border-slate-200 rounded-lg">
+                  <option value="all">All status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="draft">Draft</option>
+                  <option value="featured">Featured</option>
+                </select>
+                <button type="button" onClick={() => { setServiceSearch(""); setServiceCategoryFilter("all"); setServiceStatusFilter("all"); }} className="text-xs font-bold border border-slate-200 rounded-lg hover:bg-slate-50">
+                  Clear
+                </button>
+              </div>
+
               <div className="space-y-3 max-h-[640px] overflow-y-auto pr-1">
-                {db.services.map(srv => {
+                {filteredServiceRecords.map(srv => {
+                  const isVisible = srv.active !== false && (srv.status || "active") === "active";
                   return (
                     <div key={srv.id} className="p-3 border border-slate-150 rounded-xl flex items-center justify-between gap-3 bg-slate-50/50 hover:bg-slate-50 transition-colors">
                       <div className="flex items-center gap-2.5 overflow-hidden">
-                        <img src={srv.image} className="w-10 h-10 object-cover bg-white border border-slate-150 rounded-lg shrink-0" alt="srv" referrerPolicy="no-referrer" />
+                        <img src={getServiceRecordImage(srv)} className="w-10 h-10 object-cover bg-white border border-slate-150 rounded-lg shrink-0" alt="srv" referrerPolicy="no-referrer" />
                         <div className="text-left overflow-hidden">
                           <h4 className="text-xs font-extrabold text-blue-950 truncate leading-snug">{srv.title}</h4>
                           <span className="text-[10px] text-slate-400 block truncate font-medium">Department: {srv.category} • Cost: {srv.price} AED</span>
+                          <span className={`text-[8px] font-extrabold px-1.5 py-0.5 rounded inline-block mt-0.5 mr-1 ${
+                            isVisible ? "bg-emerald-50 text-emerald-700" :
+                            srv.status === "draft" ? "bg-amber-50 text-amber-700" : "bg-rose-50 text-rose-700"
+                          }`}>
+                            {srv.status === "draft" ? "Draft" : isVisible ? "Active" : "Inactive"}
+                          </span>
                           {srv.popular && (
                             <span className="text-[8px] bg-amber-50 text-amber-700 font-extrabold px-1.5 py-0.2 rounded inline-block mt-0.5">
                               ★ Featured
@@ -1909,12 +2483,40 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                       </div>
 
                       <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => setPreviewingService(srv)}
+                          className="text-slate-500 hover:text-slate-700 p-2 hover:bg-white border border-transparent rounded-lg transition-all cursor-pointer"
+                          title="Preview Service"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
                         <button 
                           onClick={() => handleEditService(srv)}
                           className="text-blue-500 hover:text-blue-700 p-2 hover:bg-blue-50 border border-transparent rounded-lg transition-all cursor-pointer"
                           title="Edit Visit Service"
                         >
                           <FileText className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => confirmDuplicateService(srv)}
+                          className="text-emerald-600 hover:text-emerald-700 p-2 hover:bg-emerald-50 border border-transparent rounded-lg transition-all cursor-pointer"
+                          title="Duplicate Service"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleToggleServicePopular(srv)}
+                          className={`p-2 border border-transparent rounded-lg transition-all cursor-pointer ${srv.popular ? "text-amber-500 hover:bg-amber-50" : "text-slate-400 hover:text-amber-500 hover:bg-amber-50"}`}
+                          title={srv.popular ? "Remove Popular" : "Mark as Popular"}
+                        >
+                          <Star className={`w-3.5 h-3.5 ${srv.popular ? "fill-current" : ""}`} />
+                        </button>
+                        <button
+                          onClick={() => confirmToggleServiceActive(srv)}
+                          className={`p-2 border border-transparent rounded-lg transition-all cursor-pointer ${isVisible ? "text-emerald-600 hover:bg-emerald-50" : "text-slate-500 hover:bg-slate-100"}`}
+                          title={isVisible ? "Deactivate Service" : "Activate Service"}
+                        >
+                          {isVisible ? <Unlock className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
                         </button>
                         <button 
                           onClick={() => handleDeleteService(srv.id, srv.title)}
@@ -1927,6 +2529,11 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                     </div>
                   );
                 })}
+                {filteredServiceRecords.length === 0 && (
+                  <div className="text-center py-10 border border-dashed border-slate-200 rounded-xl text-xs text-slate-400 font-bold">
+                    No services match the current filters.
+                  </div>
+                )}
               </div>
             </div>
 
@@ -3351,7 +3958,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
               <div className="border-b border-slate-100 pb-3.5 mb-5 flex items-center justify-between">
                 <div>
                   <h4 className="font-extrabold text-blue-950 text-xs uppercase tracking-wider">Submitted Requests List</h4>
-                  <p className="text-[10.5px] text-slate-400">Total of {enquiriesList.length} customized queries registered on Medziva.</p>
+                  <p className="text-[10.5px] text-slate-400">Total of {enquiriesList.length} customized queries registered on MedZiva.</p>
                 </div>
                 <button
                   onClick={fetchAdminData}
@@ -3531,6 +4138,58 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                 {isSubmitting ? "UPDATING..." : "UPDATE VENDOR"}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Service Preview Modal */}
+      {previewingService && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl relative overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div className="relative h-56 bg-slate-100">
+              <img src={getServiceRecordImage(previewingService)} alt={previewingService.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              <button onClick={() => setPreviewingService(null)} className="absolute top-3 right-3 p-2 bg-white/90 text-slate-600 hover:text-slate-900 rounded-full shadow cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full">{previewingService.category}</span>
+                <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 px-2 py-1 rounded-full">{previewingService.status || "active"}</span>
+                {previewingService.popular && <span className="text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 px-2 py-1 rounded-full">Featured</span>}
+              </div>
+              <div>
+                <h3 className="text-2xl font-black text-blue-950 leading-tight">{previewingService.title}</h3>
+                <p className="text-sm text-slate-500 mt-2">{previewingService.shortDescription || previewingService.description}</p>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="rounded-xl bg-slate-50 p-3"><p className="text-[10px] font-bold text-slate-400 uppercase">Price</p><p className="text-sm font-black text-medical-green">AED {previewingService.price}</p></div>
+                <div className="rounded-xl bg-slate-50 p-3"><p className="text-[10px] font-bold text-slate-400 uppercase">Duration</p><p className="text-sm font-black text-blue-950">{previewingService.duration}</p></div>
+                <div className="rounded-xl bg-slate-50 p-3"><p className="text-[10px] font-bold text-slate-400 uppercase">Location</p><p className="text-sm font-black text-blue-950">{previewingService.serviceLocation || "at-home"}</p></div>
+                <div className="rounded-xl bg-slate-50 p-3"><p className="text-[10px] font-bold text-slate-400 uppercase">Priority</p><p className="text-sm font-black text-blue-950">{previewingService.displayPriority ?? 100}</p></div>
+              </div>
+              {previewingService.fullDescription && <p className="text-sm text-slate-600 leading-relaxed">{previewingService.fullDescription}</p>}
+              {previewingService.inclusions?.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-black text-blue-950 uppercase mb-2">Included</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {previewingService.inclusions.map((item: string) => (
+                      <div key={item} className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 rounded-lg p-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-medical-green shrink-0" />
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {(previewingService.preparationInstructions || previewingService.whoIsItFor || previewingService.availability) && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  {previewingService.preparationInstructions && <div className="rounded-xl border border-slate-100 p-3"><p className="font-black text-blue-950 mb-1">Preparation</p><p className="text-slate-500">{previewingService.preparationInstructions}</p></div>}
+                  {previewingService.whoIsItFor && <div className="rounded-xl border border-slate-100 p-3"><p className="font-black text-blue-950 mb-1">Who Is It For</p><p className="text-slate-500">{previewingService.whoIsItFor}</p></div>}
+                  {previewingService.availability && <div className="rounded-xl border border-slate-100 p-3"><p className="font-black text-blue-950 mb-1">Availability</p><p className="text-slate-500">{previewingService.availability}</p></div>}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -3832,6 +4491,30 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                 }`}>
                   {viewingBooking.status || "Pending"}
                 </span>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-slate-400" />
+                  <span className="text-xs font-bold text-slate-600">Payment</span>
+                </div>
+                <div className="pl-6 space-y-1">
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${getPaymentBadgeClass(viewingBooking.paymentStatus)}`}>
+                    {viewingBooking.paymentStatus || "Unpaid"}
+                  </span>
+                  {viewingBooking.paymentResponseStatus && (
+                    <p className="text-[11px] text-slate-500">Gateway status: {viewingBooking.paymentResponseStatus}</p>
+                  )}
+                  {viewingBooking.paymentTransactionUtr && (
+                    <p className="text-[11px] text-slate-500 break-all">Transaction UTR: {viewingBooking.paymentTransactionUtr}</p>
+                  )}
+                  {viewingBooking.paymentAppUtr && (
+                    <p className="text-[11px] text-slate-500 break-all">App UTR: {viewingBooking.paymentAppUtr}</p>
+                  )}
+                  {viewingBooking.paidAt && (
+                    <p className="text-[11px] text-slate-500">Paid at: {String(viewingBooking.paidAt).slice(0, 19)}</p>
+                  )}
+                </div>
               </div>
 
               {viewingBooking.notes && (

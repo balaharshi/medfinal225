@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Send, CheckCircle2, MessageSquare, Phone, Mail, User, HelpCircle, ShieldCheck } from 'lucide-react';
-import { HEALTHCARE_SERVICES } from '../data';
+import { HEALTHCARE_SERVICES, SERVICE_CATEGORIES } from '../data';
 import toast from 'react-hot-toast';
 
 interface EnquiryModalProps {
@@ -205,7 +205,7 @@ export default function EnquiryModal({
                 <HelpCircle className="w-5 h-5 text-medical-green shrink-0 mt-0.5" />
                 <div>
                   <span className="font-extrabold text-slate-800 block mb-0.5">Custom Care &amp; Rates Enquiry</span>
-                  If you need specialized diagnostics, monthly nurse schedules, or combined therapy rates, submit this enquiry form. Our dispatch team will revert in 30 minutes.
+                  If you need specialized diagnostics, monthly nurse schedules, or combined therapy rates, submit this enquiry form. Our dispatch team will revert soon.
                 </div>
               </div>
 
@@ -219,9 +219,9 @@ export default function EnquiryModal({
                 >
                   <option value="General Corporate Screening">General Corporate &amp; Wellness Screening</option>
                   <option value="Custom Long-Term Care Quote">Custom Long-Term Care Package</option>
-                  {servicesList.map((title, idx) => (
-                    <option key={idx} value={title}>
-                      {title}
+                  {SERVICE_CATEGORIES.map((cat) => (
+                    <option key={cat.id} value={cat.title}>
+                      {cat.title}
                     </option>
                   ))}
                 </select>
@@ -367,7 +367,7 @@ export default function EnquiryModal({
               <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-4">
                 <span className="text-[10px] text-slate-400 font-medium leading-normal flex items-center gap-1.5 max-w-[200px]">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  Your medical details are secure with DHA platform policy.
+                  Your medical details are secure and protected under UAE health data regulations.
                 </span>
                 
                 <button

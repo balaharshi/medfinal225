@@ -147,11 +147,11 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             ? {
                 fullName: values.fullName.trim(),
                 email: values.email.trim(),
-                password: values.password.trim(),
+                password: values.password,
               }
             : {
                 email: values.email.trim(),
-                password: values.password.trim(),
+                password: values.password,
               }
         ),
       });

@@ -12,3 +12,4 @@ deploy/
 med21-backend/
 render.yaml
 railway.json
+.firebase/

@@ -114,14 +114,14 @@ export default function MainHeader({
   };
 
   return (
-    <header ref={headerRef} id="main-header" className="bg-white border-b border-gray-100 py-1 px-3 md:py-1 md:px-6 sticky top-0 z-40 shadow-xs">
+    <header ref={headerRef} id="main-header" className="bg-white border-b border-gray-100 py-0 px-3 md:py-0 md:px-6 sticky top-0 z-40 shadow-xs">
       {/* Mobile-only header */}
       <div className="md:hidden">
         <a href="/" className="mx-auto mb-0.5 flex w-fit items-center justify-center" aria-label="Go to homepage">
           <img
             src={newlogo}
             alt="MedZiva Logo"
-            className="h-16 w-auto object-contain"
+            className="h-20 w-auto object-contain"
             referrerPolicy="no-referrer"
           />
         </a>
@@ -238,7 +238,7 @@ export default function MainHeader({
             <img 
               src={newlogo} 
               alt="MedZiva Logo" 
-              className="h-[4.5rem] md:h-[7rem] w-auto object-contain"
+              className="h-[5rem] md:h-[8rem] w-auto object-contain"
               referrerPolicy="no-referrer" 
             />
           </a>
@@ -518,7 +518,7 @@ export default function MainHeader({
                       : 'hover:bg-slate-50 text-slate-600'
                   }`}
                 >
-                  Rent Medical Equipments
+                  Rent Medical Equipment
                 </button>
               </div>
             )}

@@ -88,6 +88,19 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     localStorage.removeItem("medziva_vendor_data");
   }, []);
 
+  const getVendorRequestInit = (options?: RequestInit): RequestInit => {
+    const token = localStorage.getItem("medziva_vendor_token");
+    return {
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options?.headers,
+      },
+      ...options,
+    };
+  };
+
   useEffect(() => {
     const hydrateSession = async () => {
       try {
@@ -122,8 +135,8 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     setIsLoadingData(true);
     try {
       const [resBookings, resServices] = await Promise.all([
-        fetch(`/api/vendorBookings/${vendorData.id}`),
-        fetch(`/api/vendorServices/${vendorData.id}`)
+        fetch(`/api/vendorBookings/${vendorData.id}`, getVendorRequestInit()),
+        fetch(`/api/vendorServices/${vendorData.id}`, getVendorRequestInit())
       ]);
       
       if (resBookings.ok) {
@@ -244,11 +257,10 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     setProfileFormErrors({});
 
     try {
-      const response = await fetch(`/api/vendorProfile/${vendorData.id}`, {
+      const response = await fetch(`/api/vendorProfile/${vendorData.id}`, getVendorRequestInit({
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profileForm)
-      });
+      }));
 
       if (response.ok) {
         triggerToast("Profile updated successfully!");
@@ -266,10 +278,9 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
     setAcceptingBookingId(bookingId);
     try {
-      const response = await fetch(`/api/vendorBookings/${vendorData.id}/${bookingId}/accept`, {
+      const response = await fetch(`/api/vendorBookings/${vendorData.id}/${bookingId}/accept`, getVendorRequestInit({
         method: "POST",
-        credentials: "include",
-      });
+      }));
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {

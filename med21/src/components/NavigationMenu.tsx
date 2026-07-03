@@ -34,7 +34,7 @@ const labTestsItems: { label: string; tab: ActiveTab; sectionId: string }[] = [
 ];
 
 const productItems: { label: string; tab: ActiveTab; sectionId: string }[] = [
-  { label: 'Rent Medical Equipments', tab: 'products', sectionId: 'rent-medical-equipments-section' },
+  { label: 'Rent Medical Equipment', tab: 'products', sectionId: 'rent-medical-equipments-section' },
 ];
 
 export default function NavigationMenu({ activeTab, activeSectionId, onTabChange }: NavigationMenuProps) {

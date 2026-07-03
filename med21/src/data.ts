@@ -72,8 +72,8 @@ const getHomeHealthcareImageKey = (title: string) => {
   if (normalizedTitle === 'SKIN GLOW DRIP') return 'Skin Glow IV Therapy';
   if (normalizedTitle === 'HANGOVER DRIP') return 'Hangover IV Therapy';
   if (normalizedTitle === 'ANTISTRESS DRIP') return 'Antistress and Antioxidant IV Therapy';
-  if (normalizedTitle.startsWith('DHA') && normalizedTitle.includes('NURSE')) return 'DHA NURSE';
-  if (normalizedTitle.startsWith('CARE GIVER')) return 'CARE GIVER';
+  if (normalizedTitle.startsWith('DHA') && normalizedTitle.includes('NURSE')) return 'DHA Nurse';
+  if (normalizedTitle.startsWith('CARE GIVER')) return 'Caregiver';
   if (homeHealthcareImageAliases[normalizedTitle]) return homeHealthcareImageAliases[normalizedTitle];
   if (normalizedTitle.includes('SKIN GLOW')) return 'Skin Glow IV Therapy';
   if (normalizedTitle.includes('HAIR') && normalizedTitle.includes('SKIN')) return 'Skin and Hair wellness IV Drip';
@@ -702,7 +702,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     title: "DHA Registered Nurse - 24 Hours Live In - 30 Days - 1 Staff",
     category: "long-term-care",
     price: 25000,
-    duration: "30 DAYS - 1 STAFF",
+    duration: "30 Days - 1 Staff",
     image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
@@ -726,7 +726,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     price: 28000,
     duration: "30 Days - 1 Staff",
     image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
-    description: "A DHA-licensed nurse dedicated to your care — managing patients on ventilator support, tracheostomy, or PEG feeding",
+    description: "A DHA-licensed nurse dedicated to your care — managing patients on ventilator support, tracheostomy, or PEG feeding.",
     popular: false,
     bookingNotice: "24 hours prior booking",
     remarks: "Dubai and Sharjah Only",
@@ -764,7 +764,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     title: "DHA Registered Nurse - 12 Hours - 30 Days - 1 Staff",
     category: "long-term-care",
     price: 15000,
-    duration: "30 DAYS - 1 STAFF",
+    duration: "30 Days - 1 Staff",
     image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
@@ -786,7 +786,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     title: "DHA Registered Nurse - 8 Hours - 30 Days - 1 Staff",
     category: "long-term-care",
     price: 10000,
-    duration: "30 DAYS - 1 STAFF",
+    duration: "30 Days - 1 Staff",
     image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
@@ -804,7 +804,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     title: "DHA Registered Nurse - Less Than 12 Hours / Day - 30 Days - 1 Staff",
     category: "long-term-care",
     price: 13000,
-    duration: "30 DAYS - 1 STAFF",
+    duration: "30 Days - 1 Staff",
     image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
@@ -822,7 +822,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     title: "DHA Registered Nurse - 24 Hours Live In - 1 Day - 1 Staff",
     category: "long-term-care",
     price: 1500,
-    duration: "1 DAY - 1 STAFF",
+    duration: "1 Day - 1 Staff",
     image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
@@ -866,7 +866,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     title: "DHA Registered Nurse - 12 Hours - 1 Day - 1 Staff",
     category: "long-term-care",
     price: 1000,
-    duration: "1 DAY - 1 STAFF",
+    duration: "1 Day - 1 Staff",
     image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
@@ -888,7 +888,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     title: "DHA Registered Nurse - Less Than 12 Hours - 1 Day - 1 Staff",
     category: "long-term-care",
     price: 125,
-    duration: "1 DAY - 1 STAFF",
+    duration: "1 Day - 1 Staff",
     image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
@@ -906,7 +906,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     title: "Caregiver - 24 Hours Live In - 30 Days - 1 Staff",
     category: "long-term-care",
     price: 17000,
-    duration: "30 DAYS - 1 STAFF",
+    duration: "30 Days - 1 Staff",
     image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
@@ -942,7 +942,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     title: "Caregiver - 12 Hours - 30 Days - 1 Staff",
     category: "long-term-care",
     price: 12000,
-    duration: "30 DAYS - 1 STAFF",
+    duration: "30 Days - 1 Staff",
     image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
@@ -960,7 +960,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     title: "Caregiver - Less Than 12 Hours / Day - 30 Days - 1 Staff",
     category: "long-term-care",
     price: 11000,
-    duration: "30 DAYS - 1 STAFF",
+    duration: "30 Days - 1 Staff",
     image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
@@ -978,7 +978,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     title: "Caregiver - 24 Hours Live In - 1 Day - 1 Staff",
     category: "long-term-care",
     price: 850,
-    duration: "1 DAY - 1 STAFF",
+    duration: "1 Day - 1 Staff",
     image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
@@ -1014,7 +1014,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     title: "Caregiver - 12 Hours - 1 Day - 1 Staff",
     category: "long-term-care",
     price: 700,
-    duration: "1 DAY - 1 STAFF",
+    duration: "1 Day - 1 Staff",
     image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
@@ -1032,7 +1032,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     title: "Caregiver - Less Than 12 Hours - 1 Day - 1 Staff",
     category: "long-term-care",
     price: 650,
-    duration: "1 DAY - 1 STAFF",
+    duration: "1 Day - 1 Staff",
     image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
@@ -1183,7 +1183,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     attributes: {
       key_ingredients: "Alpha Lipoic Acid\nZinc Sulphate\nSelenium\nVitamin C",
       clinical_benefits: "● Brightens skin and improves tone\n● Reduces signs of aging and oxidative stress\n● Promotes collagen synthesis and skin elasticity",
-      disclaimer: "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
     }
   },
   {
@@ -1202,7 +1202,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     attributes: {
       key_ingredients: "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nBiotin\nZinc Sulphate\nMagnesium Chloride",
       clinical_benefits: "● Promotes healthy hair growth and nail strength\n● Enhances skin hydration and elasticity\n● Reduces inflammation and supports skin healing",
-      disclaimer: "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
     }
   },
   {
@@ -1221,7 +1221,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     attributes: {
       key_ingredients: "Vitamin B1\nVitamin B6\nVitamin B12\nCarnitine\nAlpha Lipoic Acid\nZinc Sulphate\nMagnesium Chloride",
       clinical_benefits: "● Boosts energy and endurance\n● Enhances fat metabolism\n● Reduces exercise-related fatigue and muscle cramps",
-      disclaimer: "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
     }
   },
   {
@@ -1240,7 +1240,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     attributes: {
       key_ingredients: "Vitamin C\nZinc Sulphate\nMagnesium Chloride\nN-Acetylcysteine (NAC)\nSelenium",
       clinical_benefits: "● Supports immune system function\n● Enhances hydration and recovery\n● Reduces oxidative stress and inflammation",
-      disclaimer: "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
     }
   },
   {
@@ -1250,7 +1250,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     price: 898.8,
     duration: "1 Session",
     image: "https://images.unsplash.com/photo-1544367563-12123d8965cd?auto=format&fit=crop&q=80&w=400",
-    description: "Reduces mental fatigue and sharpens focus while promoting relaxation and reducing stress",
+    description: "Reduces mental fatigue and sharpens focus while promoting relaxation and reducing stress.",
     popular: false,
     bookingNotice: "24 hours prior booking",
     remarks: "Dubai and Sharjah Only",
@@ -1259,7 +1259,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     attributes: {
       key_ingredients: "Vitamin B1\nVitamin B6\nVitamin B12\nCarnitine\nAlpha Lipoic Acid\nZinc Sulphate\nMagnesium Chloride",
       clinical_benefits: "● Supports neurotransmitter function for sharper focus\n● Promotes better concentration and focus\n● Promotes relaxation and reduces stress\n● Magnesium and B vitamins help soothe the nervous system, leading to a more relaxed state of mind",
-      disclaimer: "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
     }
   },
   {
@@ -1278,7 +1278,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     attributes: {
       key_ingredients: "Vitamin B Complex (B1, B5, B6, B12)\nMagnesium Chloride\nZinc Sulphate\nN-Acetylcysteine (NAC)\nL-Glutamine\nAlpha Lipoic Acid (ALA)\nAscorbic Acid (Vitamin C)",
       clinical_benefits: "● Sebum Regulation: Vitamins and zinc decrease oil production\n● Anti Inflammatory Effects: Magnesium, NAC, ALA and Vitamin C minimizes inflammation\n● Anti Oxidant Support: NAC, ALA and Vitamin C combat oxidative stress\n● Gut Health Improvement: L-Glutamine enhances gut health, reducing systemic inflammation",
-      disclaimer: "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
     }
   },
   {
@@ -1297,7 +1297,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     attributes: {
       key_ingredients: "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nNiacinamide\nVitamin B2\nMagnesium Chloride\nZinc Sulphate\nIron III Hydroxide Sucrose\nL-Glutamine\nFolic Acid\nAscorbic Acid",
       clinical_benefits: "● Enhances Healing: Vitamins and amino acids promote tissue repair and recovery\n● Reduced Inflammation: Ingredients like Niacinamide and Vitamin C help mitigate inflammation\n● Support for immune function: Zinc and Vitamin B6 boost immune response\n● Energy production: B vitamins facilitate energy metabolism to support recovery",
-      disclaimer: "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
     }
   },
   {
@@ -1316,7 +1316,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     attributes: {
       key_ingredients: "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nVitamin B2\nMagnesium Chloride\nZinc Sulphate\nAscorbic Acid\nN-Acetylcysteine\nSelenium",
       clinical_benefits: "● Enhances women's fertility and health by improving egg quality, regulating hormones and reducing oxidative stress\n● Boosts energy and balances hormones\n● Provides antioxidant protection, promoting reproductive wellness",
-      disclaimer: "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
     }
   },
   {
@@ -1335,7 +1335,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     attributes: {
       key_ingredients: "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nMagnesium Chloride\nZinc Sulphate\nL-Glutamine\nL-Arginine\nAscorbic Acid\nTaurine\nSelenium",
       clinical_benefits: "● Supports men's sexual performance by boosting energy, improving blood flow and enhancing overall vitality\n● Stimulates nitric oxide production promoting better circulation and erectile function\n● Zinc Sulphate aids testosterone synthesis",
-      disclaimer: "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
     }
   },
   {
@@ -1354,7 +1354,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     attributes: {
       key_ingredients: "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nCarnitine\nAlpha Lipoic Acid\nZinc Sulphate\nMagnesium Chloride",
       clinical_benefits: "● Supports detoxification and liver function\n● Reduces oxidative stress on the liver\n● Enhances fat metabolism and energy production",
-      disclaimer: "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
     }
   },
   {
@@ -1373,7 +1373,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     attributes: {
       key_ingredients: "NAD+ 100mg",
       clinical_benefits: "● Enhances cellular repair and regeneration\n● Boosts energy and combats fatigue\n● Supports anti-aging and overall vitality",
-      disclaimer: "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
     }
   },
   {
@@ -1392,7 +1392,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     attributes: {
       key_ingredients: "NAD+ 250mg",
       clinical_benefits: "● Enhances cellular repair and regeneration\n● Boosts energy and combats fatigue\n● Supports anti-aging and overall vitality",
-      disclaimer: "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
     }
   },
   {
@@ -1411,7 +1411,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     attributes: {
       key_ingredients: "NAD+ 500mg",
       clinical_benefits: "● Enhances cellular repair and regeneration\n● Boosts energy and combats fatigue\n● Supports anti-aging and overall vitality",
-      disclaimer: "Disclaimer-\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
+      disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
     }
   },
 ];

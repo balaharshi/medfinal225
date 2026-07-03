@@ -540,7 +540,10 @@ function MainApp() {
           credentials: 'include',
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
-        if (!response.ok) return;
+        if (!response.ok) {
+          localStorage.removeItem('medziva_user_token');
+          return;
+        }
 
         const data = await response.json();
         if (data?.user?.role !== 'customer') return;
@@ -623,7 +626,9 @@ function MainApp() {
   }, []);
 
   useEffect(() => {
-    setSearchQuery('');
+    if (activeTab !== 'search-results') {
+      setSearchQuery('');
+    }
     setCustomLabSearch('');
     setLabTestsAtHomeSearch('');
 
@@ -2637,10 +2642,7 @@ function MainApp() {
         onSuccess={(username, email) => {
           setLoggedInUser(username);
           setLoggedInUserEmail(email);
-          setLoggedInUserPhone((prev) => prev || '507654321');
-          setLoggedInUserAddress((prev) => prev || 'Villa 15, Al Wasl Road, Umm Suqeim, Dubai');
           setIsAuthOpen(false);
-          // High fidelity toast notification trigger instead of alert
           triggerToast(`Profile successfully loaded: Welcome back, ${username}!`);
         }}
       />

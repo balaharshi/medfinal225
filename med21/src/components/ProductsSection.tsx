@@ -117,7 +117,7 @@ export default function ProductsSection({
                 // Capitalize and format category titles for subtitle badge
                 const displayCategoryName = srv.category
                   ? srv.category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
-                  : 'NURSING CARE';
+                  : 'Nursing Care';
 
                 return (
                   <div

@@ -1158,7 +1158,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-iv-hair-skin-nail-care",
-    title: "Hair,Skin & Nail care IV Therapy",
+    title: "Hair, Skin & Nail Care IV Therapy",
     category: "iv-therapy",
     price: 850,
     duration: "1 Session",

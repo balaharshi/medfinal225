@@ -71,7 +71,7 @@ const getHomeHealthcareImageKey = (title: string) => {
   if (normalizedTitle === 'WEIGHT LOSS DRIP') return 'Gut support IV Therapy';
   if (normalizedTitle === 'SKIN GLOW DRIP') return 'Skin Glow IV Therapy';
   if (normalizedTitle === 'HANGOVER DRIP') return 'Hangover IV Therapy';
-  if (normalizedTitle === 'ANTISTRESS DRIP') return 'Antistress and Antoixidant IV Therapy';
+  if (normalizedTitle === 'ANTISTRESS DRIP') return 'Antistress and Antioxidant IV Therapy';
   if (normalizedTitle.startsWith('DHA') && normalizedTitle.includes('NURSE')) return 'DHA NURSE';
   if (normalizedTitle.startsWith('CARE GIVER')) return 'CARE GIVER';
   if (homeHealthcareImageAliases[normalizedTitle]) return homeHealthcareImageAliases[normalizedTitle];
@@ -80,7 +80,7 @@ const getHomeHealthcareImageKey = (title: string) => {
   if (normalizedTitle.includes('HAIR LOSS')) return 'Hair Loss IV Therapy';
   if (normalizedTitle.includes('ENERGY') || normalizedTitle.includes('WEIGHT LOSS')) return 'Energy Booster IV Therapy';
   if (normalizedTitle.includes('IMMUNE') || normalizedTitle.includes('HYDRATION')) return 'Immune Booster IV Therapy';
-  if (normalizedTitle.includes('ANTISTRESS') || normalizedTitle.includes('RELAX')) return 'Antistress and Antoixidant IV Therapy';
+  if (normalizedTitle.includes('ANTISTRESS') || normalizedTitle.includes('RELAX')) return 'Antistress and Antioxidant IV Therapy';
   if (normalizedTitle.includes('HANGOVER')) return 'Hangover IV Therapy';
   if (normalizedTitle.includes('LIVER DETOX')) return 'Liver Detox IV Therapy';
   if (normalizedTitle.includes('FEMALE') || normalizedTitle.includes('WOMEN') || normalizedTitle.includes('FERTILITY')) return 'Female Balance IV Therapy';
@@ -166,7 +166,7 @@ const parseCustomizeLabItems = (raw: string): HealthcareService[] =>
 const BASE_SERVICE_CATEGORIES: ServiceCategory[] = [
   {
     id: 'cat-home-health',
-    title: 'Nursing care at Home',
+    title: 'Nursing Care at Home',
     image: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400',
     slug: 'home-healthcare',
     description: 'Nurses providing premium in-home clinical care, wound antiseptic dressing, and support.'
@@ -188,7 +188,7 @@ const BASE_SERVICE_CATEGORIES: ServiceCategory[] = [
   {
     id: 'cat-speech',
     title: 'Speech and Language Therapy',
-    image: '/speach.png',
+    image: '/speech.png',
     slug: 'speech-therapy',
     description: 'Interactive and professional diagnostic testing for children and adult communicational speech issues.'
   },
@@ -575,6 +575,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Expert nursing support brought to you — routine care, recovery assistance, and health monitoring, all in one visit.",
     popular: true,
     bookingNotice: "12 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -588,7 +589,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-wound-small",
-    title: "Wound care  and Surgical Dressing-Small",
+    title: "Wound Care and Surgical Dressing - Small",
     category: "home-healthcare",
     price: 500,
     duration: "1 Session",
@@ -596,6 +597,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Precise, hygienic care for minor wounds and small surgical sites — cleaned, dressed, and monitored by a trained nurse to support faster healing and prevent infection.",
     popular: false,
     bookingNotice: "12 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -609,7 +611,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-wound-medium",
-    title: "Wound care  and Surgical Dressing-Medium",
+    title: "Wound Care and Surgical Dressing - Medium",
     category: "home-healthcare",
     price: 650,
     duration: "1 Session",
@@ -617,6 +619,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Precise, hygienic care for minor wounds and medium surgical sites — cleaned, dressed, and monitored by a trained nurse to support faster healing and prevent infection.",
     popular: false,
     bookingNotice: "12 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -630,7 +633,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-wound-large",
-    title: "Wound care  and Surgical Dressing-Large",
+    title: "Wound Care and Surgical Dressing - Large",
     category: "home-healthcare",
     price: 1000,
     duration: "1 Session",
@@ -638,6 +641,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Precise, hygienic care for minor wounds and large surgical sites — cleaned, dressed, and monitored by a trained nurse to support faster healing and prevent infection.",
     popular: false,
     bookingNotice: "12 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -651,7 +655,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-catheterisation-female",
-    title: "Catheterisation at home",
+    title: "Catheterisation at Home",
     category: "home-healthcare",
     price: 850,
     duration: "1 Session",
@@ -659,6 +663,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Safe, sterile catheter insertion and care delivered in the comfort of your home — performed by a trained clinical nurse with full privacy, dignity, and clinical precision.",
     popular: false,
     bookingNotice: "12 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -672,7 +677,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-iv-antibiotics-prescription",
-    title: "IV antibiotics at home (with Dr Prescription)",
+    title: "IV Antibiotics at Home (With Dr Prescription)",
     category: "home-healthcare",
     price: 750,
     duration: "1 Session",
@@ -680,6 +685,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Complete your antibiotic course from the comfort of home — a qualified nurse administers your prescribed IV treatment safely and efficiently, so you recover without the hospital stay.",
     popular: false,
     bookingNotice: "12 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -693,7 +699,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-longterm-dha-rn-live-in-30-days",
-    title: "DHA REGISTERED NURSE-24 HOURS LIVE IN - 30 DAYS - 1 STAFF",
+    title: "DHA Registered Nurse - 24 Hours Live In - 30 Days - 1 Staff",
     category: "long-term-care",
     price: 25000,
     duration: "30 DAYS - 1 STAFF",
@@ -701,6 +707,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -714,14 +721,15 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-longterm-dha-ventillator-trach-peg-24-hours-30-days",
-    title: "DHA REGISTERED NURSE TO MANAGE VENTILLATOR/TRACH & PEG-24 hours - 30days - 1 STAFF",
+    title: "DHA Registered Nurse to Manage Ventilator / Trach & PEG - 24 Hours - 30 Days - 1 Staff",
     category: "long-term-care",
     price: 28000,
-    duration: "30days - 1 STAFF",
+    duration: "30 Days - 1 Staff",
     image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
     description: "A DHA-licensed nurse dedicated to your care — managing patients on ventilator support, tracheostomy, or PEG feeding",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -731,14 +739,15 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-longterm-dha-nurse-1-plus-1-live-in-30-days",
-    title: "DHA REGISTERED NURSE-24 HOURS LIVE IN - 30 DAYS - 2 STAFF( 1+1)-12 HOURS EACH PER SHIFT",
+    title: "DHA Registered Nurse - 24 Hours Live In - 30 Days - 2 Staff (1+1) - 12 Hours Each per Shift",
     category: "long-term-care",
     price: 30000,
-    duration: "30 DAYS - 2 STAFF( 1+1)-12 HOURS EACH PER SHIFT",
+    duration: "30 Days - 2 Staff (1+1) - 12 Hours Each per Shift",
     image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -752,7 +761,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-longterm-dha-nurse-12-hours-30-days",
-    title: "DHA REGISTERED NURSE-12 HOURS - 30 DAYS - 1 STAFF",
+    title: "DHA Registered Nurse - 12 Hours - 30 Days - 1 Staff",
     category: "long-term-care",
     price: 15000,
     duration: "30 DAYS - 1 STAFF",
@@ -760,6 +769,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -773,7 +783,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-longterm-dha-nurse-8-hours-30-days",
-    title: "DHA REGISTERED NURSE-8 HOURS - 30 DAYS - 1 STAFF",
+    title: "DHA Registered Nurse - 8 Hours - 30 Days - 1 Staff",
     category: "long-term-care",
     price: 10000,
     duration: "30 DAYS - 1 STAFF",
@@ -781,6 +791,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -790,7 +801,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-longterm-dha-nurse-less-than-12-hours-30-days",
-    title: "DHA REGISTERED NURSE-LESS THAN 12 HOURS/DAY - 30 DAYS - 1 STAFF",
+    title: "DHA Registered Nurse - Less Than 12 Hours / Day - 30 Days - 1 Staff",
     category: "long-term-care",
     price: 13000,
     duration: "30 DAYS - 1 STAFF",
@@ -798,6 +809,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -807,7 +819,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-longterm-dha-nurse-rn-an-live-in-per-day",
-    title: "DHA REGISTERED NURSE-24 HOURS LIVE IN - 1 DAY - 1 STAFF",
+    title: "DHA Registered Nurse - 24 Hours Live In - 1 Day - 1 Staff",
     category: "long-term-care",
     price: 1500,
     duration: "1 DAY - 1 STAFF",
@@ -815,6 +827,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -828,14 +841,15 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-longterm-dha-nurse-24-hours-per-day-1-plus-1",
-    title: "DHA REGISTERED NURSE-24 HOURS LIVE IN - 1 DAY - 2 STAFF( 1+1)-12 HOURS EACH PER SHIFT",
+    title: "DHA Registered Nurse - 24 Hours Live In - 1 Day - 2 Staff (1+1) - 12 Hours Each per Shift",
     category: "long-term-care",
     price: 2500,
-    duration: "1 DAY - 2 STAFF( 1+1)-12 HOURS EACH PER SHIFT",
+    duration: "1 Day - 2 Staff (1+1) - 12 Hours Each per Shift",
     image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400",
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -849,7 +863,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-longterm-dha-nurse-12-hours-per-day",
-    title: "DHA REGISTERED NURSE-12 HOURS - 1 DAY - 1 STAFF",
+    title: "DHA Registered Nurse - 12 Hours - 1 Day - 1 Staff",
     category: "long-term-care",
     price: 1000,
     duration: "1 DAY - 1 STAFF",
@@ -857,6 +871,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -870,7 +885,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-longterm-dha-nurse-less-than-12-hours-per-day",
-    title: "DHA REGISTERED NURSE-LESS THAN 12 HOURS - 1 DAY - 1 STAFF",
+    title: "DHA Registered Nurse - Less Than 12 Hours - 1 Day - 1 Staff",
     category: "long-term-care",
     price: 125,
     duration: "1 DAY - 1 STAFF",
@@ -888,14 +903,15 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-longterm-caregiver-live-in-30-days",
-    title: "CARE GIVER -24 HOURS LIVE IN - 30 DAYS - 1 STAFF",
+    title: "Caregiver - 24 Hours Live In - 30 Days - 1 Staff",
     category: "long-term-care",
     price: 17000,
     duration: "30 DAYS - 1 STAFF",
     image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
-    description: "Continuous, compassionate support from a live-in caregiver -helping with daily activities, mobility, and wellbeing, day and night.",
+    description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -905,14 +921,15 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-longterm-caregiver-24-hours-30-days-1-plus-1",
-    title: "CARE GIVER -24 HOURS LIVE IN - 30 DAYS - 2 STAFF( 1+1)-12 HOURS EACH PER SHIFT",
+    title: "Caregiver - 24 Hours Live In - 30 Days - 2 Staff (1+1) - 12 Hours Each per Shift",
     category: "long-term-care",
     price: 25000,
-    duration: "30 DAYS - 2 STAFF( 1+1)-12 HOURS EACH PER SHIFT",
+    duration: "30 Days - 2 Staff (1+1) - 12 Hours Each per Shift",
     image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
-    description: "Continuous, compassionate support from a live-in caregiver -helping with daily activities, mobility, and wellbeing, day and night.",
+    description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -922,14 +939,15 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-longterm-caregiver-12-hours-30-days",
-    title: "CARE GIVER -12 HOURS - 30 DAYS - 1 STAFF",
+    title: "Caregiver - 12 Hours - 30 Days - 1 Staff",
     category: "long-term-care",
     price: 12000,
     duration: "30 DAYS - 1 STAFF",
     image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
-    description: "Continuous, compassionate support from a live-in caregiver -helping with daily activities, mobility, and wellbeing, day and night.",
+    description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -939,14 +957,15 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-longterm-caregiver-less-than-12-hours-30-days",
-    title: "CARE GIVER -LESS THAN 12 HOURS/DAY - 30 DAYS - 1 STAFF",
+    title: "Caregiver - Less Than 12 Hours / Day - 30 Days - 1 Staff",
     category: "long-term-care",
     price: 11000,
     duration: "30 DAYS - 1 STAFF",
     image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
-    description: "Continuous, compassionate support from a live-in caregiver -helping with daily activities, mobility, and wellbeing, day and night.",
+    description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -956,14 +975,15 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-longterm-caregiver-live-in-per-day",
-    title: "CARE GIVER --24 HOURS LIVE IN - 1 DAY - 1 STAFF",
+    title: "Caregiver - 24 Hours Live In - 1 Day - 1 Staff",
     category: "long-term-care",
     price: 850,
     duration: "1 DAY - 1 STAFF",
     image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
-    description: "Continuous, compassionate support from a live-in caregiver -helping with daily activities, mobility, and wellbeing, day and night.",
+    description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -973,14 +993,15 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-longterm-caregiver-24-hours-per-day-1-plus-1",
-    title: "CARE GIVER -24 HOURS LIVE IN - 1 DAY - 2 STAFF( 1+1)-12 HOURS EACH PER SHIFT",
+    title: "Caregiver - 24 Hours Live In - 1 Day - 2 Staff (1+1) - 12 Hours Each per Shift",
     category: "long-term-care",
     price: 1050,
-    duration: "1 DAY - 2 STAFF( 1+1)-12 HOURS EACH PER SHIFT",
+    duration: "1 Day - 2 Staff (1+1) - 12 Hours Each per Shift",
     image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
-    description: "Continuous, compassionate support from a live-in caregiver -helping with daily activities, mobility, and wellbeing, day and night.",
+    description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -990,14 +1011,15 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-longterm-caregiver-12-hours-per-day",
-    title: "CARE GIVER -12 HOURS - 1 DAY - 1 STAFF",
+    title: "Caregiver - 12 Hours - 1 Day - 1 Staff",
     category: "long-term-care",
     price: 700,
     duration: "1 DAY - 1 STAFF",
     image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
-    description: "Continuous, compassionate support from a live-in caregiver -helping with daily activities, mobility, and wellbeing, day and night.",
+    description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -1007,14 +1029,15 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-longterm-caregiver-less-than-12-hours-per-day",
-    title: "CARE GIVER -LESS THAN 12 HOURS - 1 DAY - 1 STAFF",
+    title: "Caregiver - Less Than 12 Hours - 1 Day - 1 Staff",
     category: "long-term-care",
     price: 650,
     duration: "1 DAY - 1 STAFF",
     image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
-    description: "Continuous, compassionate support from a live-in caregiver -helping with daily activities, mobility, and wellbeing, day and night.",
+    description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -1024,14 +1047,15 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-physiotherapy",
-    title: "Physiotherapy- 1 hour session",
+    title: "Physiotherapy - 1 Hour Session",
     category: "physiotherapy",
     price: 400,
     duration: "1 Hour",
     image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=400",
-    description: "A dedicated hour with a certified physiotherapist to assess, treat, and rehabilitate — helping you move better, recover faster,",
+    description: "A dedicated hour with a certified physiotherapist to assess, treat, and rehabilitate — helping you move better, recover faster, and live more comfortably.",
     popular: true,
     bookingNotice: "12 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -1045,14 +1069,15 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-physiotherapy-week-6",
-    title: "Physiotherapy- 1 hour session/week-6 sessions",
+    title: "Physiotherapy - 1 Hour Session / Week - 6 Sessions",
     category: "physiotherapy",
     price: 2000,
     duration: "6 Sessions",
     image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=400",
-    description: "A dedicated hour with a certified physiotherapist to assess, treat, and rehabilitate — helping you move better, recover faster,",
+    description: "A dedicated hour with a certified physiotherapist to assess, treat, and rehabilitate — helping you move better, recover faster, and live more comfortably.",
     popular: false,
     bookingNotice: "12 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -1073,6 +1098,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     image: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400",
     description: "A qualified doctor visits you for consultations, diagnosis, and treatment — no waiting rooms, no commute.",
     popular: true,
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -1093,6 +1119,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     image: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400",
     description: "A qualified doctor brought to your hotel — expert diagnosis and treatment, right where you are in the city.",
     popular: false,
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -1110,10 +1137,11 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     category: "speech-therapy",
     price: 400,
     duration: "1 Hour Session",
-    image: "/speach.png",
+    image: "/speech.png",
     description: "Structured sessions addressing speech delays, articulation challenges, and swallowing difficulties — delivered by a qualified speech and language specialist.",
     popular: true,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Ephatha",
@@ -1123,7 +1151,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-occupational-therapy-hour",
-    title: "Occupation Therapy",
+    title: "Occupational Therapy",
     category: "occupational-therapy",
     price: 400,
     duration: "1 Hour Session",
@@ -1131,6 +1159,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Practical, goal-driven sessions helping you regain independence in daily tasks — from fine motor skills and cognitive function to adaptive techniques for work, home, and life.",
     popular: true,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Ephatha",
@@ -1148,6 +1177,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "This powerful blend of antioxidants and vitamins promotes a radiant complexion by reducing oxidative stress and improving skin health.",
     popular: true,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1163,9 +1193,10 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     price: 850,
     duration: "1 Session",
     image: "https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=400",
-    description: "For those looking to improve the appearance and health of their hair, nails and skin, this drip delivers essential nutrients to promote regenration and hydration.",
+    description: "For those looking to improve the appearance and health of their hair, nails and skin, this drip delivers essential nutrients to promote regeneration and hydration.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1176,14 +1207,15 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-iv-energy-weight-loss",
-    title: "Energy & Weight loss IV Therapy",
+    title: "Energy & Weight Loss IV Therapy",
     category: "iv-therapy",
     price: 900,
     duration: "1 Session",
     image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
-    description: "Supports your metabolism and energy levels with its potent blend of vitamins, minerals and amino acids. Ideal for patients dealing with fatigue, weight management issues or those seeking enhaced ahtletic performance",
+    description: "Supports your metabolism and energy levels with its potent blend of vitamins, minerals and amino acids. Ideal for patients dealing with fatigue, weight management issues or those seeking enhanced athletic performance.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1194,14 +1226,15 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-iv-immune-hydration-drip",
-    title: "Immune & Hydration drip",
+    title: "Immune & Hydration Drip",
     category: "iv-therapy",
     price: 799,
     duration: "1 Session",
     image: "https://images.unsplash.com/photo-1629904858656-aa8c3b3f39ca?auto=format&fit=crop&q=80&w=400",
-    description: "Strenghten your immune defenses and ensure optimal hydration with this drip, formulated to help fight infections and promote recovery from illness.",
+    description: "Strengthen your immune defenses and ensure optimal hydration with this drip, formulated to help fight infections and promote recovery from illness.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1212,7 +1245,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-iv-antistress-relax",
-    title: "Antistress/Relax IV Therapy",
+    title: "Antistress / Relax IV Therapy",
     category: "iv-therapy",
     price: 898.8,
     duration: "1 Session",
@@ -1220,6 +1253,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Reduces mental fatigue and sharpens focus while promoting relaxation and reducing stress",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1230,7 +1264,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-iv-gut-cleanse-acne-cure",
-    title: "Gut cleanse & Acne Cure IV Therapy",
+    title: "Gut Cleanse & Acne Cure IV Therapy",
     category: "iv-therapy",
     price: 899,
     duration: "1 Session",
@@ -1238,6 +1272,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "This IV drip is designed to improve skin health and reduce acne through a blend of vitamins, minerals and antioxidants that support both skin and gut health.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1248,7 +1283,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-iv-surgery-recovery",
-    title: "Surgery recovery IV Therapy",
+    title: "Surgery Recovery IV Therapy",
     category: "iv-therapy",
     price: 898.8,
     duration: "1 Session",
@@ -1256,6 +1291,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "This drip is specifically designed to support recovery following surgery by providing essential vitamins and amino acids that enhance healing, reduce inflammation and boost overall recovery.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1266,7 +1302,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-iv-women-health-fertilty",
-    title: "Women Health/Fertilty IV Therapy",
+    title: "Women's Health / Fertility IV Therapy",
     category: "iv-therapy",
     price: 898.8,
     duration: "1 Session",
@@ -1274,6 +1310,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "This drip is designed to support women's fertility and reproductive health by improving egg quality, balancing hormones, reducing oxidative stress, and promoting overall reproductive wellness.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1284,7 +1321,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-iv-men-power-drip",
-    title: "Men Power IV drip",
+    title: "Men's Power IV Drip",
     category: "iv-therapy",
     price: 838.8,
     duration: "1 Session",
@@ -1292,6 +1329,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "This drip is designed to support men's sexual health and vitality by enhancing energy levels, promoting healthy blood flow, supporting testosterone production, and improving overall performance and wellness.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1302,7 +1340,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
   {
     id: "srv-iv-liver-detox-after-party",
-    title: "Liver Detox drip/After Party",
+    title: "Liver Detox Drip / After Party",
     category: "iv-therapy",
     price: 899,
     duration: "1 Session",
@@ -1310,6 +1348,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Promotes liver health and detoxification with this formula, ideal for those exposed to environmental toxins, medications or poor dietary habits.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1325,9 +1364,10 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     price: 800,
     duration: "1 Session",
     image: "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
-    description: "Perfect for those seeking anti aging benefits. This NAD+ drip supports cellular regeneration, improves energy levels and promotes overall longevity.",
+    description: "Perfect for those seeking anti-aging benefits. This NAD+ drip supports cellular regeneration, improves energy levels and promotes overall longevity.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1343,9 +1383,10 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     price: 1198.8,
     duration: "1 Session",
     image: "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
-    description: "Perfect for those seeking anti aging benefits. This NAD+ drip supports cellular regeneration, improves energy levels and promotes overall longevity.",
+    description: "Perfect for those seeking anti-aging benefits. This NAD+ drip supports cellular regeneration, improves energy levels and promotes overall longevity.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1361,9 +1402,10 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     price: 1699,
     duration: "1 Session",
     image: "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
-    description: "High-dose NAD+ infusion delivering 500mg to support cognitive function, cellular repair, and overall vitality.",
+    description: "Perfect for those seeking anti-aging benefits. This NAD+ drip supports cellular regeneration, improves energy levels and promotes overall longevity.",
     popular: true,
     bookingNotice: "24 hours prior booking",
+    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {

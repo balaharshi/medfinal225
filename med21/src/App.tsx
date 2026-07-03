@@ -123,7 +123,7 @@ const HOME_ADDITIONAL_HEALTHCARE_CATEGORIES = [
   },
   {
     id: 'cat-rent-medical-equipments',
-    title: 'Rent Medical Equipments',
+    title: 'Rent Medical Equipment',
     slug: 'devices-for-rent',
     description: 'Rent certified medical equipment with weekly and monthly options for home healthcare support.',
   },
@@ -161,11 +161,11 @@ const PRODUCT_CATEGORY_BY_ROUTE: Record<string, string> = {
 
 const PRODUCT_PAGE_COPY: Record<string, { title: string; description: string }> = {
   'rent-medical-equipments': {
-    title: 'Rent Medical Equipments',
+    title: 'Rent Medical Equipment',
     description: 'Weekly and monthly rental options with listed security deposits. All services provided in UAE except AUH, with 12 hours prior booking.',
   },
   'buy-medical-equipments': {
-    title: 'Buy Medical Equipments',
+    title: 'Buy Medical Equipment',
     description: 'Order certified medical equipment and home healthcare accessories delivered across the UAE.',
   },
   supplements: {
@@ -551,6 +551,7 @@ function MainApp() {
         setLoggedInUserAddress(data.user.address || '');
       } catch (error) {
         console.error('Failed to restore customer session', error);
+        localStorage.removeItem('medziva_user_token');
       }
     };
 
@@ -559,6 +560,7 @@ function MainApp() {
 
   // Success Feedback state variables
   const [providerApplied, setProviderApplied] = useState(false);
+  const [providerSpecializations, setProviderSpecializations] = useState<string[]>([]);
   const [supportSubmitted, setSupportSubmitted] = useState(false);
   const [serviceDetails, setServiceDetails] = useState<HealthcareService | null>(null);
 
@@ -653,14 +655,8 @@ function MainApp() {
 
   // Search filter query lookup helper
   const filteredProducts = useMemo(() => {
-    if (!String(searchQuery || '').trim()) return db.products;
-    const query = String(searchQuery || '').toLowerCase();
-    return db.products.filter(
-      p => String(p.name || '').toLowerCase().includes(query) ||
-           String(p.subtitle || '').toLowerCase().includes(query) ||
-           String(p.brand || '').toLowerCase().includes(query)
-    );
-  }, [searchQuery, db.products]);
+    return db.products;
+  }, [db.products]);
 
   const displayedProducts = useMemo(() => {
     if (!currentProductRoute) return filteredProducts;
@@ -670,16 +666,8 @@ function MainApp() {
   }, [currentProductRoute, filteredProducts]);
 
   const filteredServices = useMemo(() => {
-    if (!String(searchQuery || '').trim()) return db.services;
-    const query = String(searchQuery || '').toLowerCase();
-    return db.services.filter(
-      s => String(s.title || '').toLowerCase().includes(query) ||
-           String(s.description || '').toLowerCase().includes(query) ||
-           String(s.shortDescription || '').toLowerCase().includes(query) ||
-           String(s.category || '').toLowerCase().includes(query) ||
-           String(s.subcategory || '').toLowerCase().includes(query)
-    );
-  }, [searchQuery, db.services]);
+    return db.services;
+  }, [db.services]);
 
   const homeHealthcareCategories = useMemo(() => {
     const categoriesBySlug = new Map<string, ServiceCategory>(
@@ -756,7 +744,7 @@ function MainApp() {
     () => filteredServices.filter((srv) => srv.category === 'home-healthcare'),
     [filteredServices],
   );
-  const placeVentillatorCareAfterLessThan12Hours = (services: HealthcareService[]) => {
+  const placeVentilatorCareAfterLessThan12Hours = (services: HealthcareService[]) => {
     const itemId = 'srv-longterm-dha-ventillator-trach-peg-24-hours-30-days';
     const afterId = 'srv-longterm-dha-nurse-less-than-12-hours-per-day';
     const itemIndex = services.findIndex((srv) => srv.id === itemId);
@@ -771,7 +759,7 @@ function MainApp() {
   };
   const longTermServices = useMemo(
     () =>
-      placeVentillatorCareAfterLessThan12Hours(
+      placeVentilatorCareAfterLessThan12Hours(
         filteredServices
           .filter((srv) => srv.category === 'long-term-care' || srv.subcategory === 'long-term-care')
           .map(normalizeLongTermServiceSlashSpacing),
@@ -1387,7 +1375,6 @@ function MainApp() {
                               <div className="flex items-center gap-1.5">
                                 <span className="text-sm font-black text-medical-green">AED {formatAedWhole(prod.price)}</span>
                               </div>
-                              {prod.subcategory !== 'rent-medical-equipments' && <span className="text-[9px] text-slate-400 leading-none mt-1 font-semibold">Free Express Shipping available</span>}
                             </div>
                             <button
                               onClick={() => handleAddToCart(prod)}
@@ -1624,7 +1611,7 @@ function MainApp() {
                 'home-healthcare-section',
                 'Nursing Care at Home',
                 'Nursing Care at Home',
-                'Generic nurse visits, wound dressing, catheterisation, and prescription-based IV antibiotics available with AED pricing as shown.',
+                'Generic nurse visits, wound dressing, catheterisation, and prescription-based IV antibiotics available with AED pricing as listed.',
                 nursingServices,
               )}
 
@@ -1678,7 +1665,7 @@ function MainApp() {
                 'iv-therapy-section',
                 'IV Therapy',
                 'IV Therapy',
-                'IV therapy and drip packages listed in the home healthcare pricing data.',
+                'IV therapy and drip packages as listed in the home healthcare pricing.',
                 ivServices,
               )}
           </div>
@@ -1841,7 +1828,7 @@ function MainApp() {
 
                     <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <div>
-                        <span className="text-[10px] text-slate-400 font-bold block leading-none uppercase">{srv.category === 'lab-tests-at-home' ? 'Price' : 'Inclusive sample fee'}</span>
+                        <span className="text-[10px] text-slate-400 font-bold block leading-none uppercase">{srv.category === 'lab-tests-at-home' || srv.category === 'lab-tests' || srv.category === 'customize-lab-package' ? 'Price' : 'Inclusive sample fee'}</span>
                         <span className="text-base font-black text-medical-green mt-1 block">AED {formatAedWhole(srv.price)}</span>
                       </div>
 
@@ -1930,7 +1917,6 @@ function MainApp() {
                         <div className="flex items-center gap-1.5">
                           <span className="text-sm font-black text-medical-green">AED {formatAedWhole(prod.price)}</span>
                         </div>
-                        <span className="text-[9px] text-slate-400 leading-none mt-1 font-semibold">Free Express Shipping available</span>
                       </div>
 
                       <button
@@ -2227,12 +2213,12 @@ function MainApp() {
               ) : (
                 <>
                   <h3 className="text-sm sm:text-base font-extrabold text-medical-blue border-b border-slate-100 pb-2.5">
-                    Register Your Clinician Vetting Form
+                    Registration
                   </h3>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-600">Clinician First Name</label>
+                      <label className="text-xs font-bold text-slate-600">First Name</label>
                       <input type="text" placeholder="e.g. Salim" required className="w-full text-xs border border-slate-200 rounded-xl p-3" />
                     </div>
                     <div className="space-y-1">
@@ -2245,15 +2231,35 @@ function MainApp() {
                     </div>
                   </div>
 
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-600">Primary Specialization</label>
-                    <select className="w-full text-xs border border-slate-200 rounded-xl p-3 bg-white">
-                      <option>At-Home Nursing Care</option>
-                      <option>Licensed Physiotherapy</option>
-                      <option>Elderly Companion Support</option>
-                      <option>At-home blood collection phlebotomy</option>
-                      <option>Speech Pathology &amp; Therapy</option>
-                    </select>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {[
+                        'Nursing Care at Home',
+                        'Physiotherapy at Home',
+                        'Doctor on Call',
+                        'Speech and Language Therapy',
+                        'Occupational Therapy',
+                        'IV Therapy',
+                        'Long-Term Care',
+                        'Lab Tests at Home',
+                      ].map((spec) => (
+                        <label key={spec} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer p-2 rounded-lg hover:bg-slate-50 border border-slate-100">
+                          <input
+                            type="checkbox"
+                            value={spec}
+                            checked={providerSpecializations.includes(spec)}
+                            onChange={(e) => {
+                              setProviderSpecializations((prev) =>
+                                e.target.checked ? [...prev, spec] : prev.filter((s) => s !== spec)
+                              );
+                            }}
+                            className="w-4 h-4 rounded border-slate-300 text-medical-green focus:ring-medical-green"
+                          />
+                          {spec}
+                        </label>
+                      ))}
+                    </div>
                   </div>
 
                   <button

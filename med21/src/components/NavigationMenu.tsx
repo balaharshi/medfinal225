@@ -51,10 +51,10 @@ export default function NavigationMenu({ activeTab, activeSectionId, onTabChange
   ];
 
   return (
-    <nav id="navigation-menu" className="bg-white border-b border-slate-100 py-1.5 px-4 z-30 hidden md:block">
+    <nav id="navigation-menu" className="bg-white border-b border-slate-100 py-0.5 px-4 z-30 hidden md:block">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-center gap-2.5">
         {/* Center: Main Horizontal Tabs */}
-        <div className="flex items-center overflow-x-auto md:overflow-visible w-full md:w-auto no-scrollbar py-2 md:py-0 tab-navigation">
+        <div className="flex items-center overflow-x-auto md:overflow-visible w-full md:w-auto no-scrollbar py-1 md:py-0 tab-navigation">
           <div className="flex items-center gap-1 sm:gap-2.5">
             <button
               onClick={() => onTabChange('home')}

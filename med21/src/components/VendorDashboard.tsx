@@ -105,6 +105,8 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
         }
       } catch (error) {
         console.error('Failed to restore vendor session', error);
+        localStorage.removeItem("medziva_vendor_token");
+        setIsAuthenticated(false);
       } finally {
         setIsSessionChecking(false);
       }
@@ -429,21 +431,6 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
               onError={handleVendorSocialError}
             />
 
-            <div className="pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => {
-                  reset({
-                    email: "vendor@medziva.ae",
-                    password: "vendor123",
-                  });
-                  triggerToast("Demo credentials populated. Press Access Portal to proceed!");
-                }}
-                className="text-xs text-purple-600 hover:text-purple-700 font-bold hover:underline transition-all"
-              >
-                Use Demo Credentials (vendor@medziva.ae / vendor123)
-              </button>
-            </div>
           </div>
 
         </div>

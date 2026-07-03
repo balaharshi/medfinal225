@@ -69,7 +69,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
         if (response?.credential) {
           completeSocialAuth('google', { credential: response.credential });
         } else {
-          toast.error('Google login was cancelled.');
+          toast.error('Google login was canceled.');
         }
       },
     });
@@ -241,7 +241,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
       const response = await window.AppleID.auth.signIn();
       const credential = response?.authorization?.id_token;
       if (!credential) {
-        toast.error('Apple login was cancelled.');
+        toast.error('Apple login was canceled.');
         return;
       }
       completeSocialAuth('apple', { credential, user: response.user });

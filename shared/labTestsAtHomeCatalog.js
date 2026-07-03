@@ -30,7 +30,7 @@ export const LAB_TESTS_AT_HOME_CATEGORIES = [
 ];
 
 export const LAB_TESTS_AT_HOME_EXPECTED_COUNTS = {
-  "routine-blood-tests": 4,
+  "routine-blood-tests": 7,
   "preventive-health-packages": 16,
   "mens-health-packages": 3,
   "womens-health-packages": 8,
@@ -40,6 +40,126 @@ export const LAB_TESTS_AT_HOME_EXPECTED_COUNTS = {
 };
 
 export const LAB_TESTS_AT_HOME_SERVICES = [
+  {
+    "id": "srv-lab-home-complete-blood-count-cbc-with-differential",
+    "title": "Complete Blood Count (CBC) with differential",
+    "category": "lab-tests-at-home",
+    "subcategory": "routine-blood-tests",
+    "price": 99,
+    "duration": "24 hrs",
+    "image": "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&q=80&w=400",
+    "description": "Routine check, fatigue, infection, anemia, monitoring",
+    "popular": false,
+    "enquiryOnly": false,
+    "bookingNotice": "12 hours prior booking slots",
+    "remarks": "All services will be provided in Dubai and SHJ ONLY.",
+    "attributes": [
+      {
+        "label": "Category",
+        "value": "Routine Blood Tests"
+      },
+      {
+        "label": "Coverage",
+        "value": "All services will be provided in Dubai and SHJ ONLY"
+      },
+      {
+        "label": "Who",
+        "sourceLabel": "👤 Who",
+        "value": "Routine check, fatigue, infection, anemia, monitoring"
+      },
+      {
+        "label": "Prep",
+        "sourceLabel": "⚠️ Prep",
+        "value": "No fasting • Stay hydrated • Inform meds"
+      },
+      {
+        "label": "Results",
+        "sourceLabel": "⏱️ Results",
+        "value": "24 hrs (same day possible)"
+      }
+    ],
+    "vendorPrices": []
+  },
+  {
+    "id": "srv-lab-home-fasting-blood-sugar-fbs",
+    "title": "Fasting Blood Sugar (FBS)",
+    "category": "lab-tests-at-home",
+    "subcategory": "routine-blood-tests",
+    "price": 79,
+    "duration": "Same day / 24 hrs",
+    "image": "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&q=80&w=400",
+    "description": "Diabetes screening, frequent urination, fatigue",
+    "popular": false,
+    "enquiryOnly": false,
+    "bookingNotice": "12 hours prior booking slots",
+    "remarks": "All services will be provided in Dubai and SHJ ONLY.",
+    "attributes": [
+      {
+        "label": "Category",
+        "value": "Routine Blood Tests"
+      },
+      {
+        "label": "Coverage",
+        "value": "All services will be provided in Dubai and SHJ ONLY"
+      },
+      {
+        "label": "Who",
+        "sourceLabel": "👤 Who",
+        "value": "Diabetes screening, frequent urination, fatigue"
+      },
+      {
+        "label": "Prep",
+        "sourceLabel": "⚠️ Prep",
+        "value": "8–10 hrs fasting required"
+      },
+      {
+        "label": "Results",
+        "sourceLabel": "⏱️ Results",
+        "value": "Same day / 24 hrs"
+      }
+    ],
+    "vendorPrices": []
+  },
+  {
+    "id": "srv-lab-home-hba1c-glycated-hemoglobin",
+    "title": "HbA1c (Glycated Hemoglobin)",
+    "category": "lab-tests-at-home",
+    "subcategory": "routine-blood-tests",
+    "price": 59,
+    "duration": "Same day / 24 hrs",
+    "image": "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&q=80&w=400",
+    "description": "Diabetes monitoring (3-month average)",
+    "popular": false,
+    "enquiryOnly": false,
+    "bookingNotice": "12 hours prior booking slots",
+    "remarks": "All services will be provided in Dubai and SHJ ONLY.",
+    "attributes": [
+      {
+        "label": "Category",
+        "value": "Routine Blood Tests"
+      },
+      {
+        "label": "Coverage",
+        "value": "All services will be provided in Dubai and SHJ ONLY"
+      },
+      {
+        "label": "Who",
+        "sourceLabel": "👤 Who",
+        "value": "Diabetes monitoring (3-month average)"
+      },
+      {
+        "label": "Prep",
+        "sourceLabel": "⚠️ Prep",
+        "value": "No fasting required"
+      },
+      {
+        "label": "Results",
+        "sourceLabel": "⏱️ Results",
+        "value": "Same day / 24 hrs"
+      }
+    ],
+    "vendorPrices": []
+  },
   {
     "id": "srv-lab-home-lipid-profile",
     "title": "Lipid Profile",
@@ -565,7 +685,7 @@ export const LAB_TESTS_AT_HOME_SERVICES = [
         "label": "Includes",
         "sourceLabel": "📊 Includes",
         "row": 161,
-        "value": "CBC (19) • Fasting Blood Sugar • Post Prandial Blood Sugar • HbA1c • TSH • Urinalysis (21) •Kidney & Liver Profile (Urea • Uric Acid • Creatinine • Na • K • Cl • Total Protein • Albumin • Globulin • Total Bilirubin • Direct Bilirubin • Indirect Bilirubin • Calcium • Phosphorus • ALP • ALT • AST • GGT) •Lipid Profile (Total Cholesterol • Triglycerides • HDL • LDL • HDL/Cholesterol Ratio)"
+        "value": "CBC (19) • Fasting Blood Sugar • Post Prandial Blood Sugar • HbA1c • TSH • Urinalysis (21) • Kidney & Liver Profile (Urea • Uric Acid • Creatinine • Na • K • Cl • Total Protein • Albumin • Globulin • Total Bilirubin • Direct Bilirubin • Indirect Bilirubin • Calcium • Phosphorus • ALP • ALT • AST • GGT) • Lipid Profile (Total Cholesterol • Triglycerides • HDL • LDL • HDL/Cholesterol Ratio)"
       }
     ],
     "vendorPrices": []
@@ -883,7 +1003,7 @@ export const LAB_TESTS_AT_HOME_SERVICES = [
         "label": "Includes",
         "sourceLabel": "📊 Includes",
         "row": 235,
-        "value": "CBC (19) • CK-MB • FBS • PPBS • HbA1c • Homocysteine • Urine Microalbumin/Creatinine Ratio • Stool (14) • UIBC • Urinalysis (21)) •  KFT & LFT • Lipid Profile (Cholesterol • Triglycerides • HDL • LDL • HDL/Cholesterol Ratio) ) • Iron Studies (Iron • TIBC • Transferrin Saturation) • Calcium (Ionized) • GFR • HCO₃"
+        "value": "CBC (19) • CK-MB • FBS • PPBS • HbA1c • Homocysteine • Urine Microalbumin/Creatinine Ratio • Stool (14) • UIBC • Urinalysis (21) • KFT & LFT • Lipid Profile (Cholesterol • Triglycerides • HDL • LDL • HDL/Cholesterol Ratio) • Iron Studies (Iron • TIBC • Transferrin Saturation) • Calcium (Ionized) • GFR • HCO₃"
       }
     ],
     "vendorPrices": []
@@ -1731,7 +1851,7 @@ export const LAB_TESTS_AT_HOME_SERVICES = [
         "label": "Includes",
         "sourceLabel": "📊 Includes",
         "row": 182,
-        "value": "•Chlamydia Trachomatis •Mycoplasma Genitalium •Trichomonas Vaginalis •Neisseria Gonorrhoeae"
+        "value": "• Chlamydia Trachomatis • Mycoplasma Genitalium • Trichomonas Vaginalis • Neisseria Gonorrhoeae"
       }
     ],
     "vendorPrices": []
@@ -1784,7 +1904,7 @@ export const LAB_TESTS_AT_HOME_SERVICES = [
         "label": "Includes",
         "sourceLabel": "📊 Includes",
         "row": 195,
-        "value": "•Chlamydia Trachomatis •Mycoplasma Genitalium •Trichomonas Vaginalis •Ureaplasma Parvum •Ureaplasma Urealyticum •Mycoplasma Hominis •Neisseria Gonorrhoeae, Gardnerella Vaginalis"
+        "value": "• Chlamydia Trachomatis • Mycoplasma Genitalium • Trichomonas Vaginalis • Ureaplasma Parvum • Ureaplasma Urealyticum • Mycoplasma Hominis • Neisseria Gonorrhoeae, Gardnerella Vaginalis"
       }
     ],
     "vendorPrices": []
@@ -1837,7 +1957,7 @@ export const LAB_TESTS_AT_HOME_SERVICES = [
         "label": "Includes",
         "sourceLabel": "📊 Includes",
         "row": 209,
-        "value": "•Candida Albicans •Candida Glabrata •Candida Krusei •Candida Parapsilosis • Candida Tropicalis •Chlamydia Trachomatis •Mycoplasma Genitalium •Trichomonas Vaginalis •Ureaplasma Parvum •Ureaplasma Urealyticum •Mycoplasma Hominis •HSV I&II • Treponema Pallidum• Gardnerella Vaginalis•Neisseria GonorrhoeaeGonorrhoeae• Gardnerella Vaginalis"
+        "value": "• Candida Albicans • Candida Glabrata • Candida Krusei • Candida Parapsilosis • Candida Tropicalis • Chlamydia Trachomatis • Mycoplasma Genitalium • Trichomonas Vaginalis • Ureaplasma Parvum • Ureaplasma Urealyticum • Mycoplasma Hominis • HSV I&II • Treponema Pallidum • Gardnerella Vaginalis • Neisseria Gonorrhoeae"
       }
     ],
     "vendorPrices": []
@@ -1890,7 +2010,7 @@ export const LAB_TESTS_AT_HOME_SERVICES = [
         "label": "Includes",
         "sourceLabel": "📊 Includes",
         "row": 222,
-        "value": "•Chlamydia trachomatis (CT)• Cytomegalovirus (CMV)• Candida albicans (CA)•Atopobium vaginae (AV)•Mycoplasma genitalium (MG)•Haemophilus ducreyi (HD) •Candida dubliniensis (CD)• Bacterial vaginosis– associated bacteria 2 (BVAB2)• Mycoplasma hominis (MH)• Herpes simplex virus type 1 (HSV1)• Candida glabrata (CG)• Bacteroides fragilis (BF)• Neisseria gonorrhoeae (NG)• Herpes simplex virus type 2 (HSV2)• Candida krusei (CK)• Gardnerella vaginalis (GV)•Trichomonas vaginalis (TV), Lymphogranuloma venereum (LGV), Candida lusitaniae (CL), Lactobacillus spp. (Lacto), Ureaplasma parvum (UP), Treponema pallidum (TP), Candida parapsilosis (CP)• Megasphaera Type 1 (Mega1)• Ureaplasma urealyticum (UU)• Varicella-zoster virus (VZV)•Candida tropicalis (CTp)• Mobiluncus spp. (Mob)."
+        "value": "• Chlamydia trachomatis (CT) • Cytomegalovirus (CMV) • Candida albicans (CA) • Atopobium vaginae (AV) • Mycoplasma genitalium (MG) • Haemophilus ducreyi (HD) • Candida dubliniensis (CD) • Bacterial vaginosis– associated bacteria 2 (BVAB2) • Mycoplasma hominis (MH) • Herpes simplex virus type 1 (HSV1) • Candida glabrata (CG) • Bacteroides fragilis (BF) • Neisseria gonorrhoeae (NG) • Herpes simplex virus type 2 (HSV2) • Candida krusei (CK) • Gardnerella vaginalis (GV) • Trichomonas vaginalis (TV), Lymphogranuloma venereum (LGV), Candida lusitaniae (CL), Lactobacillus spp. (Lacto), Ureaplasma parvum (UP), Treponema pallidum (TP), Candida parapsilosis (CP) • Megasphaera Type 1 (Mega1) • Ureaplasma urealyticum (UU) • Varicella-zoster virus (VZV) • Candida tropicalis (CTp) • Mobiluncus spp. (Mob)."
       }
     ],
     "vendorPrices": []
@@ -1954,9 +2074,9 @@ export const LAB_TESTS_AT_HOME_SERVICES = [
     "category": "lab-tests-at-home",
     "subcategory": "specialized-diagnostic-tests",
     "price": 1299,
-    "duration": "5- 7 days",
+    "duration": "5 - 7 days",
     "image": "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&q=80&w=400",
-    "description": "Individuals with frequent allergies (sneezing, rashes, itching) ,Asthma or sinus issues , Food intolerance concerns and  Unexplained skin or respiratory symptoms",
+    "description": "Individuals with frequent allergies (sneezing, rashes, itching), Asthma or sinus issues, Food intolerance concerns and Unexplained skin or respiratory symptoms",
     "popular": false,
     "enquiryOnly": false,
     "bookingNotice": "12 hours prior booking slots",
@@ -1978,7 +2098,7 @@ export const LAB_TESTS_AT_HOME_SERVICES = [
         "label": "Who",
         "sourceLabel": "👤 Who",
         "row": 240,
-        "value": "Individuals with frequent allergies (sneezing, rashes, itching) ,Asthma or sinus issues , Food intolerance concerns and  Unexplained skin or respiratory symptoms"
+        "value": "Individuals with frequent allergies (sneezing, rashes, itching), Asthma or sinus issues, Food intolerance concerns and Unexplained skin or respiratory symptoms"
       },
       {
         "label": "Prep",
@@ -1990,13 +2110,13 @@ export const LAB_TESTS_AT_HOME_SERVICES = [
         "label": "Results",
         "sourceLabel": "⏱️ Results",
         "row": 246,
-        "value": "5- 7 days"
+        "value": "5 - 7 days"
       },
       {
         "label": "Includes",
         "sourceLabel": "📊 Includes",
         "row": 249,
-        "value": "Molecular Allergy Diagnostics• Specific IgE (Component-Resolved Allergens) • Food Allergen Components • Inhalant Allergen Components"
+        "value": "Molecular Allergy Diagnostics • Specific IgE (Component-Resolved Allergens) • Food Allergen Components • Inhalant Allergen Components"
       }
     ],
     "vendorPrices": []
@@ -2007,7 +2127,7 @@ export const LAB_TESTS_AT_HOME_SERVICES = [
     "category": "lab-tests-at-home",
     "subcategory": "specialized-diagnostic-tests",
     "price": 1199,
-    "duration": "5- 7 days",
+    "duration": "5 - 7 days",
     "image": "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&q=80&w=400",
     "description": "Individuals with bloating, gas or IBS-like symptoms • Suspected food sensitivities • Chronic fatigue, migraines or skin issues • Those seeking personalized diet planning",
     "popular": false,
@@ -2043,7 +2163,7 @@ export const LAB_TESTS_AT_HOME_SERVICES = [
         "label": "Results",
         "sourceLabel": "⏱️ Results",
         "row": 259,
-        "value": "5- 7 days"
+        "value": "5 - 7 days"
       },
       {
         "label": "Includes",
@@ -2132,7 +2252,7 @@ export const LAB_TESTS_AT_HOME_SERVICES = [
     "price": 1500,
     "duration": "12 hours prior booking slots",
     "image": "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&q=80&w=400",
-    "description": "Analyses genetic predispositions related to health",
+    "description": "Analyzes genetic predispositions related to health",
     "popular": false,
     "enquiryOnly": false,
     "bookingNotice": "12 hours prior booking slots",
@@ -2154,7 +2274,7 @@ export const LAB_TESTS_AT_HOME_SERVICES = [
         "label": "Description",
         "sourceLabel": "Description",
         "row": 273,
-        "value": "Analyses genetic predispositions related to health"
+        "value": "Analyzes genetic predispositions related to health"
       }
     ],
     "vendorPrices": []

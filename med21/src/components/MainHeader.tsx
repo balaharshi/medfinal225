@@ -121,7 +121,7 @@ export default function MainHeader({
           <img
             src={newlogo}
             alt="MedZiva Logo"
-            className="h-12 w-auto object-contain"
+            className="h-16 w-auto object-contain"
             referrerPolicy="no-referrer"
           />
         </a>
@@ -238,7 +238,7 @@ export default function MainHeader({
             <img 
               src={newlogo} 
               alt="MedZiva Logo" 
-              className="h-[3.5rem] md:h-[5.5rem] w-auto object-contain"
+              className="h-[4.5rem] md:h-[7rem] w-auto object-contain"
               referrerPolicy="no-referrer" 
             />
           </a>

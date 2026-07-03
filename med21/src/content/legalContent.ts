@@ -10,7 +10,7 @@ export const FAQ_SECTIONS = [
   {
     title: 'Cancellations and Rescheduling',
     items: [
-      { question: 'Can I cancel my appointment? What is the deadline?', answer: 'Yes. Appointments can be cancelled with a minimum of 24 hours’ notice before the scheduled time.' },
+      { question: 'Can I cancel my appointment? What is the deadline?', answer: 'Yes. Appointments can be canceled with a minimum of 24 hours’ notice before the scheduled time.' },
       { question: 'Will I get a full refund if I cancel?', answer: 'Refund eligibility depends on the service type and cancellation timing. At least 24 hours’ notice is required to receive a full refund.' },
       { question: 'What happens if I cancel within 24 hours?', answer: 'Late cancellations may receive a partial refund or no refund, depending on the provider’s policy.' },
       { question: 'How do I reschedule my appointment?', answer: 'You can reschedule through the platform or by contacting customer support.' },

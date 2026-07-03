@@ -76,8 +76,8 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   );
 
   // Login Authentication States
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(hasStoredAdminSession);
-  const [isSessionChecking, setIsSessionChecking] = useState(!hasStoredAdminSession);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isSessionChecking, setIsSessionChecking] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
   const {
@@ -422,9 +422,9 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         setIsAuthenticated(false);
       } catch (error) {
         console.error('Failed to restore admin session', error);
-        if (!hasStoredSession) {
-          setIsAuthenticated(false);
-        }
+        localStorage.removeItem("medziva_admin_auth");
+        localStorage.removeItem("medziva_admin_token");
+        setIsAuthenticated(false);
       } finally {
         setIsSessionChecking(false);
       }
@@ -1806,25 +1806,10 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
               onError={handleAdminSocialError}
             />
 
-            <div className="pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => {
-                  reset({
-                    username: "admin@gmail.com",
-                    password: "admin123",
-                  });
-                  triggerToast("Demo parameters auto-populated. Press Authenticate to proceed!");
-                }}
-                className="text-xs text-medical-green hover:text-emerald-700 font-bold hover:underline transition-all"
-              >
-                Suggest Demo Operator Parameters (admin@gmail.com / admin123)
-              </button>
             </div>
           </div>
 
         </div>
-      </div>
     );
   }
 

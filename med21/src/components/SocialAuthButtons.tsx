@@ -63,7 +63,7 @@ export default function SocialAuthButtons({ disabled = false, googlePath = '/api
         if (response?.credential) {
           completeSocialAuth('google', { credential: response.credential });
         } else {
-          onError('Google login was cancelled.');
+          onError('Google login was canceled.');
         }
       },
     });
@@ -117,7 +117,7 @@ export default function SocialAuthButtons({ disabled = false, googlePath = '/api
       const response = await window.AppleID.auth.signIn();
       const credential = response?.authorization?.id_token;
       if (!credential) {
-        onError('Apple login was cancelled.');
+        onError('Apple login was canceled.');
         return;
       }
       await completeSocialAuth('apple', { credential, user: response.user });

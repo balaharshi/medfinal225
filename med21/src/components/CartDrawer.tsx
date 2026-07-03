@@ -87,9 +87,14 @@ export default function CartDrawer({
   }, [isOpen, loggedInUserAddress]);
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const labTestsSubtotal = cartItems
+    .filter((item) => item.product.category === 'lab-tests-at-home')
+    .reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const hasLabTests = labTestsSubtotal > 0;
+  const homeCollectionFee = hasLabTests && labTestsSubtotal < 1000 ? 150 : 0;
   const discount = appliedPromo === 'MEDZIVA10' ? Math.min(subtotal * 0.1, 100) : 0;
   const roundedDiscount = Math.round(discount);
-  const totalCost = Math.round(subtotal - discount);
+  const totalCost = Math.round(subtotal + homeCollectionFee - discount);
 
   const applyPromoCode = () => {
     const normalizedCode = promoCode.trim().toUpperCase();
@@ -563,6 +568,12 @@ export default function CartDrawer({
                         <span className="text-slate-500">Subtotal</span>
                         <span className="font-bold">AED {formatAedWhole(subtotal)}</span>
                       </div>
+                      {homeCollectionFee > 0 && (
+                        <div className="flex justify-between text-amber-600">
+                          <span>Home Collection Fee</span>
+                          <span className="font-bold">AED {homeCollectionFee}</span>
+                        </div>
+                      )}
                       {discount > 0 && (
                         <div className="flex justify-between text-medical-green">
                           <span>Promo discount</span>
@@ -639,6 +650,12 @@ export default function CartDrawer({
                           <span>Checkout Subtotal</span>
                           <span>AED {formatAedWhole(subtotal)}</span>
                         </div>
+                        {homeCollectionFee > 0 && (
+                          <div className="flex justify-between text-[11px] text-amber-600">
+                            <span>Home Collection Fee</span>
+                            <span>AED {homeCollectionFee}</span>
+                          </div>
+                        )}
                         {discount > 0 && (
                           <div className="flex justify-between text-[11px] text-medical-green">
                             <span>Promo discount</span>
@@ -669,6 +686,12 @@ export default function CartDrawer({
                       <span>Subtotal</span>
                       <span className="font-bold text-slate-800">AED {formatAedWhole(subtotal)}</span>
                     </div>
+                    {homeCollectionFee > 0 && (
+                      <div className="flex justify-between text-xs text-amber-600">
+                        <span>Home Collection Fee</span>
+                        <span className="font-bold">AED {homeCollectionFee}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm text-blue-950 font-black pt-2 border-t border-slate-200">
                       <span>Total (inclusive of all tax)</span>
                       <span className="text-medical-green text-base">AED {formatAedWhole(totalCost)}</span>

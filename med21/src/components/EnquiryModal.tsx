@@ -219,7 +219,7 @@ export default function EnquiryModal({
                 >
                   <option value="General Corporate Screening">General Corporate &amp; Wellness Screening</option>
                   <option value="Custom Long-Term Care Quote">Custom Long-Term Care Package</option>
-                  {SERVICE_CATEGORIES.map((cat) => (
+                  {SERVICE_CATEGORIES.filter((cat) => !cat.slug?.includes('devices') && !cat.slug?.includes('rent')).map((cat) => (
                     <option key={cat.id} value={cat.title}>
                       {cat.title}
                     </option>

@@ -1,7 +1,7 @@
 export const HOME_HEALTHCARE_CATEGORIES = [
   {
     id: 'cat-home-health',
-    title: 'Nursing care at Home',
+    title: 'Nursing Care at Home',
     image: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400',
     slug: 'home-healthcare',
     description: 'Nurses providing premium in-home clinical care, wound antiseptic dressing, and support.',
@@ -66,7 +66,7 @@ export const HOME_HEALTHCARE_SERVICES = [
   },
   {
     id: 'srv-iv-antibiotics-prescription',
-    title: 'IV antibiotics at Home (with Dr Prescription)',
+    title: 'IV Antibiotics at Home (With Dr Prescription)',
     category: 'home-healthcare',
     price: 750,
     duration: '1 Session',

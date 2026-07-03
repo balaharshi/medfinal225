@@ -1,4 +1,4 @@
-import { body } from 'express-validator';
+import { body, oneOf } from 'express-validator';
 
 export const registerValidator = [
   body('fullName').trim().notEmpty().withMessage('Full name is required'),
@@ -9,8 +9,10 @@ export const registerValidator = [
 ];
 
 export const loginValidator = [
-  body('email').optional({ values: 'falsy' }).isEmail().normalizeEmail(),
-  body('username').optional({ values: 'falsy' }).trim().isString(),
+  oneOf([
+    body('email').isEmail().normalizeEmail(),
+    body('username').trim().isLength({ min: 1 }),
+  ], 'Either email or username is required'),
   body('password').notEmpty().withMessage('Password is required'),
 ];
 

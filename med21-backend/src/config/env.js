@@ -9,7 +9,7 @@ export const env = {
   databaseSchema: process.env.DB_SCHEMA || 'public',
   skipDatabaseBootstrap: process.env.SKIP_DATABASE_BOOTSTRAP === 'true',
   seedDatabase: process.env.SEED_DATABASE === 'true',
-  jwtSecret: process.env.JWT_SECRET || 'dev-secret-change-me',
+  jwtSecret: process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('JWT_SECRET must be set in production'); })() : 'dev-secret-change-me'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   corsOrigin: process.env.CORS_ORIGIN || process.env.CLIENT_ORIGIN || process.env.FRONTEND_URL || '*',
   frontendUrl: process.env.FRONTEND_URL || process.env.CLIENT_ORIGIN || 'http://localhost:3000',

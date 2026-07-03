@@ -51,8 +51,8 @@ export const createBooking = async (req, res) => {
 export const cancelBooking = async (req, res) => {
   const result = await service.cancelBooking(req.params.id);
   triggerPusherEvent('appointment:update', {
-    action: 'cancelled',
-    message: `Appointment ${req.params.id} was cancelled`,
+    action: 'canceled',
+    message: `Appointment ${req.params.id} was canceled`,
     booking: result.updated,
   });
   res.json(result);

@@ -16,7 +16,7 @@ export default function HeroSection({ onBookServiceClick, onExploreProductsClick
   return (
     <div 
       id="hero-section" 
-      className="relative bg-white pt-8 sm:pt-10 lg:pt-12 pb-8 sm:pb-10 lg:pb-12 px-4 sm:px-6 lg:px-8 overflow-hidden border-b border-slate-100"
+      className="relative bg-white pt-4 sm:pt-6 lg:pt-8 pb-4 sm:pb-6 lg:pb-8 px-4 sm:px-6 lg:px-8 overflow-hidden border-b border-slate-100"
     >
       {/* Subtle organic light backdrop effects */}
       <div className="absolute top-1/4 -left-12 w-96 h-96 rounded-full bg-teal-300/20 blur-3xl pointer-events-none z-0" />

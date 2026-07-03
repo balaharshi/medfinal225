@@ -88,7 +88,7 @@ export default function CartDrawer({
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const labTestsSubtotal = cartItems
-    .filter((item) => item.product.category === 'lab-tests-at-home')
+    .filter((item) => item.product.category === 'lab-tests-at-home' || (item.product.category === 'lab-tests' && item.product.subcategory === 'customize-lab-package'))
     .reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const hasLabTests = labTestsSubtotal > 0;
   const homeCollectionFee = hasLabTests && labTestsSubtotal < 1000 ? 150 : 0;

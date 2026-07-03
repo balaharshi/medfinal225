@@ -121,7 +121,7 @@ export default function MainHeader({
           <img
             src={newlogo}
             alt="MedZiva Logo"
-            className="h-20 w-auto object-contain"
+            className="h-24 w-auto object-contain"
             referrerPolicy="no-referrer"
           />
         </a>
@@ -233,19 +233,19 @@ export default function MainHeader({
         </button>
 
         {/* Left Side: Brand Logo */}
-        <div className="flex items-center shrink-0 h-full">
-          <a href="/" className="flex items-center gap-2 group h-full" aria-label="Go to homepage">
+        <div className="flex items-center shrink-0">
+          <a href="/" className="flex items-center h-full group" aria-label="Go to homepage">
             <img 
               src={newlogo} 
               alt="MedZiva Logo" 
-              className="h-full w-auto object-contain py-2"
+              className="h-[5.5rem] w-auto object-contain"
               referrerPolicy="no-referrer" 
             />
           </a>
         </div>
 
         {/* Center: Search Bar with suggestion helper */}
-        <div className="relative w-full md:max-w-xl flex-1 search-bar-container">
+        <div className="relative w-full md:max-w-xl flex-1 self-center search-bar-container">
           <form
             onSubmit={(event) => {
               event.preventDefault();
@@ -315,7 +315,7 @@ export default function MainHeader({
         </div>
 
         {/* Right Side: Member Account, Active Bookings list, Cart with counter badge */}
-        <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 lg:gap-5 location-profile-row">
+        <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 lg:gap-5 self-center location-profile-row">
 
           {/* 1. Account Login/Signup - Hidden on mobile */}
           <div className="hidden md:block">

@@ -568,10 +568,10 @@ export default function CartDrawer({
                         <span className="text-slate-500">Subtotal</span>
                         <span className="font-bold">AED {formatAedWhole(subtotal)}</span>
                       </div>
-                      {homeCollectionFee > 0 && (
+                      {hasLabTests && (
                         <div className="flex justify-between text-amber-600">
                           <span>Home Collection Fee</span>
-                          <span className="font-bold">AED {homeCollectionFee}</span>
+                          <span className="font-bold">{homeCollectionFee > 0 ? `AED ${homeCollectionFee}` : 'Free'}</span>
                         </div>
                       )}
                       {discount > 0 && (
@@ -650,10 +650,10 @@ export default function CartDrawer({
                           <span>Checkout Subtotal</span>
                           <span>AED {formatAedWhole(subtotal)}</span>
                         </div>
-                        {homeCollectionFee > 0 && (
+                        {hasLabTests && (
                           <div className="flex justify-between text-[11px] text-amber-600">
                             <span>Home Collection Fee</span>
-                            <span>AED {homeCollectionFee}</span>
+                            <span>{homeCollectionFee > 0 ? `AED ${homeCollectionFee}` : 'Free'}</span>
                           </div>
                         )}
                         {discount > 0 && (
@@ -686,10 +686,10 @@ export default function CartDrawer({
                       <span>Subtotal</span>
                       <span className="font-bold text-slate-800">AED {formatAedWhole(subtotal)}</span>
                     </div>
-                    {homeCollectionFee > 0 && (
+                    {hasLabTests && (
                       <div className="flex justify-between text-xs text-amber-600">
                         <span>Home Collection Fee</span>
-                        <span className="font-bold">AED {homeCollectionFee}</span>
+                        <span className="font-bold">{homeCollectionFee > 0 ? `AED ${homeCollectionFee}` : 'Free'}</span>
                       </div>
                     )}
                     <div className="flex justify-between text-sm text-blue-950 font-black pt-2 border-t border-slate-200">

@@ -316,7 +316,7 @@ function AdminDashboardApp() {
         if (servicesWithLocalImages.length > 0) setDb(prev => ({ ...prev, services: servicesWithLocalImages }));
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+
     }
   };
 
@@ -375,7 +375,7 @@ function PaymentReturnPage() {
         setSyncState('synced');
       })
       .catch((error) => {
-        console.error('Unable to sync ENBDpay status:', error);
+
         if (!cancelled) setSyncState('failed');
       });
 
@@ -555,7 +555,7 @@ function MainApp() {
         setLoggedInUserPhone(data.user.phone || '');
         setLoggedInUserAddress(data.user.address || '');
       } catch (error) {
-        console.error('Failed to restore customer session', error);
+
         localStorage.removeItem('medziva_user_token');
       }
     };

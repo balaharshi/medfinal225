@@ -224,7 +224,7 @@ export default function CartDrawer({
       setOrderId(booking.id);
       window.location.assign(checkout.redirectUri);
     } catch (error) {
-      console.error('Unable to create ENBDpay cart checkout', error);
+
       toast.error(error instanceof Error ? error.message : 'Could not open payment checkout.', { id: 'enbdpay-cart' });
       setIsCheckingOut(false);
     }

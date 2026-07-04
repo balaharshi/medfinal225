@@ -118,7 +118,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
           }
         }
       } catch (error) {
-        console.error('Failed to restore vendor session', error);
+
         localStorage.removeItem("medziva_vendor_token");
         setIsAuthenticated(false);
       } finally {
@@ -149,7 +149,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
         setServicesList(list);
       }
     } catch (e) {
-      console.error("Error retrieving vendor data", e);
+
     } finally {
       setIsLoadingData(false);
     }
@@ -270,7 +270,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
         toast.error("Failed to update profile.");
       }
     } catch (err) {
-      console.error(err);
+
     }
   };
 

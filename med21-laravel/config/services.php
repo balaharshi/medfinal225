@@ -24,6 +24,7 @@ return [
 
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
+        'admin_emails' => env('GOOGLE_ADMIN_EMAILS', ''),
     ],
 
     'apple' => [

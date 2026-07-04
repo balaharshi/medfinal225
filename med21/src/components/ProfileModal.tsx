@@ -75,7 +75,7 @@ export default function ProfileModal({
         setBookings(data);
       }
     } catch (error) {
-      console.error('Failed to fetch bookings:', error);
+
     } finally {
       setBookingsLoading(false);
     }

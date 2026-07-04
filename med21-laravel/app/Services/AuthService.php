@@ -90,17 +90,12 @@ class AuthService
             throw new HttpException(400, 'OAuth account email is required');
         }
 
-        $name = $payload['fullName'] ?? Str::before($email, '@');
-        $vendor = Vendor::query()->firstOrCreate(
-            ['email' => $email],
-            [
-                'id' => SequentialId::next(Vendor::class, 'v'),
-                'name' => $name,
-                'type' => 'Healthcare Provider',
-                'address' => 'Dubai',
-            ],
-        );
+        $vendor = Vendor::query()->where('email', $email)->first();
+        if (! $vendor) {
+            throw new HttpException(403, 'No vendor account is linked to this email. Please contact support.');
+        }
 
+        $name = $payload['fullName'] ?? $vendor->name ?? Str::before($email, '@');
         $session = $this->upsertOAuthUser(['email' => $email, 'fullName' => $name], AppConstants::USER_ROLES['VENDOR'], $vendor->id);
 
         return [...$session, 'vendor' => CaseKeys::camelize($vendor)];
@@ -161,11 +156,16 @@ class AuthService
 
         $user = User::query()->where('email', $email)->first();
         if ($user) {
-            $user->forceFill([
+            $updates = [
                 'full_name' => $user->full_name ?: ($payload['fullName'] ?? Str::before($email, '@')),
-                'role' => $role,
-                'vendor_id' => $vendorId,
-            ])->save();
+            ];
+            if ($user->role === AppConstants::USER_ROLES['CUSTOMER'] && $role !== AppConstants::USER_ROLES['CUSTOMER']) {
+                $updates['role'] = $role;
+            }
+            if ($vendorId && ! $user->vendor_id) {
+                $updates['vendor_id'] = $vendorId;
+            }
+            $user->forceFill($updates)->save();
 
             return $this->createSession($user);
         }

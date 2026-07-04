@@ -148,7 +148,7 @@ export default function EnquiryModal({
         toast.error('Enquiry could not be saved. Please try again.');
       }
     } catch (err) {
-      console.error("Failed to submit enquiry to live backend:", err);
+
       toast.error('Could not connect to enquiry service. Please try again.');
     }
 

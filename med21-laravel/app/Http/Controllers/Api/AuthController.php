@@ -7,11 +7,15 @@ use App\Http\Requests\ChangePasswordRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\ProfileRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Models\User;
 use App\Services\AuthService;
 use App\Services\OAuthIdentityService;
 use App\Services\PusherService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -47,14 +51,29 @@ class AuthController extends Controller
 
     public function oauthAdmin(Request $request): JsonResponse
     {
-        $session = $this->authService->oauthAdmin($this->oauthPayload($request, 'google'));
+        $payload = $this->oauthPayload($request, 'google');
+        $email = strtolower(trim($payload['email'] ?? ''));
+        $allowedEmails = array_map('trim', explode(',', strtolower(config('services.google.admin_emails', ''))));
+
+        if ($email === '' || ! in_array($email, $allowedEmails, true)) {
+            abort(403, 'This Google account is not authorized for admin access.');
+        }
+
+        $session = $this->authService->oauthAdmin($payload);
 
         return $this->withAccessCookie(response()->json(['success' => true, ...$session]), $session['accessToken']);
     }
 
     public function oauthVendor(Request $request): JsonResponse
     {
-        $session = $this->authService->oauthVendor($this->oauthPayload($request, 'google'));
+        $payload = $this->oauthPayload($request, 'google');
+        $email = strtolower(trim($payload['email'] ?? ''));
+
+        if ($email === '' || ! \App\Models\Vendor::query()->where('email', $email)->exists()) {
+            abort(403, 'This Google account is not linked to any vendor. Please contact support.');
+        }
+
+        $session = $this->authService->oauthVendor($payload);
 
         return $this->withAccessCookie(response()->json(['success' => true, ...$session]), $session['accessToken']);
     }
@@ -93,6 +112,61 @@ class AuthController extends Controller
     public function changePassword(ChangePasswordRequest $request): JsonResponse
     {
         return response()->json($this->authService->changePassword($request->user()->id, $request->validated('currentPassword'), $request->validated('newPassword')));
+    }
+
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $email = strtolower(trim($request->input('email')));
+        $user = User::query()->where('email', $email)->first();
+
+        if ($user) {
+            $code = Str::random(6);
+            DB::table('password_reset_tokens')->updateOrInsert(
+                ['email' => $email],
+                [
+                    'token' => Hash::make($code),
+                    'created_at' => now(),
+                ]
+            );
+
+            // In a real application, send the $code via email here.
+            // For now we return it in the response for development/debugging.
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'If your email is registered, you\'ll receive a reset code.',
+        ]);
+    }
+
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'code' => 'required|string|size:6',
+            'newPassword' => 'required|string|min:6',
+        ]);
+
+        $email = strtolower(trim($request->input('email')));
+        $tokenRow = DB::table('password_reset_tokens')->where('email', $email)->first();
+
+        if (! $tokenRow || ! Hash::check($request->input('code'), $tokenRow->token)) {
+            return response()->json(['success' => false, 'error' => 'Invalid or expired reset code.'], 422);
+        }
+
+        $user = User::query()->where('email', $email)->first();
+        if (! $user) {
+            return response()->json(['success' => false, 'error' => 'User not found.'], 404);
+        }
+
+        $user->forceFill(['password_hash' => Hash::make($request->input('newPassword'))])->save();
+        DB::table('password_reset_tokens')->where('email', $email)->delete();
+
+        return response()->json(['success' => true, 'message' => 'Password has been reset successfully.']);
     }
 
     private function withAccessCookie(JsonResponse $response, string $token): JsonResponse

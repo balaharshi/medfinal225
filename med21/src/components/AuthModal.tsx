@@ -43,6 +43,14 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
   const [isSignUp, setIsSignUp] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
+  const [authView, setAuthView] = useState<'login' | 'forgot' | 'reset'>('login');
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetCode, setResetCode] = useState('');
+  const [resetNewPassword, setResetNewPassword] = useState('');
+  const [resetConfirmPassword, setResetConfirmPassword] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
   const {
     register,
     handleSubmit,
@@ -108,6 +116,12 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
 
   const closeModal = () => {
     setAuthError(null);
+    setAuthView('login');
+    setForgotEmail('');
+    setResetEmail('');
+    setResetCode('');
+    setResetNewPassword('');
+    setResetConfirmPassword('');
     reset();
     onClose();
   };
@@ -220,6 +234,92 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    setAuthError(null);
+
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail.trim() }),
+      });
+      const data = await response.json();
+
+      if (response.ok && data?.success) {
+        toast.success('If your email is registered, you\'ll receive a reset code.');
+        setResetEmail(forgotEmail.trim());
+        setAuthView('reset');
+      } else {
+        const msg = data?.error || 'Something went wrong. Please try again.';
+        setAuthError(msg);
+        toast.error(msg);
+      }
+    } catch {
+      const msg = 'We could not connect to the secure login service. Please try again in a moment.';
+      setAuthError(msg);
+      toast.error(msg);
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetLoading(true);
+    setAuthError(null);
+
+    if (resetNewPassword !== resetConfirmPassword) {
+      const msg = 'Passwords do not match.';
+      setAuthError(msg);
+      toast.error(msg);
+      setResetLoading(false);
+      return;
+    }
+
+    if (resetNewPassword.length < 6) {
+      const msg = 'Password must be at least 6 characters.';
+      setAuthError(msg);
+      toast.error(msg);
+      setResetLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: resetEmail.trim(),
+          code: resetCode.trim(),
+          newPassword: resetNewPassword,
+        }),
+      });
+      const data = await response.json();
+
+      if (response.ok && data?.success) {
+        toast.success('Password has been reset successfully. Please sign in.');
+        setAuthView('login');
+        setResetCode('');
+        setResetNewPassword('');
+        setResetConfirmPassword('');
+      } else {
+        const msg = data?.error || 'Invalid or expired reset code.';
+        setAuthError(msg);
+        toast.error(msg);
+      }
+    } catch {
+      const msg = 'We could not connect to the secure login service. Please try again in a moment.';
+      setAuthError(msg);
+      toast.error(msg);
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   const handleAppleLogin = async () => {
     if (!appleClientId) {
       toast.error('Apple login is not configured yet.');
@@ -300,15 +400,149 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
 
             <div className="space-y-1 text-center md:text-left md:pr-10">
               <h3 className="text-xl sm:text-2xl font-black flex items-center justify-center md:justify-start gap-1.5 text-medical-blue">
-                <span>{isSignUp ? 'Create MedZiva Profile' : 'Sign in to MedZiva'}</span>
+                <span>
+                  {authView === 'forgot' && 'Reset Your Password'}
+                  {authView === 'reset' && 'Enter Reset Code'}
+                  {authView === 'login' && (isSignUp ? 'Create MedZiva Profile' : 'Sign in to MedZiva')}
+                </span>
                 <Sparkles className="w-5 h-5 text-emerald-400" />
               </h3>
               <p className="text-gray-500 text-xs sm:text-[13px]">
-                {isSignUp ? 'Vetted home support visits await your dispatch.' : 'Access healthcare checkups and purchase history.'}
+                {authView === 'forgot' && 'Enter your email to receive a password reset code.'}
+                {authView === 'reset' && 'Enter the code sent to your email and choose a new password.'}
+                {authView === 'login' && (isSignUp ? 'Vetted home support visits await your dispatch.' : 'Access healthcare checkups and purchase history.')}
               </p>
             </div>
           </div>
 
+        {authView === 'forgot' && (
+        <form onSubmit={handleForgotPassword} className="px-5 pb-6 pt-3 sm:px-8 sm:pb-8 space-y-3.5">
+          {authError && (
+            <div className="bg-rose-50 border border-rose-100 text-rose-700 text-xs rounded-xl p-3">
+              {authError}
+            </div>
+          )}
+
+          <div className="space-y-1 text-left">
+            <label className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+              <Mail className="w-3.5 h-3.5 text-slate-400" />
+              Customer Email Address <span className="text-red-600">*</span>
+            </label>
+            <input
+              type="email"
+              placeholder="e.g. customer@medziva.com"
+              value={forgotEmail}
+              onChange={(e) => setForgotEmail(e.target.value)}
+              required
+              className="w-full text-xs border border-slate-200 rounded-xl p-3 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={forgotLoading}
+            className="w-full bg-[#10B981] hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl text-xs tracking-wider transition-all mt-2 cursor-pointer shadow-md text-center"
+          >
+            {forgotLoading ? 'SENDING...' : 'SEND RESET CODE'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setAuthView('login'); setAuthError(null); }}
+            className="w-full text-center text-xs font-bold text-slate-500 hover:text-emerald-600 transition-colors cursor-pointer pt-1"
+          >
+            &larr; Back to Login
+          </button>
+        </form>
+        )}
+
+        {authView === 'reset' && (
+        <form onSubmit={handleResetPassword} className="px-5 pb-6 pt-3 sm:px-8 sm:pb-8 space-y-3.5">
+          {authError && (
+            <div className="bg-rose-50 border border-rose-100 text-rose-700 text-xs rounded-xl p-3">
+              {authError}
+            </div>
+          )}
+
+          <div className="space-y-1 text-left">
+            <label className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+              <Mail className="w-3.5 h-3.5 text-slate-400" />
+              Email Address
+            </label>
+            <input
+              type="email"
+              value={resetEmail}
+              readOnly
+              className="w-full text-xs border border-slate-200 rounded-xl p-3 bg-gray-50 text-slate-500"
+            />
+          </div>
+
+          <div className="space-y-1 text-left">
+            <label className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+              6-Digit Reset Code <span className="text-red-600">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. 123456"
+              value={resetCode}
+              onChange={(e) => setResetCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              required
+              maxLength={6}
+              className="w-full text-xs border border-slate-200 rounded-xl p-3 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 tracking-widest font-mono"
+            />
+          </div>
+
+          <div className="space-y-1 text-left">
+            <label className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+              <Lock className="w-3.5 h-3.5 text-slate-400" />
+              New Password <span className="text-red-600">*</span>
+            </label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={resetNewPassword}
+              onChange={(e) => setResetNewPassword(e.target.value)}
+              required
+              minLength={6}
+              className="w-full text-xs border border-slate-200 rounded-xl p-3 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+            />
+          </div>
+
+          <div className="space-y-1 text-left">
+            <label className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+              <Lock className="w-3.5 h-3.5 text-slate-400" />
+              Confirm New Password <span className="text-red-600">*</span>
+            </label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={resetConfirmPassword}
+              onChange={(e) => setResetConfirmPassword(e.target.value)}
+              required
+              minLength={6}
+              className="w-full text-xs border border-slate-200 rounded-xl p-3 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={resetLoading}
+            className="w-full bg-[#10B981] hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl text-xs tracking-wider transition-all mt-2 cursor-pointer shadow-md text-center"
+          >
+            {resetLoading ? 'RESETTING...' : 'RESET PASSWORD'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setAuthView('login'); setAuthError(null); setResetCode(''); setResetNewPassword(''); setResetConfirmPassword(''); }}
+            className="w-full text-center text-xs font-bold text-slate-500 hover:text-emerald-600 transition-colors cursor-pointer pt-1"
+          >
+            &larr; Back to Login
+          </button>
+        </form>
+        )}
+
+        {authView === 'login' && (
         <form onSubmit={handleSubmit(submitAuth)} className="px-5 pb-6 pt-3 sm:px-8 sm:pb-8 space-y-3.5">
           {authError && (
             <div className="bg-rose-50 border border-rose-100 text-rose-700 text-xs rounded-xl p-3">
@@ -399,6 +633,18 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             )}
           </div>
 
+          {!isSignUp && (
+            <div className="text-right -mt-2">
+              <button
+                type="button"
+                onClick={() => { setAuthView('forgot'); setAuthError(null); }}
+                className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer"
+              >
+                Forgot Password?
+              </button>
+            </div>
+          )}
+
           <div className="flex items-start gap-2 pt-1 text-[10.5px] text-slate-400 text-left">
             <input
               type="checkbox"
@@ -430,19 +676,22 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             <div className="h-px flex-1 bg-slate-100" />
           </div>
 
-          <div className="mx-auto grid w-full max-w-xs grid-cols-1 gap-2">
+          <div className={`mx-auto grid w-full max-w-xs grid-cols-1 gap-2 ${appleClientId ? 'grid-cols-2' : ''}`}>
             <div id="medziva-google-login-button" className="flex min-h-10 w-full items-center justify-center overflow-hidden rounded-xl" />
-            <button
-              type="button"
-              onClick={handleAppleLogin}
-              disabled={authLoading}
-              className="flex items-center justify-center gap-2 rounded-xl border border-slate-900 bg-slate-950 px-3 py-3 text-xs font-black text-white hover:bg-slate-800 disabled:opacity-60"
-            >
-              <AppleLogo />
-              Apple
-            </button>
+            {appleClientId && (
+              <button
+                type="button"
+                onClick={handleAppleLogin}
+                disabled={authLoading}
+                className="flex items-center justify-center gap-2 rounded-xl border border-slate-900 bg-slate-950 px-3 py-3 text-xs font-black text-white hover:bg-slate-800 disabled:opacity-60"
+              >
+                <AppleLogo />
+                Apple
+              </button>
+            )}
           </div>
         </form>
+        )}
         </div>
       </div>
     </div>

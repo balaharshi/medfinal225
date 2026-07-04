@@ -135,17 +135,19 @@ export default function SocialAuthButtons({ disabled = false, googlePath = '/api
         <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">or continue with</span>
         <div className="h-px flex-1 bg-slate-100" />
       </div>
-      <div className="mx-auto grid w-full max-w-xs grid-cols-1 gap-2">
+      <div className={`mx-auto grid w-full max-w-xs grid-cols-1 gap-2 ${appleClientId ? 'grid-cols-2' : ''}`}>
         <div id={googleButtonId} className="flex min-h-10 w-full items-center justify-center overflow-hidden rounded-xl" />
-        <button
-          type="button"
-          onClick={handleAppleLogin}
-          disabled={disabled || loadingProvider === 'apple'}
-          className="flex items-center justify-center gap-2 rounded-xl border border-slate-900 bg-slate-950 px-3 py-3 text-xs font-black text-white hover:bg-slate-800 disabled:opacity-60"
-        >
-          <AppleLogo />
-          {loadingProvider === 'apple' ? 'Apple...' : 'Apple'}
-        </button>
+        {appleClientId && (
+          <button
+            type="button"
+            onClick={handleAppleLogin}
+            disabled={disabled || loadingProvider === 'apple'}
+            className="flex items-center justify-center gap-2 rounded-xl border border-slate-900 bg-slate-950 px-3 py-3 text-xs font-black text-white hover:bg-slate-800 disabled:opacity-60"
+          >
+            <AppleLogo />
+            {loadingProvider === 'apple' ? 'Apple...' : 'Apple'}
+          </button>
+        )}
       </div>
     </div>
   );

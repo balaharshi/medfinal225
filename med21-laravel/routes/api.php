@@ -18,16 +18,18 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
         Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
         Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
         Route::post('/google', [AuthController::class, 'oauth'])->middleware('throttle:10,1');
-        Route::post('/google/admin', [AuthController::class, 'oauthAdmin']);
-        Route::post('/google/vendor', [AuthController::class, 'oauthVendor']);
+        Route::post('/google/admin', [AuthController::class, 'oauthAdmin'])->middleware('throttle:5,1');
+        Route::post('/google/vendor', [AuthController::class, 'oauthVendor'])->middleware('throttle:5,1');
         Route::post('/google/callback', [AuthController::class, 'oauth']);
         Route::post('/apple', [AuthController::class, 'apple'])->middleware('throttle:10,1');
-        Route::post('/apple/callback', [AuthController::class, 'apple']);
+        Route::post('/apple/callback', [AuthController::class, 'apple'])->middleware('throttle:10,1');
         Route::post('/logout', [AuthController::class, 'logout'])->middleware('api.auth');
         Route::get('/session', [AuthController::class, 'session'])->middleware('api.auth');
         Route::get('/profile', [AuthController::class, 'profile'])->middleware('api.auth');
         Route::put('/profile', [AuthController::class, 'updateProfile'])->middleware('api.auth');
         Route::put('/change-password', [AuthController::class, 'changePassword'])->middleware('api.auth');
+        Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:5,1');
+        Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1');
     });
 
     Route::post('/payments/enbd/create', [PaymentController::class, 'createEnbdpayCheckout'])->middleware('throttle:5,1');
@@ -70,7 +72,7 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
     Route::post('/vendors/{vendorId}/service-assignments/bulk', [VendorServiceAssignmentController::class, 'bulk'])->middleware($admin);
     Route::get('/vendorProfile/{vendorId}', [CatalogController::class, 'getVendorProfile'])->middleware($vendorSelfOrAdmin);
     Route::patch('/vendorProfile/{vendorId}', [CatalogController::class, 'updateVendorProfile'])->middleware($vendorSelfOrAdmin);
-    Route::post('/vendorLogin', [AuthController::class, 'vendorLogin']);
+    Route::post('/vendorLogin', [AuthController::class, 'vendorLogin'])->middleware('throttle:10,1');
 
     Route::get('/bookings', [CatalogController::class, 'getBookings'])->middleware($admin);
     Route::post('/bookings', [CatalogController::class, 'createBooking'])->middleware('api.auth');

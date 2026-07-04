@@ -15,7 +15,7 @@ class OAuthIdentityService
         $token = $payload['credential'] ?? $payload['idToken'] ?? null;
         $clientId = config('services.google.client_id');
         if (! $token) {
-            return $this->fallbackPayload($payload);
+            throw new HttpException(401, 'Google credential is required');
         }
         if (! $clientId) {
             throw new HttpException(503, 'Google login is not configured');
@@ -39,7 +39,7 @@ class OAuthIdentityService
         $token = $payload['credential'] ?? $payload['idToken'] ?? null;
         $clientId = config('services.apple.client_id');
         if (! $token) {
-            return $this->fallbackPayload($payload);
+            throw new HttpException(401, 'Apple credential is required');
         }
         if (! $clientId) {
             throw new HttpException(503, 'Apple login is not configured');
@@ -65,11 +65,5 @@ class OAuthIdentityService
         ];
     }
 
-    private function fallbackPayload(array $payload): array
-    {
-        return [
-            'email' => $payload['email'] ?? data_get($payload, 'user.email') ?? data_get($payload, 'profile.email'),
-            'fullName' => $payload['fullName'] ?? $payload['name'] ?? data_get($payload, 'user.name'),
-        ];
-    }
+
 }

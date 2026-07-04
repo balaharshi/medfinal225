@@ -421,7 +421,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         }
         setIsAuthenticated(false);
       } catch (error) {
-        console.error('Failed to restore admin session', error);
+
         localStorage.removeItem("medziva_admin_auth");
         localStorage.removeItem("medziva_admin_token");
         setIsAuthenticated(false);
@@ -457,25 +457,25 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       if (vendorsResult.status === "fulfilled") {
         setVendorsList(vendorsResult.value);
       } else {
-        console.error("Unable to load vendors", vendorsResult.reason);
+        
       }
 
       if (usersResult.status === "fulfilled") {
         setUsersList(usersResult.value);
       } else {
-        console.error("Unable to load users", usersResult.reason);
+        
       }
 
       if (bookingsResult.status === "fulfilled") {
         setBookingsList(bookingsResult.value);
       } else {
-        console.error("Unable to load bookings", bookingsResult.reason);
+        
       }
 
       if (enquiriesResult.status === "fulfilled") {
         setEnquiriesList(enquiriesResult.value);
       } else {
-        console.error("Unable to load enquiries", enquiriesResult.reason);
+        
       }
 
       if (settingsResult.status === "fulfilled") {
@@ -491,18 +491,18 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
           adminPassword: ""
         });
       } else {
-        console.error("Unable to load settings", settingsResult.reason);
+        
       }
 
       if (categoriesResult.status === "fulfilled") {
         setCategoriesList(categoriesResult.value);
       } else {
-        console.error("Unable to load categories", categoriesResult.reason);
+        
       }
 
       onRefresh();
     } catch (e) {
-      console.error("Error retrieving dashboard admin streams", e);
+
     } finally {
       setIsLoadingData(false);
     }
@@ -573,7 +573,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         setVendorServiceAssignments(await response.json());
       }
     } catch (error) {
-      console.error("Unable to retrieve vendor service assignments", error);
+
     }
   };
 
@@ -665,7 +665,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         throw new Error("Assignment update failed");
       }
     } catch (error) {
-      console.error("Unable to update vendor service assignment", error);
+
       toast.error("Unable to update service assignment.");
     } finally {
       setIsSavingAssignments(false);
@@ -697,7 +697,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       }
       triggerToast(`${enabled ? "Enabled" : "Disabled"} ${serviceIds.length} service${serviceIds.length === 1 ? "" : "s"} for ${selectedServiceVendor?.name || "vendor"}.`);
     } catch (error) {
-      console.error("Unable to bulk update vendor service assignments", error);
+
       toast.error("Unable to update service assignments.");
     } finally {
       setIsSavingAssignments(false);
@@ -1119,7 +1119,6 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         toast.error(`Failed to ${isEdit ? 'update' : 'create'} service on server database.`);
       }
     } catch (err) {
-      console.error(err);
     } finally {
       setIsSubmitting(false);
     }
@@ -1140,7 +1139,6 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
             toast.error("Failed to complete record purge.");
           }
         } catch (err) {
-          console.error(err);
           toast.error("Unable to delete service right now.");
         }
       },
@@ -1212,11 +1210,9 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         fetchAdminData();
       } else {
         const errorText = await response.text();
-        console.error("Category submission error:", errorText);
         toast.error(`Failed to submit category. ${errorText}`);
       }
     } catch (err) {
-      console.error(err);
       toast.error("Failed to submit category. Network error.");
     } finally {
       setIsSubmitting(false);
@@ -1238,7 +1234,6 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
             toast.error("Failed to complete action.");
           }
         } catch (err) {
-          console.error(err);
           toast.error("Unable to delete category right now.");
         }
       }
@@ -1277,7 +1272,6 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         toast.error("Failed to assign subcategory.");
       }
     } catch (err) {
-      console.error(err);
     } finally {
       setIsSubmitting(false);
     }
@@ -1298,7 +1292,6 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
             toast.error("Delete request failed.");
           }
         } catch (err) {
-          console.error(err);
           toast.error("Unable to delete subcategory right now.");
         }
       }
@@ -1370,7 +1363,6 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         toast.error(`Failed to ${isEdit ? 'update' : 'create'} vendor: ${errorData.error || response.statusText}`);
       }
     } catch (err) {
-      console.error("Vendor creation error:", err);
       toast.error(`Failed to ${isEdit ? 'update' : 'create'} vendor. Please check your connection.`);
     } finally {
       setIsSubmitting(false);
@@ -1394,7 +1386,6 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
             toast.error("Delete query rejected.");
           }
         } catch (err) {
-          console.error(err);
           toast.error("Unable to delete vendor right now.");
         }
       }
@@ -1445,7 +1436,6 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         toast.error("Database refused settings commit.");
       }
     } catch (error) {
-      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -1481,7 +1471,6 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
             toast.error("Unable to cancel the booking.");
           }
         } catch (err) {
-          console.error(err);
           toast.error("Unable to cancel the booking right now.");
         }
       },
@@ -1515,7 +1504,6 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         fetchAdminData();
       }
     } catch (err) {
-      console.error(err);
     }
   };
 
@@ -1533,7 +1521,6 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
             toast.error("Unable to delete enquiry.");
           }
         } catch (err) {
-          console.error(err);
           toast.error("Unable to delete enquiry right now.");
         }
       }

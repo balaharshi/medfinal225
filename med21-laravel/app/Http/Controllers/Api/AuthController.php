@@ -44,14 +44,14 @@ class AuthController extends Controller
 
     public function oauth(Request $request): JsonResponse
     {
-        $session = $this->authService->oauthCustomer($this->oauthPayload($request, 'google'));
+        $session = $this->authService->oauthCustomer($this->oauthPayload($request));
 
         return $this->withAccessCookie(response()->json(['success' => true, ...$session]), $session['accessToken']);
     }
 
     public function oauthAdmin(Request $request): JsonResponse
     {
-        $payload = $this->oauthPayload($request, 'google');
+        $payload = $this->oauthPayload($request);
         $email = strtolower(trim($payload['email'] ?? ''));
         $allowedEmails = array_map('trim', explode(',', strtolower(config('services.google.admin_emails', ''))));
 
@@ -66,7 +66,7 @@ class AuthController extends Controller
 
     public function oauthVendor(Request $request): JsonResponse
     {
-        $payload = $this->oauthPayload($request, 'google');
+        $payload = $this->oauthPayload($request);
         $email = strtolower(trim($payload['email'] ?? ''));
 
         if ($email === '' || ! \App\Models\Vendor::query()->where('email', $email)->exists()) {
@@ -174,17 +174,8 @@ class AuthController extends Controller
         return $response->cookie('accessToken', $token, 60 * 24 * 7, '/', null, app()->isProduction(), true, false, 'lax');
     }
 
-    public function apple(Request $request): JsonResponse
+    private function oauthPayload(Request $request): array
     {
-        $session = $this->authService->oauthCustomer($this->oauthPayload($request, 'apple'));
-
-        return $this->withAccessCookie(response()->json(['success' => true, ...$session]), $session['accessToken']);
-    }
-
-    private function oauthPayload(Request $request, string $provider): array
-    {
-        return $provider === 'apple'
-            ? $this->oauthIdentityService->verifyApple($request->all())
-            : $this->oauthIdentityService->verifyGoogle($request->all());
+        return $this->oauthIdentityService->verifyGoogle($request->all());
     }
 }

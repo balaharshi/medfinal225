@@ -752,7 +752,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const handleAdminSocialLogin = async (data: any) => {
     const role = data?.user?.role;
     if (role !== "admin" && role !== "super_admin") {
-      const message = "Admin access requires an admin account. Please sign in with an admin Google or Apple account.";
+      const message = "Admin access requires an admin account. Please sign in with an admin Google account.";
       setAuthError(message);
       toast.error(message);
       return;

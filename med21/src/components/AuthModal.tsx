@@ -10,19 +10,10 @@ import toast from 'react-hot-toast';
 
 const newlogo = '/newlogo.png';
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
-const appleClientId = import.meta.env.VITE_APPLE_CLIENT_ID || '';
-const appleRedirectUri = import.meta.env.VITE_APPLE_REDIRECT_URI || window.location.origin;
-
-const AppleLogo = () => (
-  <svg viewBox="0 0 384 512" aria-hidden="true" className="h-4 w-4 fill-current">
-    <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.3-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.2-39.2.6-75.5 22.8-95.7 58C-17.2 269.8 13 374.7 52 433.5c19.4 29.2 42.5 62 72.8 60.8 29.2-1.2 40.2-18.9 75.5-18.9 35.1 0 45.2 18.9 76.1 18.3 31.5-.6 51.4-29.8 70.6-59.1 22.3-32.5 31.5-64 31.9-65.6-.7-.3-61-23.4-61.2-100.3zM260.8 102.4c16.1-19.5 27-46.6 24-73.6-23.2.9-51.3 15.5-68 35-14.9 17.2-27.9 44.8-24.4 71.2 25.9 2 52.3-13.2 68.4-32.6z" />
-  </svg>
-);
 
 declare global {
   interface Window {
     google?: any;
-    AppleID?: any;
   }
 }
 
@@ -75,7 +66,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
       client_id: googleClientId,
       callback: (response: { credential?: string }) => {
         if (response?.credential) {
-          completeSocialAuth('google', { credential: response.credential });
+          completeSocialAuth({ credential: response.credential });
         } else {
           toast.error('Google login was canceled.');
         }
@@ -101,14 +92,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
       document.head.appendChild(script);
     } else {
       window.setTimeout(initializeGoogleButton, 100);
-    }
-
-    if (appleClientId && !document.querySelector('script[src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"]')) {
-      const script = document.createElement('script');
-      script.src = 'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js';
-      script.async = true;
-      script.defer = true;
-      document.head.appendChild(script);
     }
   }, [isOpen]);
 
@@ -198,12 +181,12 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     }
   };
 
-  const completeSocialAuth = async (provider: 'google' | 'apple', payload: Record<string, unknown>) => {
+  const completeSocialAuth = async (payload: Record<string, unknown>) => {
     setAuthLoading(true);
     setAuthError(null);
 
     try {
-      const response = await fetch(`/api/auth/${provider}`, {
+      const response = await fetch('/api/auth/google', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -317,36 +300,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
       toast.error(msg);
     } finally {
       setResetLoading(false);
-    }
-  };
-
-  const handleAppleLogin = async () => {
-    if (!appleClientId) {
-      toast.error('Apple login is not configured yet.');
-      return;
-    }
-
-    if (!window.AppleID?.auth) {
-      toast.error('Apple login is still loading. Please try again in a moment.');
-      return;
-    }
-
-    try {
-      window.AppleID.auth.init({
-        clientId: appleClientId,
-        scope: 'name email',
-        redirectURI: appleRedirectUri,
-        usePopup: true,
-      });
-      const response = await window.AppleID.auth.signIn();
-      const credential = response?.authorization?.id_token;
-      if (!credential) {
-        toast.error('Apple login was canceled.');
-        return;
-      }
-      completeSocialAuth('apple', { credential, user: response.user });
-    } catch {
-      toast.error('Apple login could not be completed.');
     }
   };
 
@@ -676,19 +629,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             <div className="h-px flex-1 bg-slate-100" />
           </div>
 
-          <div className={`mx-auto grid w-full max-w-xs grid-cols-1 gap-2 ${appleClientId ? 'grid-cols-2' : ''}`}>
+          <div className="mx-auto w-full max-w-xs">
             <div id="medziva-google-login-button" className="flex min-h-10 w-full items-center justify-center overflow-hidden rounded-xl" />
-            {appleClientId && (
-              <button
-                type="button"
-                onClick={handleAppleLogin}
-                disabled={authLoading}
-                className="flex items-center justify-center gap-2 rounded-xl border border-slate-900 bg-slate-950 px-3 py-3 text-xs font-black text-white hover:bg-slate-800 disabled:opacity-60"
-              >
-                <AppleLogo />
-                Apple
-              </button>
-            )}
           </div>
         </form>
         )}

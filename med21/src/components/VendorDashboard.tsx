@@ -198,7 +198,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
   const handleVendorSocialLogin = async (data: any) => {
     if (data?.user?.role !== "vendor") {
-      const message = "Vendor access requires a linked vendor account. Please sign in with your vendor Google or Apple account.";
+      const message = "Vendor access requires a linked vendor account. Please sign in with your vendor Google account.";
       setAuthError(message);
       toast.error(message);
       return;

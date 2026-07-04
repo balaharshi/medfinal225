@@ -21,8 +21,6 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
         Route::post('/google/admin', [AuthController::class, 'oauthAdmin'])->middleware('throttle:5,1');
         Route::post('/google/vendor', [AuthController::class, 'oauthVendor'])->middleware('throttle:5,1');
         Route::post('/google/callback', [AuthController::class, 'oauth']);
-        Route::post('/apple', [AuthController::class, 'apple'])->middleware('throttle:10,1');
-        Route::post('/apple/callback', [AuthController::class, 'apple'])->middleware('throttle:10,1');
         Route::post('/logout', [AuthController::class, 'logout'])->middleware('api.auth');
         Route::get('/session', [AuthController::class, 'session'])->middleware('api.auth');
         Route::get('/profile', [AuthController::class, 'profile'])->middleware('api.auth');

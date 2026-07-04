@@ -27,10 +27,6 @@ return [
         'admin_emails' => env('GOOGLE_ADMIN_EMAILS', ''),
     ],
 
-    'apple' => [
-        'client_id' => env('APPLE_CLIENT_ID'),
-    ],
-
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

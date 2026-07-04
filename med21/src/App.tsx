@@ -1463,20 +1463,20 @@ function MainApp() {
             {/* Hero Banner */}
             <section className="relative w-full">
               <img
-                src="/b23.png"
-                alt="Complete Healthcare Anytime Anywhere"
-                className="w-full h-auto object-cover"
+                src="/hero-banner.png"
+                alt="MedZiva - Complete Healthcare Anytime Anywhere"
+                className="w-full h-auto object-contain"
               />
-              <div className="absolute bottom-[12%] left-[4%] flex gap-3 sm:gap-4">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 py-6 sm:py-8">
                 <button
                   onClick={() => handleTabChange('services')}
-                  className="bg-medical-green hover:bg-emerald-600 text-white font-bold text-xs sm:text-sm py-2.5 sm:py-3 px-5 sm:px-6 rounded-xl cursor-pointer transition-all active:scale-95 shadow-lg flex items-center gap-2"
+                  className="flex-1 w-full sm:w-auto max-w-xs px-6 sm:px-8 py-3 sm:py-3.5 bg-medical-green hover:bg-emerald-600 text-white font-extrabold text-xs sm:text-sm tracking-wider rounded-xl cursor-pointer transition-all active:scale-95 shadow-lg flex items-center justify-center gap-2"
                 >
                   Book a Service <ArrowUpRight className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => handleTabChange('products')}
-                  className="bg-white hover:bg-slate-50 text-blue-900 font-bold text-xs sm:text-sm py-2.5 sm:py-3 px-5 sm:px-6 rounded-xl cursor-pointer transition-all active:scale-95 shadow-lg border border-slate-200 flex items-center gap-2"
+                  className="flex-1 w-full sm:w-auto max-w-xs px-6 sm:px-8 py-3 sm:py-3.5 bg-white hover:bg-slate-50 text-blue-900 font-extrabold text-xs sm:text-sm tracking-wider rounded-xl cursor-pointer transition-all active:scale-95 shadow-lg border border-slate-200 flex items-center justify-center gap-2"
                 >
                   Explore Products <ArrowUpRight className="w-4 h-4" />
                 </button>

@@ -55,7 +55,10 @@ export default function CartDrawer({
   const [promoCode, setPromoCode] = useState('');
   const [appliedPromo, setAppliedPromo] = useState('');
   const [promoError, setPromoError] = useState('');
+  const [isPromoLoading, setIsPromoLoading] = useState(false);
+  const [promoDiscount, setPromoDiscount] = useState(0);
   const [countryCode, setCountryCode] = useState('+971');
+  const [region, setRegion] = useState('Dubai');
   const [dispatchDate, setDispatchDate] = useState('');
   const [preferredTimeSlot, setPreferredTimeSlot] = useState('08:00 AM - 09:30 AM (Early Morning)');
 
@@ -92,27 +95,44 @@ export default function CartDrawer({
     .reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const hasLabTests = labTestsSubtotal > 0;
   const homeCollectionFee = hasLabTests && labTestsSubtotal < 1000 ? 150 : 0;
-  const discount = appliedPromo === 'MEDZIVA10' ? Math.min(subtotal * 0.1, 100) : 0;
-  const roundedDiscount = Math.round(discount);
-  const totalCost = Math.round(subtotal + homeCollectionFee - discount);
+  const roundedDiscount = Math.round(promoDiscount);
+  const totalCost = Math.round(subtotal + homeCollectionFee - promoDiscount);
 
-  const applyPromoCode = () => {
+  const applyPromoCode = async () => {
     const normalizedCode = promoCode.trim().toUpperCase();
-    if (normalizedCode !== 'MEDZIVA10') {
-      setAppliedPromo('');
-      setPromoError('Invalid promo code');
-      return;
-    }
-
-    setPromoCode(normalizedCode);
-    setAppliedPromo(normalizedCode);
+    setIsPromoLoading(true);
     setPromoError('');
-    toast.success('Promo code applied.');
+    try {
+      const res = await fetch('/api/promos/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: normalizedCode, orderAmount: Math.round(subtotal) }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.valid) {
+        setAppliedPromo('');
+        setPromoDiscount(0);
+        setPromoError(data.message || 'Invalid promo code');
+        return;
+      }
+      setPromoCode(normalizedCode);
+      setAppliedPromo(normalizedCode);
+      setPromoDiscount(data.discountAmount || 0);
+      setPromoError('');
+      toast.success('Promo code applied.');
+    } catch {
+      setAppliedPromo('');
+      setPromoDiscount(0);
+      setPromoError('Failed to validate promo code');
+    } finally {
+      setIsPromoLoading(false);
+    }
   };
 
   const removePromoCode = () => {
     setPromoCode('');
     setAppliedPromo('');
+    setPromoDiscount(0);
     setPromoError('');
   };
 
@@ -183,7 +203,7 @@ export default function CartDrawer({
         price: totalCost,
         date: dispatchDate,
         timeSlot: preferredTimeSlot,
-        region: 'Dubai',
+        region,
         status: 'Pending',
         paymentStatus: 'Unpaid',
         notes: JSON.stringify({ items: cartItems, address: patientAddress }),
@@ -219,6 +239,7 @@ export default function CartDrawer({
     setPendingDelete(null);
     setFormErrors({});
     setCountryCode('+971');
+    setRegion('Dubai');
     setDispatchDate('');
     setPreferredTimeSlot('08:00 AM - 09:30 AM (Early Morning)');
     removePromoCode();
@@ -486,6 +507,19 @@ export default function CartDrawer({
                       </h4>
 
                       <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-600">Region / Location <span className="text-red-600">*</span></label>
+                        <select
+                          value={region}
+                          onChange={(e) => setRegion(e.target.value)}
+                          className="w-full text-xs border border-slate-200 rounded-xl p-3 bg-white focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                        >
+                          <option value="Dubai">Dubai</option>
+                          <option value="Sharjah">Sharjah</option>
+                          <option value="Abu Dhabi">Abu Dhabi</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
                         <label className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
                           <Calendar className="w-3.5 h-3.5 text-slate-400" />
                           Preferred Dispatch Date <span className="text-red-600">*</span>
@@ -493,6 +527,7 @@ export default function CartDrawer({
                         <input
                           type="date"
                           required
+                          min={new Date().toISOString().split('T')[0]}
                           value={dispatchDate}
                           onChange={(e) => {
                             setDispatchDate(e.target.value);
@@ -548,17 +583,18 @@ export default function CartDrawer({
                         <button
                           type="button"
                           onClick={appliedPromo ? removePromoCode : applyPromoCode}
+                          disabled={isPromoLoading}
                           className={`shrink-0 rounded-xl px-4 text-xs font-bold text-white cursor-pointer ${
                             appliedPromo ? 'bg-slate-500 hover:bg-slate-600' : 'bg-medical-blue hover:bg-blue-900'
-                          }`}
+                          } disabled:bg-slate-300 disabled:cursor-not-allowed`}
                         >
-                          {appliedPromo ? 'Remove' : 'Apply'}
+                          {isPromoLoading ? 'CHECKING...' : appliedPromo ? 'Remove' : 'Apply'}
                         </button>
                       </div>
                       {promoError && <p className="text-[10px] font-semibold text-red-600">{promoError}</p>}
                       {appliedPromo && (
                         <p className="text-[10px] font-semibold text-medical-green">
-                          MEDZIVA10 applied: 10% off, capped at AED 100.
+                          {appliedPromo} applied: AED {roundedDiscount} discount.
                         </p>
                       )}
                     </div>
@@ -574,7 +610,7 @@ export default function CartDrawer({
                           <span className="font-bold">{homeCollectionFee > 0 ? `AED ${homeCollectionFee}` : 'Free'}</span>
                         </div>
                       )}
-                      {discount > 0 && (
+                      {roundedDiscount > 0 && (
                         <div className="flex justify-between text-medical-green">
                           <span>Promo discount</span>
                           <span className="font-bold">− AED {roundedDiscount}</span>
@@ -656,7 +692,7 @@ export default function CartDrawer({
                             <span>{homeCollectionFee > 0 ? `AED ${homeCollectionFee}` : 'Free'}</span>
                           </div>
                         )}
-                        {discount > 0 && (
+                        {roundedDiscount > 0 && (
                           <div className="flex justify-between text-[11px] text-medical-green">
                             <span>Promo discount</span>
                             <span>− AED {roundedDiscount}</span>

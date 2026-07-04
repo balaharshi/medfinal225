@@ -70,6 +70,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
   const [servicesList, setServicesList] = useState<any[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [acceptingBookingId, setAcceptingBookingId] = useState<string | null>(null);
+  const [updatingBookingStatus, setUpdatingBookingStatus] = useState<string | null>(null);
 
   // Profile form states
   const [profileForm, setProfileForm] = useState({
@@ -266,7 +267,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
         triggerToast("Profile updated successfully!");
         setVendorData({ ...vendorData, ...profileForm });
       } else {
-        alert("Failed to update profile.");
+        toast.error("Failed to update profile.");
       }
     } catch (err) {
       console.error(err);
@@ -295,6 +296,33 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
       await fetchVendorData();
     } finally {
       setAcceptingBookingId(null);
+    }
+  };
+
+  const handleStatusUpdate = async (bookingId: string, newStatus: string) => {
+    if (!vendorData?.id) return;
+
+    setUpdatingBookingStatus(bookingId);
+    try {
+      const response = await fetch(`/api/vendorBookings/${vendorData.id}/${bookingId}/status`, getVendorRequestInit({
+        method: "PATCH",
+        body: JSON.stringify({ status: newStatus }),
+      }));
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to update status.");
+      }
+
+      setBookingsList(prev =>
+        prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b)
+      );
+      toast.success(`Booking marked as ${newStatus}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to update booking status.";
+      toast.error(message);
+    } finally {
+      setUpdatingBookingStatus(null);
     }
   };
 
@@ -609,6 +637,37 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                               Accept
                             </button>
                           )}
+                          {book.vendorId === vendorData?.id && book.status === "Active" && (
+                            <div className="flex items-center gap-1.5">
+                              {updatingBookingStatus === book.id ? (
+                                <Loader2 className="w-3 h-3 animate-spin text-slate-400" />
+                              ) : (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleStatusUpdate(book.id, "In Progress")}
+                                    className="h-7 px-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-[9px] font-bold border border-blue-100"
+                                  >
+                                    In Progress
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleStatusUpdate(book.id, "Completed")}
+                                    className="h-7 px-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[9px] font-bold border border-emerald-100"
+                                  >
+                                    Completed
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleStatusUpdate(book.id, "Canceled")}
+                                    className="h-7 px-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-[9px] font-bold border border-rose-100"
+                                  >
+                                    Canceled
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     );})}
@@ -697,6 +756,37 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                           {acceptingBookingId === book.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
                           Accept Booking
                         </button>
+                      )}
+                      {book.vendorId === vendorData?.id && book.status === "Active" && (
+                        <div className="flex items-center gap-1.5">
+                          {updatingBookingStatus === book.id ? (
+                            <Loader2 className="w-3 h-3 animate-spin text-slate-400" />
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleStatusUpdate(book.id, "In Progress")}
+                                className="h-8 px-2.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-[10px] font-bold border border-blue-100"
+                              >
+                                In Progress
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleStatusUpdate(book.id, "Completed")}
+                                className="h-8 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10px] font-bold border border-emerald-100"
+                              >
+                                Completed
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleStatusUpdate(book.id, "Canceled")}
+                                className="h-8 px-2.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] font-bold border border-rose-100"
+                              >
+                                Canceled
+                              </button>
+                            </>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>

@@ -66,8 +66,12 @@ class AuthController extends Controller
         return $this->withAccessCookie(response()->json($session), $session['accessToken']);
     }
 
-    public function logout(): JsonResponse
+    public function logout(Request $request): JsonResponse
     {
+        if ($request->user()) {
+            $request->user()->currentAccessToken()->delete();
+        }
+
         return response()->json(['success' => true])->withoutCookie('accessToken');
     }
 

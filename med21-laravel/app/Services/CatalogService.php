@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Category;
 use App\Models\Enquiry;
 use App\Models\Product;
+use App\Models\PromoCode;
 use App\Models\Service;
 use App\Models\Setting;
 use App\Models\Subcategory;
@@ -465,6 +466,90 @@ class CatalogService
         $enquiry->delete();
 
         return ['success' => true, 'deleted' => [$deleted]];
+    }
+
+    public function getCustomerBookings(string $email): array
+    {
+        return CaseKeys::camelize(
+            Booking::query()->where('customer_email', $email)->orderByDesc('created_at')->get()
+        );
+    }
+
+    public function cancelCustomerBooking(string $id, string $email): array
+    {
+        $booking = Booking::query()->find($id) ?? throw new HttpException(404, 'Booking not found');
+        if ($booking->customer_email !== $email) {
+            throw new HttpException(403, 'You can only cancel your own bookings');
+        }
+        if (! in_array($booking->status, [AppConstants::BOOKING_STATUSES['PENDING'], AppConstants::BOOKING_STATUSES['ACTIVE']], true)) {
+            throw new HttpException(400, 'Only pending or active bookings can be cancelled');
+        }
+        $booking->forceFill(['status' => AppConstants::BOOKING_STATUSES['CANCELLED']])->save();
+
+        return CaseKeys::camelize($booking);
+    }
+
+    public function updateVendorBookingStatus(string $id, string $vendorId, string $status): array
+    {
+        $allowedStatuses = ['In Progress', 'Completed', 'Canceled'];
+        if (! in_array($status, $allowedStatuses, true)) {
+            throw new HttpException(400, 'Invalid status. Allowed: '.implode(', ', $allowedStatuses));
+        }
+
+        $booking = Booking::query()->find($id) ?? throw new HttpException(404, 'Booking not found');
+        if ($booking->vendor_id !== $vendorId) {
+            throw new HttpException(403, 'You can only update bookings assigned to you');
+        }
+
+        $booking->forceFill(['status' => $status])->save();
+
+        return CaseKeys::camelize($booking);
+    }
+
+    public function validatePromoCode(string $code, int $orderAmount): array
+    {
+        $promo = PromoCode::query()->where('code', strtoupper(trim($code)))->first();
+        if (! $promo) {
+            throw new HttpException(404, 'Promo code not found');
+        }
+        if (! $promo->active) {
+            throw new HttpException(400, 'Promo code is no longer active');
+        }
+        if ($promo->expires_at && $promo->expires_at->isPast()) {
+            throw new HttpException(400, 'Promo code has expired');
+        }
+        if ($promo->max_uses !== null && $promo->times_used >= $promo->max_uses) {
+            throw new HttpException(400, 'Promo code has reached its usage limit');
+        }
+        if ($orderAmount < $promo->min_order) {
+            throw new HttpException(400, 'Minimum order amount is AED '.$promo->min_order);
+        }
+
+        $discountAmount = $promo->discount_type === 'percent'
+            ? (int) round($orderAmount * $promo->discount_value / 100)
+            : $promo->discount_value;
+
+        if ($promo->max_discount !== null) {
+            $discountAmount = min($discountAmount, $promo->max_discount);
+        }
+        $discountAmount = min($discountAmount, $orderAmount);
+
+        return [
+            'valid' => true,
+            'code' => $promo->code,
+            'discountType' => $promo->discount_type,
+            'discountValue' => $promo->discount_value,
+            'maxDiscount' => $promo->max_discount,
+            'discountAmount' => $discountAmount,
+        ];
+    }
+
+    public function applyPromoCode(string $code): void
+    {
+        $promo = PromoCode::query()->where('code', strtoupper(trim($code)))->first();
+        if ($promo) {
+            $promo->increment('times_used');
+        }
     }
 
     public function getSettings(): array

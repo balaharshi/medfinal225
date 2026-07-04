@@ -84,6 +84,30 @@ class CatalogController extends Controller
         return response()->json(['success' => true, 'booking' => $booking]);
     }
 
+    public function getMyBookings(Request $request): JsonResponse
+    {
+        $email = $request->user()->email;
+        return response()->json($this->catalogService->getCustomerBookings($email));
+    }
+
+    public function cancelMyBooking(Request $request, string $id): JsonResponse
+    {
+        $email = $request->user()->email;
+        $booking = $this->catalogService->cancelCustomerBooking($id, $email);
+        $this->pusherService->triggerEvent('appointment:update', ['action' => 'cancelled', 'message' => "Booking {$id} was cancelled by customer", 'booking' => $booking]);
+
+        return response()->json(['success' => true, 'booking' => $booking]);
+    }
+
+    public function updateVendorBookingStatus(Request $request, string $vendorId, string $id): JsonResponse
+    {
+        $status = $request->input('status');
+        $booking = $this->catalogService->updateVendorBookingStatus($id, $vendorId, $status);
+        $this->pusherService->triggerEvent('appointment:update', ['action' => 'status_updated', 'message' => "Booking {$id} status updated to {$status}", 'booking' => $booking]);
+
+        return response()->json(['success' => true, 'booking' => $booking]);
+    }
+
     public function getEnquiries(): JsonResponse { return response()->json($this->catalogService->getEnquiries()); }
 
     public function createEnquiry(EnquiryRequest $request): JsonResponse
@@ -96,6 +120,16 @@ class CatalogController extends Controller
 
     public function updateEnquiryStatus(Request $request, string $id): JsonResponse { return response()->json($this->catalogService->updateEnquiryStatus($id, $request->input('status'))); }
     public function deleteEnquiry(string $id): JsonResponse { return response()->json($this->catalogService->deleteEnquiry($id)); }
+    public function validatePromo(Request $request): JsonResponse
+    {
+        $request->validate([
+            'code' => 'required|string',
+            'orderAmount' => 'required|integer|min:0',
+        ]);
+
+        return response()->json($this->catalogService->validatePromoCode($request->input('code'), $request->integer('orderAmount')));
+    }
+
     public function getSettings(): JsonResponse { return response()->json($this->catalogService->getSettings()); }
     public function updateSettings(Request $request): JsonResponse { return response()->json($this->catalogService->updateSettings($request->all())); }
 }

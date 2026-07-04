@@ -15,23 +15,23 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
     Route::get('/db', [CatalogController::class, 'getDatabase'])->middleware($admin);
 
     Route::prefix('auth')->group(function (): void {
-        Route::post('/register', [AuthController::class, 'register']);
-        Route::post('/login', [AuthController::class, 'login']);
-        Route::post('/google', [AuthController::class, 'oauth']);
+        Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
+        Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
+        Route::post('/google', [AuthController::class, 'oauth'])->middleware('throttle:10,1');
         Route::post('/google/admin', [AuthController::class, 'oauthAdmin']);
         Route::post('/google/vendor', [AuthController::class, 'oauthVendor']);
         Route::post('/google/callback', [AuthController::class, 'oauth']);
-        Route::post('/apple', [AuthController::class, 'apple']);
+        Route::post('/apple', [AuthController::class, 'apple'])->middleware('throttle:10,1');
         Route::post('/apple/callback', [AuthController::class, 'apple']);
-        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::post('/logout', [AuthController::class, 'logout'])->middleware('api.auth');
         Route::get('/session', [AuthController::class, 'session'])->middleware('api.auth');
         Route::get('/profile', [AuthController::class, 'profile'])->middleware('api.auth');
         Route::put('/profile', [AuthController::class, 'updateProfile'])->middleware('api.auth');
         Route::put('/change-password', [AuthController::class, 'changePassword'])->middleware('api.auth');
     });
 
-    Route::post('/payments/enbd/create', [PaymentController::class, 'createEnbdpayCheckout']);
-    Route::get('/payments/enbd/status', [PaymentController::class, 'getEnbdpayStatus']);
+    Route::post('/payments/enbd/create', [PaymentController::class, 'createEnbdpayCheckout'])->middleware('throttle:5,1');
+    Route::get('/payments/enbd/status', [PaymentController::class, 'getEnbdpayStatus'])->middleware('throttle:30,1');
     Route::post('/payments/enbd/webhook', [PaymentController::class, 'enbdpayWebhook']);
 
     Route::get('/categories', [CatalogController::class, 'getCategories']);
@@ -63,6 +63,7 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
     Route::delete('/vendors/{id}', [CatalogController::class, 'deleteVendor'])->middleware($admin);
     Route::get('/vendorBookings/{vendorId}', [CatalogController::class, 'getVendorBookings'])->middleware($vendorSelfOrAdmin);
     Route::post('/vendorBookings/{vendorId}/{id}/accept', [CatalogController::class, 'acceptVendorBooking'])->middleware($vendorSelfOrAdmin);
+    Route::patch('/vendorBookings/{vendorId}/{id}/status', [CatalogController::class, 'updateVendorBookingStatus'])->middleware($vendorSelfOrAdmin);
     Route::get('/vendorServices/{vendorId}', [CatalogController::class, 'getVendorServices'])->middleware($vendorSelfOrAdmin);
     Route::get('/vendors/{vendorId}/service-assignments', [VendorServiceAssignmentController::class, 'index'])->middleware($admin);
     Route::patch('/vendors/{vendorId}/service-assignments/{serviceId}', [VendorServiceAssignmentController::class, 'update'])->middleware($admin);
@@ -72,10 +73,13 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
     Route::post('/vendorLogin', [AuthController::class, 'vendorLogin']);
 
     Route::get('/bookings', [CatalogController::class, 'getBookings'])->middleware($admin);
-    Route::post('/bookings', [CatalogController::class, 'createBooking']);
+    Route::post('/bookings', [CatalogController::class, 'createBooking'])->middleware('api.auth');
     Route::patch('/booking/{id}', [CatalogController::class, 'updateBooking'])->middleware($admin);
     Route::delete('/booking/{id}', [CatalogController::class, 'cancelBooking'])->middleware($admin);
     Route::delete('/bookings/{id}', [CatalogController::class, 'cancelBooking'])->middleware($admin);
+
+    Route::get('/my-bookings', [CatalogController::class, 'getMyBookings'])->middleware('api.auth');
+    Route::delete('/my-bookings/{id}', [CatalogController::class, 'cancelMyBooking'])->middleware('api.auth');
 
     Route::get('/enquiries', [CatalogController::class, 'getEnquiries'])->middleware($admin);
     Route::post('/enquiries', [CatalogController::class, 'createEnquiry']);
@@ -83,6 +87,8 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
     Route::post('/enquiries/{id}/status', [CatalogController::class, 'updateEnquiryStatus'])->middleware($admin);
     Route::delete('/enquiry/{id}', [CatalogController::class, 'deleteEnquiry'])->middleware($admin);
     Route::delete('/enquiries/{id}', [CatalogController::class, 'deleteEnquiry'])->middleware($admin);
+
+    Route::post('/promos/validate', [CatalogController::class, 'validatePromo'])->middleware('throttle:20,1');
 
     Route::get('/settings', [CatalogController::class, 'getSettings'])->middleware($admin);
     Route::post('/settings', [CatalogController::class, 'updateSettings'])->middleware($admin);

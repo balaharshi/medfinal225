@@ -13,8 +13,6 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class AuthService
 {
-    private const PRIMARY_ADMIN_EMAIL = 'admin@gmail.com';
-
     public function register(array $payload): array
     {
         if (User::query()->where('email', $payload['email'])->exists()) {
@@ -45,7 +43,7 @@ class AuthService
             throw new HttpException(401, 'Invalid credentials');
         }
 
-        return $this->createSession($this->promotePrimaryAdmin($user));
+        return $this->createSession($user);
     }
 
     public function vendorLogin(array $payload): array
@@ -110,7 +108,7 @@ class AuthService
 
     public function getSession(string $userId): array
     {
-        $user = $this->promotePrimaryAdmin(User::query()->findOrFail($userId));
+        $user = User::query()->findOrFail($userId);
         $session = ['user' => CaseKeys::camelize($user)];
 
         if ($user->role === AppConstants::USER_ROLES['VENDOR'] && $user->vendor_id) {
@@ -169,7 +167,7 @@ class AuthService
                 'vendor_id' => $vendorId,
             ])->save();
 
-            return $this->createSession($this->promotePrimaryAdmin($user));
+            return $this->createSession($user);
         }
 
         $user = User::query()->create([
@@ -192,16 +190,5 @@ class AuthService
             'accessToken' => $token,
             'user' => CaseKeys::camelize($user),
         ];
-    }
-
-    private function promotePrimaryAdmin(User $user): User
-    {
-        if ($user->email !== self::PRIMARY_ADMIN_EMAIL || $user->role === AppConstants::USER_ROLES['ADMIN']) {
-            return $user;
-        }
-
-        $user->forceFill(['role' => AppConstants::USER_ROLES['ADMIN']])->save();
-
-        return $user;
     }
 }

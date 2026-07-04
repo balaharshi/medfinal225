@@ -51,6 +51,8 @@ export default function BookingModal({
   const [promoCode, setPromoCode] = useState('');
   const [appliedPromo, setAppliedPromo] = useState('');
   const [promoError, setPromoError] = useState('');
+  const [isPromoLoading, setIsPromoLoading] = useState(false);
+  const [region, setRegion] = useState('Dubai');
 
   // Prefill details for logged in users
   useEffect(() => {
@@ -103,26 +105,45 @@ export default function BookingModal({
   // Find price of selected service
   const activeServiceObj = HEALTHCARE_SERVICES.find(s => s.title === service);
   const basePrice = activeServiceObj ? activeServiceObj.price : preselectedPrice || 250;
-  const discount = appliedPromo === 'MEDZIVA10' ? Math.min(basePrice * 0.1, 100) : 0;
-  const roundedDiscount = Math.round(discount);
-  const activePrice = Math.round(basePrice - discount);
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const roundedDiscount = Math.round(promoDiscount);
+  const activePrice = Math.round(basePrice - promoDiscount);
 
-  const applyPromoCode = () => {
+  const applyPromoCode = async () => {
     const normalizedCode = promoCode.trim().toUpperCase();
-    if (normalizedCode !== 'MEDZIVA10') {
-      setAppliedPromo('');
-      setPromoError('Invalid promo code');
-      return;
-    }
-    setPromoCode(normalizedCode);
-    setAppliedPromo(normalizedCode);
+    setIsPromoLoading(true);
     setPromoError('');
-    toast.success('Promo code applied.');
+    try {
+      const res = await fetch('/api/promos/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: normalizedCode, orderAmount: Math.round(basePrice) }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.valid) {
+        setAppliedPromo('');
+        setPromoDiscount(0);
+        setPromoError(data.message || 'Invalid promo code');
+        return;
+      }
+      setPromoCode(normalizedCode);
+      setAppliedPromo(normalizedCode);
+      setPromoDiscount(data.discountAmount || 0);
+      setPromoError('');
+      toast.success('Promo code applied.');
+    } catch {
+      setAppliedPromo('');
+      setPromoDiscount(0);
+      setPromoError('Failed to validate promo code');
+    } finally {
+      setIsPromoLoading(false);
+    }
   };
 
   const removePromoCode = () => {
     setPromoCode('');
     setAppliedPromo('');
+    setPromoDiscount(0);
     setPromoError('');
   };
 
@@ -173,7 +194,7 @@ export default function BookingModal({
         price: activePrice,
         date,
         timeSlot: time,
-        region: 'Dubai',
+        region,
         status: 'Pending',
         paymentStatus: 'Unpaid',
         notes,
@@ -213,7 +234,9 @@ export default function BookingModal({
     setFormErrors({});
     setPromoCode('');
     setAppliedPromo('');
+    setPromoDiscount(0);
     setPromoError('');
+    setRegion('Dubai');
     onClose();
   };
 
@@ -360,6 +383,20 @@ export default function BookingModal({
                 )}
               </div>
 
+              {/* Region / Location */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-600">Region / Location <span className="text-red-600">*</span></label>
+                <select
+                  value={region}
+                  onChange={(e) => setRegion(e.target.value)}
+                  className="w-full text-xs border border-slate-200 rounded-xl p-3 bg-white focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                >
+                  <option value="Dubai">Dubai</option>
+                  <option value="Sharjah">Sharjah</option>
+                  <option value="Abu Dhabi">Abu Dhabi</option>
+                </select>
+              </div>
+
               {/* Date & Time slots picker */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="space-y-1">
@@ -370,6 +407,7 @@ export default function BookingModal({
                   <input
                     type="date"
                     required
+                    min={new Date().toISOString().split('T')[0]}
                     value={date}
                     onChange={(e) => {
                       setDate(e.target.value);
@@ -438,24 +476,25 @@ export default function BookingModal({
                   <button
                     type="button"
                     onClick={appliedPromo ? removePromoCode : applyPromoCode}
+                    disabled={isPromoLoading}
                     className={`shrink-0 rounded-xl px-4 text-xs font-bold text-white cursor-pointer ${
                       appliedPromo ? 'bg-slate-500 hover:bg-slate-600' : 'bg-medical-blue hover:bg-blue-900'
-                    }`}
+                    } disabled:bg-slate-300 disabled:cursor-not-allowed`}
                   >
-                    {appliedPromo ? 'Remove' : 'Apply'}
+                    {isPromoLoading ? 'CHECKING...' : appliedPromo ? 'Remove' : 'Apply'}
                   </button>
                 </div>
                 {promoError && <p className="text-[10px] font-semibold text-red-600">{promoError}</p>}
                 {appliedPromo && (
                   <p className="text-[10px] font-semibold text-medical-green">
-                    MEDZIVA10 applied: 10% off, capped at AED 100.
+                    {appliedPromo} applied: AED {roundedDiscount} discount.
                   </p>
                 )}
               </div>
 
               {/* Price representation */}
               <div className="pt-2 border-t border-slate-100 space-y-2">
-                {discount > 0 && (
+                {roundedDiscount > 0 && (
                   <div className="flex justify-between text-xs text-medical-green">
                     <span className="font-bold">Promo discount</span>
                     <span className="font-bold">− AED {formatAedWhole(roundedDiscount)}</span>

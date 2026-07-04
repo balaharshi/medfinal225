@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Constants\AppConstants;
+use App\Models\PromoCode;
 use App\Models\Setting;
 use App\Models\User;
 use App\Models\Vendor;
@@ -74,6 +75,20 @@ class DatabaseSeeder extends Seeder
             'role' => AppConstants::USER_ROLES['CUSTOMER'],
             'is_active' => true,
         ]);
+
+        PromoCode::query()->updateOrCreate(
+            ['code' => 'MEDZIVA10'],
+            [
+                'id' => 'promo-medziva10',
+                'discount_type' => 'percent',
+                'discount_value' => 10,
+                'max_discount' => 100,
+                'min_order' => 0,
+                'max_uses' => null,
+                'times_used' => 0,
+                'active' => true,
+            ]
+        );
 
         $this->call(IVTherapySeeder::class);
     }

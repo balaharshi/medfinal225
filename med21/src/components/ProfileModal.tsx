@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, User, Mail, Phone, MapPin, CheckCircle, Shield, Award, Edit3, Save, Calendar, Clock, Package } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface Booking {
   id: string;
@@ -63,19 +64,42 @@ export default function ProfileModal({
   const fetchBookings = async () => {
     setBookingsLoading(true);
     try {
-      const response = await fetch('/api/bookings');
+      const token = localStorage.getItem('medziva_user_token');
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const response = await fetch('/api/my-bookings', { headers });
       if (response.ok) {
-        const allBookings = await response.json();
-        // Filter bookings for the current user by email
-        const userBookings = allBookings.filter((b: Booking) => 
-          b.customerEmail === email
-        );
-        setBookings(userBookings);
+        const data = await response.json();
+        setBookings(data);
       }
     } catch (error) {
       console.error('Failed to fetch bookings:', error);
     } finally {
       setBookingsLoading(false);
+    }
+  };
+
+  const handleCancelBooking = async (bookingId: string) => {
+    try {
+      const token = localStorage.getItem('medziva_user_token');
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const response = await fetch(`/api/my-bookings/${bookingId}`, {
+        method: 'DELETE',
+        headers,
+      });
+      if (response.ok) {
+        setBookings((prev) => prev.filter((b) => b.id !== bookingId));
+        toast.success('Booking cancelled');
+      } else {
+        toast.error('Failed to cancel');
+      }
+    } catch (error) {
+      toast.error('Failed to cancel');
     }
   };
 
@@ -408,9 +432,19 @@ export default function ProfileModal({
                         <span className="text-[10px] text-slate-400 block">Total Cost</span>
                         <span className="text-xs font-bold text-medical-green">AED {booking.price}</span>
                       </div>
-                      <div className="text-right">
-                        <span className="text-[10px] text-slate-400 block">Region</span>
-                        <span className="text-xs font-medium text-slate-600">{booking.region}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <span className="text-[10px] text-slate-400 block">Region</span>
+                          <span className="text-xs font-medium text-slate-600">{booking.region}</span>
+                        </div>
+                        {(booking.status === 'Pending' || booking.status === 'Active') && (
+                          <button
+                            onClick={() => handleCancelBooking(booking.id)}
+                            className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors cursor-pointer border border-red-200"
+                          >
+                            Cancel
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

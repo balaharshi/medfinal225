@@ -1116,7 +1116,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         onRefresh();
         fetchAdminData();
       } else {
-        alert(`Failed to ${isEdit ? 'update' : 'create'} service on server database.`);
+        toast.error(`Failed to ${isEdit ? 'update' : 'create'} service on server database.`);
       }
     } catch (err) {
       console.error(err);
@@ -1213,11 +1213,11 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       } else {
         const errorText = await response.text();
         console.error("Category submission error:", errorText);
-        alert(`Failed to submit category. ${errorText}`);
+        toast.error(`Failed to submit category. ${errorText}`);
       }
     } catch (err) {
       console.error(err);
-      alert("Failed to submit category. Network error.");
+      toast.error("Failed to submit category. Network error.");
     } finally {
       setIsSubmitting(false);
     }
@@ -1274,7 +1274,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         onRefresh();
         fetchAdminData();
       } else {
-        alert("Failed to assign subcategory.");
+        toast.error("Failed to assign subcategory.");
       }
     } catch (err) {
       console.error(err);
@@ -1367,11 +1367,11 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         fetchAdminData();
       } else {
         const errorData = await response.json().catch(() => ({}));
-        alert(`Failed to ${isEdit ? 'update' : 'create'} vendor: ${errorData.error || response.statusText}`);
+        toast.error(`Failed to ${isEdit ? 'update' : 'create'} vendor: ${errorData.error || response.statusText}`);
       }
     } catch (err) {
       console.error("Vendor creation error:", err);
-      alert(`Failed to ${isEdit ? 'update' : 'create'} vendor. Please check your connection.`);
+      toast.error(`Failed to ${isEdit ? 'update' : 'create'} vendor. Please check your connection.`);
     } finally {
       setIsSubmitting(false);
     }
@@ -1442,7 +1442,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         triggerToast(`Operational variables updated and persisted successfully.`);
         fetchAdminData();
       } else {
-        alert("Database refused settings commit.");
+        toast.error("Database refused settings commit.");
       }
     } catch (error) {
       console.error(error);

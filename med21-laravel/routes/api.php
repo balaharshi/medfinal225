@@ -69,10 +69,15 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
     Route::patch('/vendors/{vendorId}/service-assignments/{serviceId}', [VendorServiceAssignmentController::class, 'update'])->middleware($admin);
     Route::post('/vendors/{vendorId}/service-assignments/bulk', [VendorServiceAssignmentController::class, 'bulk'])->middleware($admin);
     Route::get('/vendorProfile/{vendorId}', [CatalogController::class, 'getVendorProfile'])->middleware($vendorSelfOrAdmin);
-    Route::patch('/vendorProfile/{vendorId}', [CatalogController::class, 'updateVendorProfile'])->middleware($vendorSelfOrAdmin);
+    Route::patch('/vendorProfile/{vendorId}', [CatalogController::class, 'updateVendorProfile'])->middleware($admin);
+    Route::get('/vendorProfile/{vendorId}/change-requests', [CatalogController::class, 'getVendorProfileChangeRequests'])->middleware($vendorSelfOrAdmin);
+    Route::post('/vendorProfile/{vendorId}/change-requests', [CatalogController::class, 'createVendorProfileChangeRequest'])->middleware($vendorSelfOrAdmin);
+    Route::get('/vendorProfileChangeRequests', [CatalogController::class, 'getAllVendorProfileChangeRequests'])->middleware($admin);
+    Route::patch('/vendorProfileChangeRequests/{id}/review', [CatalogController::class, 'reviewVendorProfileChangeRequest'])->middleware($admin);
     Route::post('/vendorLogin', [AuthController::class, 'vendorLogin'])->middleware('throttle:10,1');
 
     Route::get('/bookings', [CatalogController::class, 'getBookings'])->middleware($admin);
+    Route::get('/booking/{id}', [CatalogController::class, 'getBooking'])->middleware($admin);
     Route::post('/bookings', [CatalogController::class, 'createBooking'])->middleware('api.auth');
     Route::patch('/booking/{id}', [CatalogController::class, 'updateBooking'])->middleware($admin);
     Route::delete('/booking/{id}', [CatalogController::class, 'cancelBooking'])->middleware($admin);

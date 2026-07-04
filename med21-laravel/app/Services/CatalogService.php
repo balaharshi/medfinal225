@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\PromoCode;
 use App\Models\Service;
 use App\Models\Setting;
+use App\Models\VendorProfileChangeRequest;
 use App\Models\Subcategory;
 use App\Models\User;
 use App\Models\Vendor;
@@ -211,6 +212,7 @@ class CatalogService
         $vendor = Vendor::query()->create([
             'id' => $payload['id'] ?? SequentialId::next(Vendor::class, 'v'),
             'name' => $payload['name'],
+            'logo' => $payload['logo'] ?? null,
             'type' => $payload['type'] ?? 'Pharmacy',
             'email' => $payload['email'] ?? null,
             'contact' => $payload['contact'] ?? '',
@@ -250,6 +252,13 @@ class CatalogService
     public function getBookings(): array
     {
         return CaseKeys::camelize(Booking::query()->orderByDesc('created_at')->get());
+    }
+
+    public function getBooking(string $id): array
+    {
+        $booking = Booking::query()->find($id) ?? throw new HttpException(404, 'Booking not found');
+
+        return CaseKeys::camelize($booking);
     }
 
     public function createBooking(array $payload): array
@@ -628,5 +637,62 @@ class CatalogService
         $set('remarks', $payload['remarks'] ?? ($partial ? null : ''));
 
         return array_filter($updates, fn ($value) => $value !== null);
+    }
+
+    public function getVendorProfileChangeRequests(string $vendorId): array
+    {
+        return CaseKeys::camelize(
+            VendorProfileChangeRequest::query()->where('vendor_id', $vendorId)->orderByDesc('created_at')->get()
+        );
+    }
+
+    public function createVendorProfileChangeRequest(string $vendorId, array $payload): array
+    {
+        $vendor = Vendor::query()->find($vendorId) ?? throw new HttpException(404, 'Vendor not found');
+
+        $fieldName = $payload['fieldName'] ?? '';
+        $allowed = ['name', 'type', 'contact', 'address', 'email'];
+        if (! in_array($fieldName, $allowed, true)) {
+            throw new HttpException(400, 'This field cannot be changed via request');
+        }
+
+        $request = VendorProfileChangeRequest::query()->create([
+            'id' => SequentialId::next(VendorProfileChangeRequest::class, 'vpcr'),
+            'vendor_id' => $vendorId,
+            'field_name' => $fieldName,
+            'current_value' => (string) ($vendor->{$fieldName} ?? ''),
+            'requested_value' => (string) ($payload['requestedValue'] ?? ''),
+            'reason' => $payload['reason'] ?? null,
+            'status' => 'pending',
+        ]);
+
+        return CaseKeys::camelize($request);
+    }
+
+    public function getAllVendorProfileChangeRequests(): array
+    {
+        return CaseKeys::camelize(
+            VendorProfileChangeRequest::query()->with('vendor')->orderByDesc('created_at')->get()
+        );
+    }
+
+    public function reviewVendorProfileChangeRequest(string $id, string $status, ?string $remarks = null): array
+    {
+        $request = VendorProfileChangeRequest::query()->find($id) ?? throw new HttpException(404, 'Request not found');
+
+        if (! in_array($status, ['approved', 'rejected'], true)) {
+            throw new HttpException(400, 'Status must be approved or rejected');
+        }
+
+        $request->update(['status' => $status, 'admin_remarks' => $remarks]);
+
+        if ($status === 'approved') {
+            $vendor = Vendor::query()->find($request->vendor_id);
+            if ($vendor) {
+                $vendor->update([$request->field_name => $request->requested_value]);
+            }
+        }
+
+        return CaseKeys::camelize($request);
     }
 }

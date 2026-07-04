@@ -73,14 +73,10 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
   const [updatingBookingStatus, setUpdatingBookingStatus] = useState<string | null>(null);
 
   // Profile form states
-  const [profileForm, setProfileForm] = useState({
-    name: "",
-    type: "",
-    contact: "",
-    address: "",
-    rating: ""
-  });
-  const [profileFormErrors, setProfileFormErrors] = useState<Record<string, string>>({});
+  const [profileChangeField, setProfileChangeField] = useState("name");
+  const [profileChangeValue, setProfileChangeValue] = useState("");
+  const [profileChangeReason, setProfileChangeReason] = useState("");
+  const [profileChangeRequests, setProfileChangeRequests] = useState<any[]>([]);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
@@ -160,6 +156,12 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
       fetchVendorData();
     }
   }, [isAuthenticated, vendorData]);
+
+  useEffect(() => {
+    if (activePane === 'profile' && vendorData?.id) {
+      loadProfileChangeRequests();
+    }
+  }, [activePane, vendorData?.id]);
 
   // Handle Login Authentication
   const submitVendorLogin = async (values: VendorLoginFormValues) => {
@@ -242,36 +244,47 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
   };
 
   // Handle profile update
-  const handleProfileUpdate = async (e: React.FormEvent) => {
+  const handleProfileChangeRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!vendorData?.id) return;
-    const newErrors: Record<string, string> = {};
-    if (!(profileForm.name || vendorData?.name || '').trim()) newErrors.name = 'Business name is required';
-    if (!(profileForm.type || vendorData?.type || '').trim()) newErrors.type = 'Business type is required';
-    if (!(profileForm.contact || vendorData?.contact || '').trim()) newErrors.contact = 'Contact number is required';
-    if (!(profileForm.address || vendorData?.address || '').trim()) newErrors.address = 'Address is required';
-    if (Object.keys(newErrors).length > 0) {
-      setProfileFormErrors(newErrors);
-      toast.error('Please fill in all required fields');
+    if (!profileChangeValue.trim()) {
+      toast.error('Please enter the new value');
       return;
     }
-    setProfileFormErrors({});
 
     try {
-      const response = await fetch(`/api/vendorProfile/${vendorData.id}`, getVendorRequestInit({
-        method: "PATCH",
-        body: JSON.stringify(profileForm)
+      const response = await fetch(`/api/vendorProfile/${vendorData.id}/change-requests`, getVendorRequestInit({
+        method: "POST",
+        body: JSON.stringify({
+          fieldName: profileChangeField,
+          requestedValue: profileChangeValue.trim(),
+          reason: profileChangeReason.trim() || undefined,
+        }),
       }));
 
       if (response.ok) {
-        triggerToast("Profile updated successfully!");
-        setVendorData({ ...vendorData, ...profileForm });
+        toast.success("Change request submitted. Admin will review it.");
+        setProfileChangeValue("");
+        setProfileChangeReason("");
+        loadProfileChangeRequests();
       } else {
-        toast.error("Failed to update profile.");
+        const data = await response.json();
+        toast.error(data?.error || "Failed to submit request.");
       }
-    } catch (err) {
-
+    } catch {
+      toast.error("Failed to submit request.");
     }
+  };
+
+  const loadProfileChangeRequests = async () => {
+    if (!vendorData?.id) return;
+    try {
+      const response = await fetch(`/api/vendorProfile/${vendorData.id}/change-requests`, getVendorRequestInit());
+      if (response.ok) {
+        const data = await response.json();
+        setProfileChangeRequests(Array.isArray(data) ? data : []);
+      }
+    } catch {}
   };
 
   const handleAcceptBooking = async (bookingId: string) => {
@@ -927,68 +940,100 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
           <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-2xs text-left max-w-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
               <div>
-                <h3 className="font-extrabold text-blue-950 text-sm">Profile Settings</h3>
-                <p className="text-[10.5px] text-slate-400">Update your business information</p>
+                <h3 className="font-extrabold text-blue-950 text-sm">Profile Information</h3>
+                <p className="text-[10.5px] text-slate-400">Your business profile (read-only). Submit a change request to update.</p>
               </div>
             </div>
 
-            <form onSubmit={handleProfileUpdate} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Business Name <span className="text-red-600">*</span></label>
-                <input
-                  required
-                  type="text"
-                  value={profileForm.name || vendorData?.name || ""}
-                  onChange={e => setProfileForm({ ...profileForm, name: e.target.value })}
-                  className="w-full text-xs px-4 py-3 border border-slate-200 rounded-xl focus:border-medical-green focus:outline-none focus:ring-1 focus:ring-medical-green"
-                />
-                {profileFormErrors.name && <p className="text-red-600 text-xs mt-1">{profileFormErrors.name}</p>}
-              </div>
+            <div className="space-y-3 mb-6">
+              {[
+                { label: "Business Name", value: vendorData?.name },
+                { label: "Business Type", value: vendorData?.type },
+                { label: "Email", value: vendorData?.email },
+                { label: "Contact Number", value: vendorData?.contact },
+                { label: "Address", value: vendorData?.address },
+                { label: "Service Area", value: vendorData?.address },
+              ].map((item) => (
+                <div key={item.label} className="flex items-start gap-3 py-2 border-b border-slate-50 last:border-0">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider w-32 shrink-0 pt-0.5">{item.label}</span>
+                  <span className="text-xs text-slate-700 font-medium">{item.value || "—"}</span>
+                </div>
+              ))}
+            </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Business Type <span className="text-red-600">*</span></label>
-                <input
-                  required
-                  type="text"
-                  value={profileForm.type || vendorData?.type || ""}
-                  onChange={e => setProfileForm({ ...profileForm, type: e.target.value })}
-                  className="w-full text-xs px-4 py-3 border border-slate-200 rounded-xl focus:border-medical-green focus:outline-none focus:ring-1 focus:ring-medical-green"
-                />
-                {profileFormErrors.type && <p className="text-red-600 text-xs mt-1">{profileFormErrors.type}</p>}
-              </div>
+            <div className="border-t border-slate-100 pt-4">
+              <h4 className="font-extrabold text-blue-950 text-xs mb-3">Request Profile Change</h4>
+              <form onSubmit={handleProfileChangeRequest} className="space-y-3">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Field to Change</label>
+                  <select
+                    value={profileChangeField}
+                    onChange={e => setProfileChangeField(e.target.value)}
+                    className="w-full text-xs px-4 py-3 border border-slate-200 rounded-xl focus:border-medical-green focus:outline-none"
+                  >
+                    <option value="name">Business Name</option>
+                    <option value="type">Business Type</option>
+                    <option value="contact">Contact Number</option>
+                    <option value="address">Address</option>
+                    <option value="email">Email</option>
+                  </select>
+                </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Contact Number <span className="text-red-600">*</span></label>
-                <input
-                  required
-                  type="text"
-                  value={profileForm.contact || vendorData?.contact || ""}
-                  onChange={e => setProfileForm({ ...profileForm, contact: e.target.value })}
-                  className="w-full text-xs px-4 py-3 border border-slate-200 rounded-xl focus:border-medical-green focus:outline-none focus:ring-1 focus:ring-medical-green"
-                />
-                {profileFormErrors.contact && <p className="text-red-600 text-xs mt-1">{profileFormErrors.contact}</p>}
-              </div>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">New Value <span className="text-red-600">*</span></label>
+                  <input
+                    required
+                    type="text"
+                    value={profileChangeValue}
+                    onChange={e => setProfileChangeValue(e.target.value)}
+                    placeholder={`Enter new ${profileChangeField}`}
+                    className="w-full text-xs px-4 py-3 border border-slate-200 rounded-xl focus:border-medical-green focus:outline-none"
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Address <span className="text-red-600">*</span></label>
-                <input
-                  required
-                  type="text"
-                  value={profileForm.address || vendorData?.address || ""}
-                  onChange={e => setProfileForm({ ...profileForm, address: e.target.value })}
-                  className="w-full text-xs px-4 py-3 border border-slate-200 rounded-xl focus:border-medical-green focus:outline-none focus:ring-1 focus:ring-medical-green"
-                />
-                {profileFormErrors.address && <p className="text-red-600 text-xs mt-1">{profileFormErrors.address}</p>}
-              </div>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Reason (optional)</label>
+                  <textarea
+                    value={profileChangeReason}
+                    onChange={e => setProfileChangeReason(e.target.value)}
+                    placeholder="Why do you need this change?"
+                    rows={2}
+                    className="w-full text-xs px-4 py-3 border border-slate-200 rounded-xl focus:border-medical-green focus:outline-none resize-none"
+                  />
+                </div>
 
-              <button
-                type="submit"
-                className="w-full h-12 bg-purple-950 hover:bg-purple-900 text-white text-xs font-bold tracking-wider rounded-xl shadow-md transition-all cursor-pointer"
-              >
-                <Save className="w-4 h-4 inline mr-2" />
-                Update Profile
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  className="w-full h-10 bg-purple-950 hover:bg-purple-900 text-white text-xs font-bold tracking-wider rounded-xl shadow-md transition-all cursor-pointer"
+                >
+                  Submit Change Request
+                </button>
+              </form>
+            </div>
+
+            {profileChangeRequests.length > 0 && (
+              <div className="border-t border-slate-100 pt-4 mt-4">
+                <h4 className="font-extrabold text-blue-950 text-xs mb-3">Previous Requests</h4>
+                <div className="space-y-2">
+                  {profileChangeRequests.slice(0, 5).map((req: any) => (
+                    <div key={req.id} className="flex items-center justify-between py-2 px-3 bg-slate-50 rounded-xl text-[11px]">
+                      <div>
+                        <span className="font-bold text-slate-600 capitalize">{req.fieldName}</span>
+                        <span className="text-slate-400 mx-1">→</span>
+                        <span className="text-slate-700">{req.requestedValue}</span>
+                      </div>
+                      <span className={`font-bold px-2 py-0.5 rounded-full text-[10px] ${
+                        req.status === 'approved' ? 'bg-emerald-100 text-emerald-700' :
+                        req.status === 'rejected' ? 'bg-rose-100 text-rose-700' :
+                        'bg-amber-100 text-amber-700'
+                      }`}>
+                        {req.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

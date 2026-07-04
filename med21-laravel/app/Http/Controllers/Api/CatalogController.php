@@ -51,6 +51,7 @@ class CatalogController extends Controller
     }
 
     public function getBookings(): JsonResponse { return response()->json($this->catalogService->getBookings()); }
+    public function getBooking(string $id): JsonResponse { return response()->json($this->catalogService->getBooking($id)); }
 
     public function createBooking(BookingRequest $request): JsonResponse
     {
@@ -132,4 +133,35 @@ class CatalogController extends Controller
 
     public function getSettings(): JsonResponse { return response()->json($this->catalogService->getSettings()); }
     public function updateSettings(Request $request): JsonResponse { return response()->json($this->catalogService->updateSettings($request->all())); }
+
+    public function getVendorProfileChangeRequests(string $vendorId): JsonResponse
+    {
+        return response()->json($this->catalogService->getVendorProfileChangeRequests($vendorId));
+    }
+
+    public function getAllVendorProfileChangeRequests(): JsonResponse
+    {
+        return response()->json($this->catalogService->getAllVendorProfileChangeRequests());
+    }
+
+    public function createVendorProfileChangeRequest(Request $request, string $vendorId): JsonResponse
+    {
+        $request->validate([
+            'fieldName' => 'required|string|in:name,type,contact,address,email',
+            'requestedValue' => 'required|string|max:500',
+            'reason' => 'nullable|string|max:1000',
+        ]);
+
+        return response()->json($this->catalogService->createVendorProfileChangeRequest($vendorId, $request->all()), 201);
+    }
+
+    public function reviewVendorProfileChangeRequest(Request $request, string $id): JsonResponse
+    {
+        $request->validate([
+            'status' => 'required|string|in:approved,rejected',
+            'remarks' => 'nullable|string|max:1000',
+        ]);
+
+        return response()->json($this->catalogService->reviewVendorProfileChangeRequest($id, $request->input('status'), $request->input('remarks')));
+    }
 }

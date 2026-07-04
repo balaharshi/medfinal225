@@ -188,7 +188,7 @@ const BASE_SERVICE_CATEGORIES: ServiceCategory[] = [
   {
     id: 'cat-speech',
     title: 'Speech and Language Therapy',
-    image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=400',
+    image: 'https://images.unsplash.com/photo-1531983412531-1f49a365ffed?auto=format&fit=crop&q=80&w=400',
     slug: 'speech-therapy',
     description: 'Interactive and professional diagnostic testing for children and adult communicational speech issues.'
   },

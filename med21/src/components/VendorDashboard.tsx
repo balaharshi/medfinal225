@@ -28,7 +28,11 @@ import {
   TrendingUp,
   Package,
   LogOut,
-  Save
+  Save,
+  FileText,
+  Bell,
+  Plus,
+  ChevronRight
 } from "lucide-react";
 import ConfirmDialog from './ConfirmDialog';
 import SocialAuthButtons from './SocialAuthButtons';
@@ -69,6 +73,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
   const [bookingsList, setBookingsList] = useState<any[]>([]);
   const [servicesList, setServicesList] = useState<any[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   const [acceptingBookingId, setAcceptingBookingId] = useState<string | null>(null);
   const [updatingBookingStatus, setUpdatingBookingStatus] = useState<string | null>(null);
 
@@ -148,6 +153,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
     } finally {
       setIsLoadingData(false);
+      setLastSyncTime(new Date());
     }
   };
 
@@ -377,10 +383,32 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     };
   }, [bookingsList, vendorData]);
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  };
+
+  const formatRelativeTime = (date: Date | null) => {
+    if (!date) return "Never";
+    const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (seconds < 10) return "Just now";
+    if (seconds < 60) return `${seconds}s ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.floor(hours / 24)}d ago`;
+  };
+
+  const pendingBookingsCount = bookingsList.filter(b => b.status === "Pending" || !b.status).length;
+
   if (isSessionChecking) {
     return (
-      <div className="min-h-[500px] flex items-center justify-center p-4 text-slate-500 text-xs">
-        Restoring secure vendor session...
+      <div className="min-h-[500px] flex flex-col items-center justify-center p-4 gap-3">
+        <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+        <span className="text-slate-400 text-xs font-medium">Restoring secure vendor session...</span>
       </div>
     );
   }
@@ -495,42 +523,83 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     <div id="vendor-portal" className="max-w-7xl mx-auto py-8 px-4 text-left">
       
       {/* 1. PORTAL HEADER BANNER */}
-      <div className="border-b border-slate-200 pb-5 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-purple-600 text-[10px] font-black uppercase tracking-widest block py-0.5 px-2 bg-purple-50 rounded-full">
-              VENDOR PARTNER PORTAL
-            </span>
-            <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
+      <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-2xs mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center shrink-0 shadow-lg shadow-purple-200">
+              {vendorData?.logo ? (
+                <img src={vendorData.logo} alt={vendorData.name} className="w-full h-full object-cover rounded-2xl" referrerPolicy="no-referrer" />
+              ) : (
+                <span className="text-2xl font-black text-white">{(vendorData?.name || "V").charAt(0)}</span>
+              )}
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-purple-600 text-[10px] font-black uppercase tracking-widest py-0.5 px-2 bg-purple-50 rounded-full">
+                  VENDOR PARTNER
+                </span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Online"></span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-black text-blue-950 tracking-tight">
+                {getGreeting()}, {vendorData?.name || "Partner"} <span className="inline-block animate-[wave_0.4s_ease-in-out_1]">👋</span>
+              </h1>
+              <p className="text-slate-500 text-xs mt-1 max-w-xl leading-relaxed">
+                Manage your healthcare services, track bookings, and update your business profile.
+              </p>
+              <div className="flex items-center gap-1.5 mt-2">
+                <Clock className="w-3 h-3 text-slate-400" />
+                <span className="text-[10px] text-slate-400 font-medium">Last Sync: <span className="font-bold text-slate-600">{formatRelativeTime(lastSyncTime)}</span></span>
+              </div>
+            </div>
           </div>
-          <h1 className="text-2xl font-black text-blue-950 tracking-tight flex items-center gap-2">
-            <span>{vendorData?.name || "Vendor Dashboard"}</span>
-          </h1>
-          <p className="text-slate-500 text-xs mt-1 max-w-xl leading-relaxed">
-            Manage your healthcare services, track bookings, and update your business profile from this centralized vendor console.
-          </p>
-        </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button 
-            onClick={() => {
-              fetchVendorData();
-              triggerToast("Data synchronized successfully.");
-            }}
-            disabled={isLoadingData}
-            className="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 cursor-pointer text-slate-700 px-3.5 py-2 rounded-lg text-xs font-bold transition-all border border-slate-200 disabled:opacity-50"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 text-blue-950 ${isLoadingData ? 'animate-spin' : ''}`} />
-            <span>Sync Data</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => {
+                fetchVendorData();
+                triggerToast("Data synchronized successfully.");
+              }}
+              disabled={isLoadingData}
+              className="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 cursor-pointer text-slate-700 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all border border-slate-200 disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-blue-950 ${isLoadingData ? 'animate-spin' : ''}`} />
+              <span>Sync</span>
+            </button>
 
-          <button 
-            onClick={() => setShowLogoutConfirm(true)}
-            className="flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 cursor-pointer text-rose-700 px-3.5 py-2 rounded-lg text-xs font-extrabold transition-all border border-rose-100"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>Logout</span>
-          </button>
+            <div className="relative">
+              <button
+                onClick={() => triggerToast(`${pendingBookingsCount} pending booking(s) awaiting your attention.`)}
+                className="flex items-center justify-center w-10 h-10 bg-slate-50 hover:bg-slate-100 cursor-pointer text-slate-600 rounded-xl transition-all border border-slate-200"
+                title="Notifications"
+              >
+                <Bell className="w-4 h-4" />
+              </button>
+              {pendingBookingsCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-black min-w-[18px] h-[18px] flex items-center justify-center rounded-full shadow-sm">
+                  {pendingBookingsCount}
+                </span>
+              )}
+            </div>
+
+            <button
+              onClick={() => setActivePane("profile")}
+              className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 cursor-pointer text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition-all border border-slate-200"
+              title="Profile"
+            >
+              <div className="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center">
+                <User className="w-3.5 h-3.5 text-purple-600" />
+              </div>
+              <span className="hidden sm:inline">{vendorData?.name?.split(" ")[0] || "Profile"}</span>
+              <ChevronRight className="w-3 h-3 text-slate-400" />
+            </button>
+
+            <button
+              onClick={() => setShowLogoutConfirm(true)}
+              className="flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 cursor-pointer text-rose-700 px-3 py-2.5 rounded-xl text-xs font-extrabold transition-all border border-rose-100"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -568,10 +637,19 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
           </div>
         </aside>
 
-        <div className="min-w-0">
+        <div className="min-w-0 relative">
+          {isLoadingData && (
+            <div className="absolute inset-0 bg-white/70 z-10 flex items-center justify-center rounded-2xl">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
+                <span className="text-[10px] text-slate-400 font-medium">Loading data...</span>
+              </div>
+            </div>
+          )}
+
           {/* 3. DASHBOARD METRICS */}
           {activePane === "dashboard" && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 overflow-x-auto">
               {[
                 { label: "Total Bookings", count: metrics.totalBookings, tag: "All time", color: "bg-blue-50 border-blue-100 text-blue-600", icon: Calendar },
                 { label: "Completed", count: metrics.completedBookings, tag: "Successfully delivered", color: "bg-emerald-50 border-emerald-100 text-emerald-600", icon: CheckCircle2 },
@@ -617,11 +695,13 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                 </div>
 
                 {bookingsList.length === 0 ? (
-                  <div className="py-12 text-center text-slate-400 text-xs">
-                    No bookings yet. Your services will appear here once customers book them.
+                  <div className="py-12 text-center">
+                    <Calendar className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-slate-400 text-xs font-medium">No bookings yet</p>
+                    <p className="text-slate-300 text-[10px] mt-1">Your services will appear here once customers book them.</p>
                   </div>
                 ) : (
-                  <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                  <div className="space-y-3 max-h-[400px] overflow-y-auto overflow-x-auto pr-1">
                     {bookingsList.slice(0, 5).map((book) => {
                       const isAvailableRequest = !book.vendorId && (book.status === "Pending" || !book.status);
                       return (
@@ -637,21 +717,37 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                           </span>
                         </div>
                         <p className="text-xs text-slate-600 font-medium">{book.serviceTitle}</p>
+                        {(book.category || book.subcategory) && (
+                          <div className="flex items-center gap-1 mt-1 flex-wrap">
+                            {book.category && <span className="text-[9px] font-bold text-purple-700 bg-purple-50 border border-purple-100 rounded-full px-1.5 py-0.5">{book.category}</span>}
+                            {book.subcategory && <span className="text-[9px] font-bold text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-1.5 py-0.5">{book.subcategory}</span>}
+                          </div>
+                        )}
                         <div className="flex items-center justify-between gap-3 mt-2">
                           <p className="text-[10px] text-slate-400">{book.date} • {book.price} AED</p>
-                          {isAvailableRequest && (
-                            <button
-                              type="button"
-                              onClick={() => handleAcceptBooking(book.id)}
-                              disabled={acceptingBookingId === book.id}
-                              className="h-8 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black flex items-center gap-1.5 disabled:bg-slate-400"
-                            >
-                              {acceptingBookingId === book.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
-                              Accept
-                            </button>
-                          )}
-                          {book.vendorId === vendorData?.id && book.status === "Active" && (
-                            <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5">
+                            {book.customerPhone && (
+                              <a
+                                href={`tel:${book.customerPhone}`}
+                                className="h-7 w-7 flex items-center justify-center rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-100"
+                                title={`Call ${book.customerPhone}`}
+                              >
+                                <Phone className="w-3 h-3" />
+                              </a>
+                            )}
+                            {isAvailableRequest && (
+                              <button
+                                type="button"
+                                onClick={() => handleAcceptBooking(book.id)}
+                                disabled={acceptingBookingId === book.id}
+                                className="h-7 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black flex items-center gap-1.5 disabled:bg-slate-400"
+                              >
+                                {acceptingBookingId === book.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+                                Accept
+                              </button>
+                            )}
+                            {book.vendorId === vendorData?.id && book.status === "Active" && (
+                              <div className="flex items-center gap-1.5">
                               {updatingBookingStatus === book.id ? (
                                 <Loader2 className="w-3 h-3 animate-spin text-slate-400" />
                               ) : (
@@ -680,13 +776,14 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                                 </>
                               )}
                             </div>
-                          )}
-                        </div>
+                              )}
+                            </div>
+                          </div>
+                          </div>
+                        );})}
                       </div>
-                    );})}
-                  </div>
-                )}
-              </div>
+                    )}
+                </div>
 
               {/* Active Services */}
               <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-2xs text-left">
@@ -701,11 +798,13 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                 </div>
 
                 {servicesList.length === 0 ? (
-                  <div className="py-12 text-center text-slate-400 text-xs">
-                    No services listed yet. Contact admin to add your services to the platform.
+                  <div className="py-12 text-center">
+                    <HeartPulse className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-slate-400 text-xs font-medium">No services listed yet</p>
+                    <p className="text-slate-300 text-[10px] mt-1">Contact admin to add your services to the platform.</p>
                   </div>
                 ) : (
-                  <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                  <div className="space-y-3 max-h-[400px] overflow-y-auto overflow-x-auto pr-1">
                     {servicesList.map((srv) => (
                       <div key={srv.id} className="p-4 border border-slate-150 rounded-xl bg-slate-50/50">
                         <h4 className="text-xs font-black text-blue-950 mb-1">{srv.title}</h4>
@@ -734,11 +833,13 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
             </div>
 
             {bookingsList.length === 0 ? (
-              <div className="py-12 text-center text-slate-400 text-xs">
-                No bookings found.
+              <div className="py-12 text-center">
+                <Calendar className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <p className="text-slate-400 text-xs font-medium">No bookings found</p>
+                <p className="text-slate-300 text-[10px] mt-1">Booking requests will appear here.</p>
               </div>
             ) : (
-              <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
+              <div className="space-y-3 max-h-[600px] overflow-y-auto overflow-x-auto pr-1">
                 {bookingsList.map((book) => {
                   const isAvailableRequest = !book.vendorId && (book.status === "Pending" || !book.status);
                   return (
@@ -755,7 +856,24 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                         </span>
                       </div>
                       <p className="text-xs text-slate-600 font-medium">{book.serviceTitle}</p>
-                      <p className="text-[10px] text-slate-400">{book.date} • {book.customerPhone || "No phone"}</p>
+                      {(book.category || book.subcategory) && (
+                        <div className="flex items-center gap-1 flex-wrap">
+                          {book.category && <span className="text-[9px] font-bold text-purple-700 bg-purple-50 border border-purple-100 rounded-full px-1.5 py-0.5">{book.category}</span>}
+                          {book.subcategory && <span className="text-[9px] font-bold text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-1.5 py-0.5">{book.subcategory}</span>}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                        <span>{book.date}</span>
+                        {book.customerPhone && (
+                          <>
+                            <span>•</span>
+                            <a href={`tel:${book.customerPhone}`} className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-bold">
+                              <Phone className="w-3 h-3" />{book.customerPhone}
+                            </a>
+                          </>
+                        )}
+                        {!book.customerPhone && <span>No phone</span>}
+                      </div>
                     </div>
                     <div className="flex flex-col sm:items-end gap-2">
                       <span className="text-sm font-black text-medical-green">{book.price} AED</span>
@@ -820,11 +938,13 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
             </div>
 
             {servicesList.length === 0 ? (
-              <div className="py-12 text-center text-slate-400 text-xs">
-                No services found. Contact admin to add your services.
+              <div className="py-12 text-center">
+                <HeartPulse className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <p className="text-slate-400 text-xs font-medium">No services found</p>
+                <p className="text-slate-300 text-[10px] mt-1">Contact admin to add your services.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-x-auto">
                 {servicesList.map((srv) => (
                   <div key={srv.id} className="border border-slate-150 rounded-xl p-4 bg-slate-50/50">
                     <h4 className="text-xs font-black text-blue-950 mb-2 line-clamp-1">{srv.title}</h4>
@@ -862,7 +982,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                 <TrendingUp className="w-4 h-4 text-purple-600" />
               </div>
 
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 overflow-x-auto">
                 {[
                   { label: "Accepted Bookings", value: vendorReportMetrics.ownedBookings.length, tag: "Assigned to your account" },
                   { label: "Available Requests", value: vendorReportMetrics.availableRequests.length, tag: "Eligible pending queue" },
@@ -909,8 +1029,10 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                 <h4 className="font-extrabold text-blue-950 text-sm mb-1">Revenue by Service</h4>
                 <p className="text-[10.5px] text-slate-400 mb-5">Top assigned service categories by value</p>
                 {vendorReportMetrics.topServices.length === 0 ? (
-                  <div className="py-12 text-center text-slate-400 text-xs">
-                    No accepted booking revenue yet.
+                  <div className="py-12 text-center">
+                    <DollarSign className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-slate-400 text-xs font-medium">No revenue data yet</p>
+                    <p className="text-slate-300 text-[10px] mt-1">Revenue will appear once bookings are completed.</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -1032,6 +1154,12 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+            {profileChangeRequests.length === 0 && (
+              <div className="border-t border-slate-100 pt-4 mt-4 text-center">
+                <FileText className="w-6 h-6 text-slate-300 mx-auto mb-1" />
+                <p className="text-slate-400 text-[10px]">No previous change requests.</p>
               </div>
             )}
           </div>

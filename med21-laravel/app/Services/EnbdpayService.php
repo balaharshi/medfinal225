@@ -62,7 +62,7 @@ class EnbdpayService
                 'amount' => $amount,
                 'currency' => config('services.enbdpay.currency', 'AED'),
                 'description' => $this->sanitize($payload['description'] ?? null, 'MedZiva Healthcare Payment', 250),
-                'transactionType' => config('services.enbdpay.transaction_type', 'SALE'),
+                'transactionType' => strtoupper((string) ($payload['transactionType'] ?? config('services.enbdpay.transaction_type', 'SALE'))),
                 'notes' => ['source' => $this->sanitize($payload['source'] ?? null, 'MedZiva'), 'category' => $this->sanitize($payload['category'] ?? null, 'Healthcare'), ...($bookingId ? ['bookingId' => $bookingId] : [])],
                 'app' => array_filter([
                     'appUtr' => $appUtr,
@@ -104,6 +104,26 @@ class EnbdpayService
             throw new HttpException(400, 'appUtr or transactionUtr is required');
         }
 
+        if ((bool) config('services.enbdpay.mock', true)) {
+            $responseStatus = strtoupper((string) ($payload['responseStatus'] ?? 'CAPTURED'));
+            $booking = $this->catalogService->updateBookingPaymentStatus([
+                'bookingId' => $payload['bookingId'] ?? null,
+                'appUtr' => $payload['appUtr'] ?? null,
+                'orderId' => $payload['orderId'] ?? null,
+                'transactionUtr' => $payload['transactionUtr'] ?? null,
+                'responseStatus' => $responseStatus,
+            ]);
+
+            return [
+                'appUtr' => $payload['appUtr'] ?? null,
+                'orderId' => $payload['orderId'] ?? null,
+                'transactionUtr' => $payload['transactionUtr'] ?? null,
+                'responseStatus' => $responseStatus,
+                'booking' => $booking,
+                'mock' => true,
+            ];
+        }
+
         $params = http_build_query(array_filter([
             'transactionUtr' => $payload['transactionUtr'] ?? null,
             'appUtr' => ($payload['transactionUtr'] ?? null) ? null : ($payload['appUtr'] ?? null),
@@ -111,13 +131,192 @@ class EnbdpayService
 
         $status = $this->requestJson("/checkout/apis/v2/transactions?{$params}", ['token' => $this->getAuthToken()]);
         $booking = $this->catalogService->updateBookingPaymentStatus([
+            'bookingId' => $payload['bookingId'] ?? null,
             'appUtr' => $this->readField($status, 'appUtr') ?: ($payload['appUtr'] ?? null),
-            'orderId' => $this->readField($status, 'orderId'),
+            'orderId' => $this->readField($status, 'orderId') ?: ($payload['orderId'] ?? null),
             'transactionUtr' => $this->readField($status, 'transactionUtr') ?: ($payload['transactionUtr'] ?? null),
             'responseStatus' => $this->readField($status, 'responseStatus') ?: $this->readField($status, 'status'),
         ]);
 
         return [...$status, 'booking' => $booking];
+    }
+
+    public function captureTransaction(array $payload): array
+    {
+        $transactionUtr = $payload['transactionUtr'] ?? null;
+        $appUtr = $payload['appUtr'] ?? null;
+        $amount = isset($payload['amount']) ? $this->toMinorUnits($payload['amount']) : null;
+
+        if (! $transactionUtr && ! $appUtr) {
+            throw new HttpException(400, 'transactionUtr or appUtr is required');
+        }
+
+        if ((bool) config('services.enbdpay.mock', true)) {
+            $this->catalogService->updateBookingPaymentStatus([
+                'bookingId' => $payload['bookingId'] ?? null,
+                'appUtr' => $appUtr,
+                'transactionUtr' => $transactionUtr,
+                'responseStatus' => 'CAPTURED',
+            ]);
+
+            return [
+                'responseStatus' => 'CAPTURED',
+                'responseMessage' => 'Mock capture successful',
+                'transactionUtr' => $transactionUtr,
+                'appUtr' => $appUtr,
+                'amount' => $amount,
+                'mock' => true,
+            ];
+        }
+
+        $path = '/checkout/apis/v2/transactions/capture';
+        $body = array_filter([
+            'transactionUtr' => $transactionUtr,
+            'appUtr' => $appUtr,
+            'amount' => $amount,
+            'orderId' => $payload['orderId'] ?? null,
+        ]);
+
+        $response = $this->requestJson($path, ['method' => 'post', 'token' => $this->getAuthToken(), 'body' => $body]);
+        $responseStatus = $this->readField($response, 'responseStatus') ?: 'CAPTURED';
+
+        $this->catalogService->updateBookingPaymentStatus([
+            'bookingId' => $payload['bookingId'] ?? null,
+            'appUtr' => $appUtr,
+            'transactionUtr' => $transactionUtr,
+            'responseStatus' => $responseStatus,
+        ]);
+
+        return [...$response, 'responseStatus' => $responseStatus];
+    }
+
+    public function refundTransaction(array $payload): array
+    {
+        $transactionUtr = $payload['transactionUtr'] ?? null;
+        $appUtr = $payload['appUtr'] ?? null;
+        $amount = isset($payload['amount']) ? $this->toMinorUnits($payload['amount']) : null;
+
+        if (! $transactionUtr && ! $appUtr) {
+            throw new HttpException(400, 'transactionUtr or appUtr is required');
+        }
+
+        if ((bool) config('services.enbdpay.mock', true)) {
+            return [
+                'responseStatus' => 'REFUNDED',
+                'responseMessage' => 'Mock refund successful',
+                'transactionUtr' => $transactionUtr,
+                'appUtr' => $appUtr,
+                'amount' => $amount,
+                'mock' => true,
+            ];
+        }
+
+        $path = '/checkout/apis/v2/transactions/refund';
+        $body = array_filter([
+            'transactionUtr' => $transactionUtr,
+            'appUtr' => $appUtr,
+            'amount' => $amount,
+            'orderId' => $payload['orderId'] ?? null,
+            'refundNote' => $payload['reason'] ?? 'Customer request',
+        ]);
+
+        $response = $this->requestJson($path, ['method' => 'post', 'token' => $this->getAuthToken(), 'body' => $body]);
+        $responseStatus = $this->readField($response, 'responseStatus') ?: 'REFUNDED';
+
+        return [...$response, 'responseStatus' => $responseStatus];
+    }
+
+    public function voidAuthorization(array $payload): array
+    {
+        $transactionUtr = $payload['transactionUtr'] ?? null;
+        $appUtr = $payload['appUtr'] ?? null;
+
+        if (! $transactionUtr && ! $appUtr) {
+            throw new HttpException(400, 'transactionUtr or appUtr is required');
+        }
+
+        if ((bool) config('services.enbdpay.mock', true)) {
+            return [
+                'responseStatus' => 'VOIDED',
+                'responseMessage' => 'Mock authorization void successful',
+                'transactionUtr' => $transactionUtr,
+                'appUtr' => $appUtr,
+                'mock' => true,
+            ];
+        }
+
+        $path = '/checkout/apis/v2/transactions/' . urlencode($transactionUtr ?: $appUtr) . '/cancel';
+        $body = array_filter([
+            'appUtr' => $appUtr,
+            'orderId' => $payload['orderId'] ?? null,
+        ]);
+
+        $response = $this->requestJson($path, ['method' => 'post', 'token' => $this->getAuthToken(), 'body' => $body]);
+        $responseStatus = $this->readField($response, 'responseStatus') ?: 'VOIDED';
+
+        return [...$response, 'responseStatus' => $responseStatus];
+    }
+
+    public function voidCapture(array $payload): array
+    {
+        $transactionUtr = $payload['transactionUtr'] ?? null;
+        $appUtr = $payload['appUtr'] ?? null;
+
+        if (! $transactionUtr && ! $appUtr) {
+            throw new HttpException(400, 'transactionUtr or appUtr is required');
+        }
+
+        if ((bool) config('services.enbdpay.mock', true)) {
+            return [
+                'responseStatus' => 'VOIDED',
+                'responseMessage' => 'Mock capture void successful',
+                'transactionUtr' => $transactionUtr,
+                'appUtr' => $appUtr,
+                'mock' => true,
+            ];
+        }
+
+        $path = '/checkout/apis/v2/transactions/' . urlencode($transactionUtr ?: $appUtr) . '/reverse';
+        $body = array_filter([
+            'appUtr' => $appUtr,
+            'orderId' => $payload['orderId'] ?? null,
+        ]);
+
+        $response = $this->requestJson($path, ['method' => 'post', 'token' => $this->getAuthToken(), 'body' => $body]);
+        $responseStatus = $this->readField($response, 'responseStatus') ?: 'REVERSED';
+
+        return [...$response, 'responseStatus' => $responseStatus];
+    }
+
+    public function voidRefund(array $payload): array
+    {
+        $transactionUtr = $payload['transactionUtr'] ?? null;
+        $appUtr = $payload['appUtr'] ?? null;
+
+        if (! $transactionUtr && ! $appUtr) {
+            throw new HttpException(400, 'transactionUtr or appUtr is required');
+        }
+
+        if ((bool) config('services.enbdpay.mock', true)) {
+            return [
+                'responseStatus' => 'CANCELLED',
+                'responseMessage' => 'Mock refund void successful',
+                'transactionUtr' => $transactionUtr,
+                'appUtr' => $appUtr,
+                'mock' => true,
+            ];
+        }
+
+        $path = '/checkout/apis/v2/transactions/' . urlencode($transactionUtr ?: $appUtr) . '/refund/cancel';
+        $body = array_filter([
+            'appUtr' => $appUtr,
+            'orderId' => $payload['orderId'] ?? null,
+        ]);
+
+        $response = $this->requestJson($path, ['method' => 'post', 'token' => $this->getAuthToken(), 'body' => $body]);
+        $responseStatus = $this->readField($response, 'responseStatus') ?: 'CANCELLED';
+
+        return [...$response, 'responseStatus' => $responseStatus];
     }
 
     public function recordWebhookPaymentStatus(array $payload, array $headers = []): array

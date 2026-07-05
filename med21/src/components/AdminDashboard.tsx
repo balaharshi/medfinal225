@@ -94,7 +94,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   });
 
   // Active Pane Tab inside Admin Console
-  const [activePane, setActivePane] = useState<"dashboard" | "bookings" | "services" | "categories" | "subcategories" | "vendor" | "vendorServices" | "customRequests" | "users" | "reports" | "roles" | "settings" | "enquiries">("dashboard");
+  const [activePane, setActivePane] = useState<"dashboard" | "bookings" | "services" | "categories" | "subcategories" | "vendor" | "vendorServices" | "customRequests" | "users" | "reports" | "roles" | "settings" | "enquiries" | "vendorChangeRequests">("dashboard");
   const [reportPane, setReportPane] = useState<"overview" | "revenue" | "services" | "bookings" | "sales" | "vendors" | "customers">("overview");
 
   // Dynamic lists from backend
@@ -102,6 +102,10 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const [usersList, setUsersList] = useState<any[]>([]);
   const [bookingsList, setBookingsList] = useState<any[]>([]);
   const [enquiriesList, setEnquiriesList] = useState<any[]>([]);
+  const [vendorChangeRequestsList, setVendorChangeRequestsList] = useState<any[]>([]);
+  const [vendorChangeRequestsSearch, setVendorChangeRequestsSearch] = useState("");
+  const [vendorChangeRequestsStatusFilter, setVendorChangeRequestsStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+  const [isReviewingChangeRequest, setIsReviewingChangeRequest] = useState<string | null>(null);
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
   const [vendorFilter, setVendorFilter] = useState<"all" | "active" | "inactive">("all");
   const [vendorSearch, setVendorSearch] = useState("");
@@ -177,6 +181,18 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       request.serviceTitle?.toLowerCase().includes(query) ||
       request.message?.toLowerCase().includes(query);
     const matchesStatus = customRequestStatusFilter === "all" || request.status === customRequestStatusFilter;
+    return matchesSearch && matchesStatus;
+  });
+  const filteredVendorChangeRequests = vendorChangeRequestsList.filter((req) => {
+    const query = vendorChangeRequestsSearch.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      req.vendorName?.toLowerCase().includes(query) ||
+      req.fieldName?.toLowerCase().includes(query) ||
+      req.currentValue?.toLowerCase().includes(query) ||
+      req.requestedValue?.toLowerCase().includes(query) ||
+      req.reason?.toLowerCase().includes(query);
+    const matchesStatus = vendorChangeRequestsStatusFilter === "all" || req.status === vendorChangeRequestsStatusFilter;
     return matchesSearch && matchesStatus;
   });
   const selectedServiceVendor = vendorsList.find((vendor) => vendor.id === selectedVendorServiceVendorId);
@@ -326,6 +342,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   // Subcategory Form
   const [parentCatId, setParentCatId] = useState("");
   const [subName, setSubName] = useState("");
+  const [subImage, setSubImage] = useState("");
 
   // Service Form
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
@@ -365,6 +382,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const [vendorName, setVendorName] = useState("");
   const [vendorContact, setVendorContact] = useState("");
   const [vendorAddress, setVendorAddress] = useState("Dubai Marina, Dubai");
+  const [vendorLogo, setVendorLogo] = useState("");
   const [vendorCommission, setVendorCommission] = useState("10");
   const [vendorActive, setVendorActive] = useState(true);
   const [editingVendorId, setEditingVendorId] = useState<string | null>(null);
@@ -445,13 +463,14 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         return response.json();
       };
 
-      const [vendorsResult, usersResult, bookingsResult, settingsResult, enquiriesResult, categoriesResult] = await Promise.allSettled([
+      const [vendorsResult, usersResult, bookingsResult, settingsResult, enquiriesResult, categoriesResult, vendorChangeRequestsResult] = await Promise.allSettled([
         loadJson("/api/vendors"),
         loadJson("/api/users"),
         loadJson("/api/bookings"),
         loadJson("/api/settings"),
         loadJson("/api/enquiries"),
         loadJson("/api/categories"),
+        loadJson("/api/vendorProfileChangeRequests"),
       ]);
 
       if (vendorsResult.status === "fulfilled") {
@@ -496,6 +515,12 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
       if (categoriesResult.status === "fulfilled") {
         setCategoriesList(categoriesResult.value);
+      } else {
+        
+      }
+
+      if (vendorChangeRequestsResult.status === "fulfilled") {
+        setVendorChangeRequestsList(Array.isArray(vendorChangeRequestsResult.value) ? vendorChangeRequestsResult.value : []);
       } else {
         
       }
@@ -1259,13 +1284,14 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         getAdminRequestInit({
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: subName })
+          body: JSON.stringify({ title: subName, image: subImage || null })
         })
       );
 
       if (response.ok) {
         triggerToast(`Subcategory "${subName}" bound perfectly!`);
         setSubName("");
+        setSubImage("");
         onRefresh();
         fetchAdminData();
       } else {
@@ -1305,6 +1331,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     setVendorName(vendor.name);
     setVendorContact(vendor.contact || "");
     setVendorAddress(vendor.address || "Dubai Marina, Dubai");
+    setVendorLogo(vendor.logo || "");
     setVendorCommission(vendor.commission?.toString() || "10");
     setVendorActive(vendor.active !== false);
     setIsVendorEditModalOpen(true);
@@ -1315,6 +1342,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     setVendorName("");
     setVendorContact("");
     setVendorAddress("Dubai Marina, Dubai");
+    setVendorLogo("");
     setVendorCommission("10");
     setVendorActive(true);
     setIsVendorEditModalOpen(false);
@@ -1348,6 +1376,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
             name: vendorName,
             contact: vendorContact,
             address: vendorAddress,
+            logo: vendorLogo || null,
             commission: Number(vendorCommission),
             active: vendorActive
           })
@@ -1478,8 +1507,18 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     );
   };
 
-  const handleViewBooking = (booking: any) => {
-    setViewingBooking(booking);
+  const handleViewBooking = async (booking: any) => {
+    try {
+      const res = await fetch(`/api/booking/${booking.id}`, getAdminRequestInit());
+      if (res.ok) {
+        const freshBooking = await res.json();
+        setViewingBooking(freshBooking);
+      } else {
+        setViewingBooking(booking);
+      }
+    } catch {
+      setViewingBooking(booking);
+    }
     setIsBookingViewModalOpen(true);
   };
 
@@ -1525,6 +1564,28 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         }
       }
     );
+  };
+
+  const handleReviewVendorChangeRequest = async (id: string, status: "approved" | "rejected", remarks?: string) => {
+    setIsReviewingChangeRequest(id);
+    try {
+      const res = await fetch(`/api/vendorProfileChangeRequests/${id}/review`, getAdminRequestInit({
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, remarks: remarks || null }),
+      }));
+      if (res.ok) {
+        triggerToast(`Change request ${status === "approved" ? "approved" : "rejected"} successfully.`);
+        fetchAdminData();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(`Failed: ${err.error || res.statusText}`);
+      }
+    } catch {
+      toast.error("Unable to review change request right now.");
+    } finally {
+      setIsReviewingChangeRequest(null);
+    }
   };
 
   // --- REPORT METRIC ANALYTICS CALCULATIONS ---
@@ -1822,6 +1883,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
               { id: "bookings", label: "Bookings", icon: Calendar },
               { id: "services", label: "Services", icon: HeartPulse },
               { id: "enquiries", label: "Enquiries", icon: Mail },
+              { id: "vendorChangeRequests", label: "Vendor Change Requests", icon: FileText },
               { id: "categories", label: "Categories", icon: Layers },
               { id: "subcategories", label: "Subcategories", icon: Sliders },
               { id: "vendor", label: "Vendor Partners", icon: Building2 },
@@ -1898,120 +1960,98 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
           </div>
         )}
 
-        {/* 2. DYNAMIC WORKFLOW TICKET COUNTERS - Only show on Dashboard */}
+        {/* 2. DASHBOARD STAT CARDS */}
         {activePane === "dashboard" && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-8">
             {[
-              { label: "Bookings Streamed", count: reportMetrics.totalBookings, tag: "Scheduled Active Actions", color: "bg-blue-50 border-blue-100 text-blue-600" },
-              { label: "Services Certified", count: db.services.length, tag: "Visits offered on platform", color: "bg-teal-50 border-teal-100 text-emerald-600" },
-              { label: "Active Vendors", count: reportMetrics.activeVendorsCount, tag: "Linked providers roster", color: "bg-purple-50 border-purple-100 text-purple-600" },
-              { label: "Platform Gross Tax Pool", count: `${reportMetrics.completedVal} AED`, tag: "Total volume indexed", color: "bg-amber-50 border-amber-100 text-amber-600" }
-            ].map((c, i) => (
-              <div key={i} className="bg-white p-4 rounded-2xl border border-slate-150 shadow-xs">
-                <span className="text-[10px] text-slate-400 font-extrabold uppercase block leading-none mb-1">{c.label}</span>
-                <div className="text-xl sm:text-2xl font-black text-blue-950 mt-1">{c.count}</div>
-                <span className="text-[9px] text-slate-500 block leading-tight mt-1">{c.tag}</span>
-              </div>
-            ))}
+              { label: "Total Bookings", value: reportMetrics.totalBookings, icon: Calendar, color: "text-blue-600", bg: "bg-blue-50" },
+              { label: "Pending", value: reportMetrics.pendingCount, icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
+              { label: "Confirmed", value: reportMetrics.activeCount, icon: CheckCircle2, color: "text-indigo-600", bg: "bg-indigo-50" },
+              { label: "Completed", value: reportMetrics.completedCount, icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-50" },
+              { label: "Cancelled", value: reportMetrics.cancelledCount, icon: X, color: "text-red-600", bg: "bg-red-50" },
+              { label: "Active Vendors", value: reportMetrics.activeVendorsCount, icon: Building2, color: "text-purple-600", bg: "bg-purple-50" },
+              { label: "Total Customers", value: reportMetrics.uniqueCustomers, icon: Users, color: "text-teal-600", bg: "bg-teal-50" },
+              { label: "New Enquiries", value: enquiriesList.filter((e: any) => e.status === "Pending Response").length, icon: Mail, color: "text-orange-600", bg: "bg-orange-50" },
+            ].map((card, i) => {
+              const Icon = card.icon;
+              return (
+                <div key={i} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs hover:shadow-sm transition-shadow">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`${card.bg} ${card.color} p-1.5 rounded-lg`}>
+                      <Icon className="w-3.5 h-3.5" />
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">{card.label}</span>
+                  </div>
+                  <div className="text-2xl font-black text-blue-950">{card.value}</div>
+                </div>
+              );
+            })}
           </div>
         )}
 
         {/* 3. WORKFLOW FOR THE VISUAL MODULE SPANS */}
         <div className="min-h-[400px]">
 
-        {/* ---- MODULE A: DASHBOARD ---- */}
+        {/* ---- MODULE A: RECENT ACTIVITY ---- */}
         {activePane === "dashboard" && (
-          <div className="space-y-6">
-            
-            <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-teal-600 shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-xs font-black text-blue-950">Active Operator Session: {settingsData.adminUsername || 'admin'}</h4>
-                <p className="text-[11px] text-slate-500 leading-relaxed mt-0.5">
-                  Any customer bookings submitted through the online service scheduler on the home page will automatically log as dynamic entries here with pending authorization flags.
-                </p>
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-xs">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Activity className="w-4 h-4 text-blue-950" />
+                <h3 className="font-extrabold text-blue-950 text-sm">Recent Activity</h3>
               </div>
+              <span className="text-[10px] text-slate-400 font-bold">Latest bookings & enquiries</span>
             </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              
-              {/* Booking Status Pie Chart */}
-              <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-2xs">
-                <h3 className="font-extrabold text-blue-950 text-xs uppercase tracking-wider mb-4">Booking Status Distribution</h3>
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie
-                      data={reportMetrics.bookingStatusData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {reportMetrics.bookingStatusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Revenue by Region Bar Chart */}
-              <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-2xs">
-                <h3 className="font-extrabold text-blue-950 text-xs uppercase tracking-wider mb-4">Revenue by Region</h3>
-                <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={reportMetrics.revenueByRegionData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="revenue" fill="#10b981" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Services by Category Bar Chart */}
-              <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-2xs">
-                <h3 className="font-extrabold text-blue-950 text-xs uppercase tracking-wider mb-4">Services by Category</h3>
-                <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={reportMetrics.categoryBreakdownData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#3b82f6" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Quick Stats */}
-              <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-2xs">
-                <h3 className="font-extrabold text-blue-950 text-xs uppercase tracking-wider mb-4">Quick Overview</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-400 font-bold">Total Bookings</span>
-                    <span className="font-mono text-slate-900 font-bold">{reportMetrics.totalBookings}</span>
+            <div className="divide-y divide-slate-100 max-h-[420px] overflow-y-auto">
+              {[
+                ...bookingsList.slice(-10).reverse().map((b: any) => ({
+                  id: b.id,
+                  type: "booking" as const,
+                  title: b.customerName || "Customer",
+                  subtitle: b.serviceTitle || "Service",
+                  detail: `${b.price || 0} ${settingsData.defaultCurrency || "AED"}`,
+                  status: b.status || "Pending",
+                  date: b.date || "",
+                })),
+                ...enquiriesList.filter((e: any) => e.status === "Pending Response").slice(-5).reverse().map((e: any) => ({
+                  id: e.id || e._id,
+                  type: "enquiry" as const,
+                  title: e.customerName || e.name || "Customer",
+                  subtitle: e.subject || e.service || "Enquiry",
+                  detail: e.message?.slice(0, 60) || "",
+                  status: "New",
+                  date: e.createdAt || "",
+                })),
+              ]
+                .sort((a, b) => (b.date || "").localeCompare(a.date || ""))
+                .slice(0, 12)
+                .map((item, i) => (
+                  <div key={`${item.type}-${item.id}-${i}`} className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50/60 transition-colors">
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${
+                      item.type === "enquiry" ? "bg-orange-400" :
+                      item.status === "Completed" ? "bg-emerald-400" :
+                      item.status === "Active" ? "bg-blue-400" :
+                      item.status === "Canceled" ? "bg-red-400" : "bg-amber-400"
+                    }`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-blue-950 truncate">{item.title}</p>
+                      <p className="text-[10px] text-slate-400 truncate">{item.subtitle}</p>
+                    </div>
+                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded shrink-0 ${
+                      item.type === "enquiry" ? "bg-orange-50 text-orange-600" :
+                      item.status === "Completed" ? "bg-emerald-50 text-emerald-600" :
+                      item.status === "Active" ? "bg-blue-50 text-blue-600" :
+                      item.status === "Canceled" ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-600"
+                    }`}>
+                      {item.type === "enquiry" ? "Enquiry" : item.status}
+                    </span>
+                    <span className="text-[10px] text-slate-300 font-semibold shrink-0 w-16 text-right">{item.date}</span>
                   </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-400 font-bold">Active Services</span>
-                    <span className="font-mono text-slate-900 font-bold">{db.services.length}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-400 font-bold">Active Vendors</span>
-                    <span className="font-mono text-slate-900 font-bold">{reportMetrics.activeVendorsCount}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-400 font-bold">Pending Enquiries</span>
-                    <span className="font-mono text-slate-900 font-bold">{enquiriesList.filter(e => e.status === 'Pending Response').length}</span>
-                  </div>
-                </div>
-              </div>
-
+                ))}
+              {bookingsList.length === 0 && enquiriesList.length === 0 && (
+                <div className="px-5 py-10 text-center text-slate-400 text-xs">No recent activity yet.</div>
+              )}
             </div>
-
           </div>
         )}
 
@@ -2569,39 +2609,57 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
             {/* Right: List */}
             <div className="lg:col-span-7 bg-white border border-slate-200 rounded-3xl p-5 shadow-2xs">
-              <h4 className="font-extrabold text-blue-950 text-sm border-b border-slate-100 pb-2 mb-4">Core Specialties Registry</h4>
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-4">
+                <h4 className="font-extrabold text-blue-950 text-sm">Core Specialties Registry</h4>
+                <span className="text-[10px] font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                  {categoriesList.length} total
+                </span>
+              </div>
               
               <div className="space-y-3.5 max-h-[500px] overflow-y-auto pr-1">
-                {categoriesList.map(c => (
-                  <div key={c.id} className="p-3 border border-slate-150 rounded-xl flex items-center justify-between gap-3 bg-slate-50/50 hover:bg-slate-50">
-                    <div className="flex items-start gap-2.5 overflow-hidden">
-                      <img src={c.image} className="w-11 h-11 object-cover rounded-lg bg-white border border-slate-150 shrink-0" alt="cat" referrerPolicy="no-referrer" />
-                      <div className="text-left overflow-hidden">
-                        <h5 className="font-extrabold text-blue-950 text-xs">{c.title}</h5>
-                        <p className="text-[10px] text-slate-400 mt-0.5 truncate">{c.description || "No narrative attached."}</p>
-                        <span className="text-[9px] bg-slate-150 text-slate-700 font-extrabold px-1.5 py-0.2 rounded inline-block mt-1">
-                          {c.type === "product" ? "Product & Rental Lease" : "At-Home Care Visit"}
-                        </span>
+                {categoriesList.length === 0 ? (
+                  <div className="py-12 text-center">
+                    <Layers className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-slate-400 text-xs font-medium">No categories yet</p>
+                    <p className="text-slate-300 text-[10px] mt-1">Use the form to create your first category.</p>
+                  </div>
+                ) : (
+                  categoriesList.map(c => (
+                    <div key={c.id} className="p-3 border border-slate-150 rounded-xl flex items-center justify-between gap-3 bg-slate-50/50 hover:bg-slate-50">
+                      <div className="flex items-start gap-2.5 overflow-hidden">
+                        <img src={c.image} className="w-11 h-11 object-cover rounded-lg bg-white border border-slate-150 shrink-0" alt="cat" referrerPolicy="no-referrer" />
+                        <div className="text-left overflow-hidden">
+                          <div className="flex items-center gap-2">
+                            <h5 className="font-extrabold text-blue-950 text-xs">{c.title}</h5>
+                            <span className="text-[9px] bg-purple-50 text-purple-600 font-bold px-1.5 py-0.2 rounded">
+                              {c.subcategories?.length || 0} subs
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-slate-400 mt-0.5 truncate">{c.description || "No narrative attached."}</p>
+                          <span className="text-[9px] bg-slate-150 text-slate-700 font-extrabold px-1.5 py-0.2 rounded inline-block mt-1">
+                            {c.type === "product" ? "Product & Rental Lease" : "At-Home Care Visit"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => handleEditCategory(c)}
+                          className="text-blue-500 hover:text-blue-700 p-2 hover:bg-blue-50 border border-transparent rounded-lg shrink-0 transition-all cursor-pointer"
+                          title="Edit Category"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteCategory(c.id, c.title)}
+                          className="text-red-500 hover:text-red-700 p-2 hover:bg-rose-50 border border-transparent rounded-lg shrink-0 transition-all cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => handleEditCategory(c)}
-                        className="text-blue-500 hover:text-blue-700 p-2 hover:bg-blue-50 border border-transparent rounded-lg shrink-0 transition-all cursor-pointer"
-                        title="Edit Category"
-                      >
-                        <FileText className="w-3.5 h-3.5" />
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteCategory(c.id, c.title)}
-                        className="text-red-500 hover:text-red-700 p-2 hover:bg-rose-50 border border-transparent rounded-lg shrink-0 transition-all cursor-pointer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
@@ -2648,6 +2706,22 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                 {adminFormErrors.subName && <p className="text-red-600 text-xs mt-1">{adminFormErrors.subName}</p>}
               </div>
 
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-400 uppercase">Image URL <span className="text-slate-300">(optional)</span></label>
+                <input 
+                  type="text" 
+                  placeholder="https://example.com/image.jpg" 
+                  value={subImage} 
+                  onChange={e => setSubImage(e.target.value)} 
+                  className="w-full text-xs p-2.5 border border-slate-200 rounded-lg"
+                />
+                {subImage && (
+                  <div className="mt-2 rounded-lg overflow-hidden border border-slate-100 h-20 bg-slate-50 flex items-center justify-center">
+                    <img src={subImage} alt="Preview" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
+                  </div>
+                )}
+              </div>
+
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -2659,32 +2733,64 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
             {/* Right: Grouped Lists */}
             <div className="lg:col-span-7 bg-white border border-slate-200 rounded-3xl p-5 shadow-2xs space-y-4">
-              <h4 className="font-extrabold text-blue-950 text-sm border-b border-slate-100 pb-2">Grouped Specialty Specialties</h4>
-              
-              <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
-                {categoriesList.map(cat => {
-                  const subs = cat.subcategories || [];
-                  if (subs.length === 0) return null;
-                  return (
-                    <div key={cat.id} className="border border-slate-150 rounded-xl p-3 bg-slate-50/40">
-                      <span className="text-[10px] uppercase font-black text-slate-400 block mb-2">{cat.title} Specialties</span>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {subs.map((sub: any) => (
-                          <div key={sub.id} className="bg-white p-2 border border-slate-100 rounded-lg flex justify-between items-center text-xs">
-                            <span className="font-bold text-slate-750 truncate">{sub.title}</span>
-                            <button 
-                              type="button" 
-                              onClick={() => handleDeleteSubcategory(cat.id, sub.id, sub.title)}
-                              className="text-slate-400 hover:text-red-650 p-1 rounded hover:bg-slate-50"
-                            >
-                              <Trash2 className="w-3 h-3 text-red-500" />
-                            </button>
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h4 className="font-extrabold text-blue-950 text-sm">All Categories & Subcategories</h4>
+                <span className="text-[10px] font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                  {categoriesList.length} categories · {categoriesList.reduce((sum: number, cat: any) => sum + (cat.subcategories?.length || 0), 0)} subcategories
+                </span>
+              </div>
+
+              <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                {categoriesList.length === 0 ? (
+                  <div className="py-12 text-center">
+                    <Layers className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-slate-400 text-xs font-medium">No categories found</p>
+                    <p className="text-slate-300 text-[10px] mt-1">Create a category first using the form.</p>
+                  </div>
+                ) : (
+                  categoriesList.map(cat => {
+                    const subs = cat.subcategories || [];
+                    return (
+                      <div key={cat.id} className="border border-slate-150 rounded-xl p-3 bg-slate-50/40">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <img src={cat.image} className="w-7 h-7 object-cover rounded-md bg-white border border-slate-150 shrink-0" alt="" referrerPolicy="no-referrer" />
+                            <span className="font-extrabold text-blue-950 text-xs">{cat.title}</span>
+                            <span className="text-[9px] bg-slate-150 text-slate-600 font-bold px-1.5 py-0.2 rounded">{cat.type || "service"}</span>
                           </div>
-                        ))}
+                          <span className="text-[9px] font-bold text-slate-400">{subs.length} sub{subs.length !== 1 ? "s" : ""}</span>
+                        </div>
+                        {subs.length === 0 ? (
+                          <p className="text-[10px] text-slate-300 italic pl-9">No subcategories yet</p>
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-9">
+                            {subs.map((sub: any) => (
+                              <div key={sub.id} className="bg-white p-2 border border-slate-100 rounded-lg flex justify-between items-center text-xs">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  {sub.image ? (
+                                    <img src={sub.image} alt="" className="w-6 h-6 rounded object-cover border border-slate-100 shrink-0" referrerPolicy="no-referrer" />
+                                  ) : (
+                                    <div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center shrink-0">
+                                      <ImageIcon className="w-3 h-3 text-slate-400" />
+                                    </div>
+                                  )}
+                                  <span className="font-bold text-slate-700 truncate">{sub.title}</span>
+                                </div>
+                                <button 
+                                  type="button" 
+                                  onClick={() => handleDeleteSubcategory(cat.id, sub.id, sub.title)}
+                                  className="text-slate-400 hover:text-red-600 p-1 rounded hover:bg-slate-50 shrink-0"
+                                >
+                                  <Trash2 className="w-3 h-3 text-red-500" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             </div>
 
@@ -2744,6 +2850,17 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                   placeholder="e.g. Al Barsha Heights, Dubai" 
                   value={vendorAddress} 
                   onChange={e => setVendorAddress(e.target.value)} 
+                  className="w-full text-xs p-2.5 border border-slate-200 rounded-lg"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-500 uppercase">Logo URL</label>
+                <input 
+                  type="url" 
+                  placeholder="e.g. https://example.com/logo.png" 
+                  value={vendorLogo} 
+                  onChange={e => setVendorLogo(e.target.value)} 
                   className="w-full text-xs p-2.5 border border-slate-200 rounded-lg"
                 />
               </div>
@@ -4023,6 +4140,138 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
             </div>
           </div>
         )}
+        {activePane === "vendorChangeRequests" && (
+          <div className="space-y-6">
+            <div className="bg-slate-50 border border-slate-200 p-5 rounded-3xl flex items-start gap-4 text-left">
+              <FileText className="w-6 h-6 text-emerald-600 shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-extrabold text-blue-950 text-sm">Vendor Profile Change Requests</h3>
+                <p className="text-xs text-slate-500 leading-relaxed mt-0.5">
+                  Review and approve or reject profile update requests submitted by vendor partners. Changes include name, contact, address, email, and service type updates.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-2xs">
+              <div className="border-b border-slate-100 pb-3.5 mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div>
+                  <h4 className="font-extrabold text-blue-950 text-xs uppercase tracking-wider">Change Requests</h4>
+                  <p className="text-[10.5px] text-slate-400">
+                    {filteredVendorChangeRequests.length} of {vendorChangeRequestsList.length} requests
+                    {vendorChangeRequestsStatusFilter !== "all" && ` (filtered: ${vendorChangeRequestsStatusFilter})`}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <input
+                    type="text"
+                    placeholder="Search requests..."
+                    value={vendorChangeRequestsSearch}
+                    onChange={(e) => setVendorChangeRequestsSearch(e.target.value)}
+                    className="text-xs border border-slate-200 rounded-lg px-3 py-2 w-48 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                  />
+                  {(["all", "pending", "approved", "rejected"] as const).map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => setVendorChangeRequestsStatusFilter(status)}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all border ${
+                        vendorChangeRequestsStatusFilter === status
+                          ? "bg-blue-950 text-white border-blue-950"
+                          : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                      }`}
+                    >
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </button>
+                  ))}
+                  <button
+                    onClick={fetchAdminData}
+                    className="text-xs text-medical-green font-bold hover:underline cursor-pointer flex items-center gap-1.5"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    Refresh
+                  </button>
+                </div>
+              </div>
+
+              {filteredVendorChangeRequests.length === 0 ? (
+                <div className="py-16 text-center text-slate-400 text-xs">
+                  {vendorChangeRequestsList.length === 0
+                    ? "No vendor profile change requests have been submitted yet."
+                    : "No requests match your search or filter criteria."}
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-200">
+                        <th className="text-left py-3 px-3 font-extrabold text-slate-500 uppercase text-[10px]">Vendor</th>
+                        <th className="text-left py-3 px-3 font-extrabold text-slate-500 uppercase text-[10px]">Field</th>
+                        <th className="text-left py-3 px-3 font-extrabold text-slate-500 uppercase text-[10px]">Current</th>
+                        <th className="text-left py-3 px-3 font-extrabold text-slate-500 uppercase text-[10px]">Requested</th>
+                        <th className="text-left py-3 px-3 font-extrabold text-slate-500 uppercase text-[10px]">Reason</th>
+                        <th className="text-left py-3 px-3 font-extrabold text-slate-500 uppercase text-[10px]">Status</th>
+                        <th className="text-left py-3 px-3 font-extrabold text-slate-500 uppercase text-[10px]">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredVendorChangeRequests.map((req) => (
+                        <tr key={req.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                          <td className="py-3 px-3">
+                            <span className="font-bold text-blue-950">{req.vendorName || req.vendorId || "—"}</span>
+                          </td>
+                          <td className="py-3 px-3">
+                            <span className="bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded text-[10px] uppercase">{req.fieldName}</span>
+                          </td>
+                          <td className="py-3 px-3 text-slate-500 max-w-[150px] truncate" title={req.currentValue}>
+                            {req.currentValue || "—"}
+                          </td>
+                          <td className="py-3 px-3 text-medical-green font-bold max-w-[150px] truncate" title={req.requestedValue}>
+                            {req.requestedValue}
+                          </td>
+                          <td className="py-3 px-3 text-slate-500 max-w-[150px] truncate" title={req.reason}>
+                            {req.reason || "—"}
+                          </td>
+                          <td className="py-3 px-3">
+                            <span className={`text-[9.5px] font-extrabold px-2 py-0.5 rounded-full border ${
+                              req.status === "pending" ? "bg-amber-100 text-amber-800 border-amber-200" :
+                              req.status === "approved" ? "bg-emerald-100 text-emerald-800 border-emerald-200" :
+                              "bg-rose-100 text-rose-800 border-rose-200"
+                            }`}>
+                              {req.status?.charAt(0).toUpperCase() + req.status?.slice(1) || "Pending"}
+                            </span>
+                          </td>
+                          <td className="py-3 px-3">
+                            {req.status === "pending" ? (
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  onClick={() => handleReviewVendorChangeRequest(req.id, "approved")}
+                                  disabled={isReviewingChangeRequest === req.id}
+                                  className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 cursor-pointer transition-all disabled:opacity-50"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => handleReviewVendorChangeRequest(req.id, "rejected")}
+                                  disabled={isReviewingChangeRequest === req.id}
+                                  className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 cursor-pointer transition-all disabled:opacity-50"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-[10px] text-slate-400 italic">
+                                {req.adminRemarks || "Reviewed"}
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         </div>
 
       </div>
@@ -4087,6 +4336,17 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                   placeholder="e.g. Dubai Marina, Dubai" 
                   value={vendorAddress} 
                   onChange={e => setVendorAddress(e.target.value)} 
+                  className="w-full text-xs border border-slate-200 rounded-xl p-3 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-600">Logo URL</label>
+                <input 
+                  type="url" 
+                  placeholder="e.g. https://example.com/logo.png" 
+                  value={vendorLogo} 
+                  onChange={e => setVendorLogo(e.target.value)} 
                   className="w-full text-xs border border-slate-200 rounded-xl p-3 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
                 />
               </div>
@@ -4370,9 +4630,9 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
       {/* Booking View Modal */}
       {isBookingViewModalOpen && viewingBooking && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md relative overflow-hidden">
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-slate-50">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs" onClick={handleCloseBookingView}>
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md relative overflow-hidden max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-slate-50 shrink-0">
               <div className="text-left">
                 <h3 className="text-lg font-extrabold text-medical-blue">Booking Details</h3>
                 <p className="text-[11.5px] text-slate-500 font-medium">View complete booking information</p>
@@ -4385,7 +4645,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
               </button>
             </div>
 
-            <div className="p-5 space-y-4">
+            <div className="p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4 text-slate-400" />
@@ -4489,15 +4749,58 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                 </div>
               </div>
 
-              {viewingBooking.notes && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-slate-400" />
-                    <span className="text-xs font-bold text-slate-600">Notes</span>
+              {viewingBooking.notes && (() => {
+                let parsed: any = null;
+                try { parsed = JSON.parse(viewingBooking.notes); } catch {}
+                const hasItems = parsed?.items && Array.isArray(parsed.items);
+                const hasAddress = parsed?.address;
+                if (!hasItems && !hasAddress) {
+                  return (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-slate-400" />
+                        <span className="text-xs font-bold text-slate-600">Notes</span>
+                      </div>
+                      <p className="text-sm text-slate-600 pl-6 bg-slate-50 p-3 rounded-lg whitespace-pre-wrap">{viewingBooking.notes}</p>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-slate-400" />
+                      <span className="text-xs font-bold text-slate-600">Booking Notes</span>
+                    </div>
+                    <div className="pl-6 bg-slate-50 p-3 rounded-lg space-y-3 text-sm">
+                      {hasAddress && (
+                        <div>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase">Address</span>
+                          <p className="text-slate-700 text-xs mt-0.5">{parsed.address}</p>
+                        </div>
+                      )}
+                      {hasItems && (
+                        <div>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase">Items</span>
+                          <div className="mt-1 space-y-2">
+                            {parsed.items.map((item: any, idx: number) => (
+                              <div key={idx} className="bg-white p-2.5 rounded-lg border border-slate-100">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-bold text-blue-950">{item.product?.title || "Service"}</span>
+                                  <span className="text-[10px] font-bold text-slate-500">x{item.quantity || 1}</span>
+                                </div>
+                                <div className="flex items-center justify-between mt-1">
+                                  <span className="text-[10px] text-slate-400">{item.product?.category || ""}</span>
+                                  <span className="text-xs font-bold text-medical-green">{item.product?.price || 0} AED</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-sm text-slate-600 pl-6 bg-slate-50 p-3 rounded-lg">{viewingBooking.notes}</p>
-                </div>
-              )}
+                );
+              })()}
             </div>
           </div>
         </div>

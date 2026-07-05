@@ -10,6 +10,7 @@ class SubcategoryRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string'],
+            'image' => ['nullable', 'string'],
         ];
     }
 }

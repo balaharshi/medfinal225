@@ -104,6 +104,7 @@ class CatalogService
             'id' => SequentialId::next(Subcategory::class, 'sub'),
             'category_id' => $categoryId,
             'title' => $payload['title'],
+            'image' => $payload['image'] ?? null,
         ]);
 
         return Arr::except(CaseKeys::camelize($subcategory), ['categoryId', 'createdAt', 'updatedAt']);
@@ -267,6 +268,17 @@ class CatalogService
             $this->assignmentService->ensureVendorServiceEnabled((string) $payload['vendorId'], (string) $payload['serviceId']);
         }
 
+        // Resolve category/subcategory from service record if serviceId provided
+        $category = $payload['category'] ?? null;
+        $subcategory = $payload['subcategory'] ?? null;
+        if (($payload['serviceId'] ?? null) && (!$category || !$subcategory)) {
+            $service = \App\Models\Service::query()->find($payload['serviceId']);
+            if ($service) {
+                $category = $category ?: $service->category;
+                $subcategory = $subcategory ?: $service->subcategory;
+            }
+        }
+
         $booking = Booking::query()->create([
             'id' => SequentialId::next(Booking::class, 'b'),
             'customer_name' => $payload['customerName'],
@@ -276,6 +288,8 @@ class CatalogService
             'vendor_name' => $payload['vendorName'] ?? 'Unassigned',
             'vendor_id' => $payload['vendorId'] ?? null,
             'service_id' => $payload['serviceId'] ?? null,
+            'category' => $category,
+            'subcategory' => $subcategory,
             'price' => (int) ($payload['price'] ?? 150),
             'date' => $payload['date'] ?? now()->toDateString(),
             'time_slot' => $payload['timeSlot'] ?? 'Flexible',

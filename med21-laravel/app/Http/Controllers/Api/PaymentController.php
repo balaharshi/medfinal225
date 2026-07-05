@@ -21,7 +21,7 @@ class PaymentController extends Controller
 
     public function getEnbdpayStatus(Request $request): JsonResponse
     {
-        return response()->json(['success' => true, 'status' => $this->enbdpayService->checkCheckoutStatus($request->only(['appUtr', 'transactionUtr']))]);
+        return response()->json(['success' => true, 'status' => $this->enbdpayService->checkCheckoutStatus($request->only(['appUtr', 'transactionUtr', 'responseStatus', 'orderId', 'bookingId']))]);
     }
 
     public function enbdpayWebhook(Request $request): JsonResponse
@@ -33,5 +33,30 @@ class PaymentController extends Controller
         );
 
         return response()->json(['success' => true, ...$result]);
+    }
+
+    public function captureTransaction(Request $request): JsonResponse
+    {
+        return response()->json(['success' => true, 'result' => $this->enbdpayService->captureTransaction($request->all())]);
+    }
+
+    public function refundTransaction(Request $request): JsonResponse
+    {
+        return response()->json(['success' => true, 'result' => $this->enbdpayService->refundTransaction($request->all())]);
+    }
+
+    public function voidAuthorization(Request $request): JsonResponse
+    {
+        return response()->json(['success' => true, 'result' => $this->enbdpayService->voidAuthorization($request->all())]);
+    }
+
+    public function voidCapture(Request $request): JsonResponse
+    {
+        return response()->json(['success' => true, 'result' => $this->enbdpayService->voidCapture($request->all())]);
+    }
+
+    public function voidRefund(Request $request): JsonResponse
+    {
+        return response()->json(['success' => true, 'result' => $this->enbdpayService->voidRefund($request->all())]);
     }
 }

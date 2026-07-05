@@ -353,6 +353,7 @@ function PaymentReturnPage() {
   const status = params.get('responseStatus') || params.get('status') || 'PROCESSING';
   const appUtrParam = params.get('appUtr') || '';
   const transactionUtrParam = params.get('transactionUtr') || '';
+  const bookingIdParam = params.get('bookingId') || '';
   const appUtr = appUtrParam || transactionUtrParam || params.get('orderId') || 'Pending reference';
   const effectiveStatus = liveStatus || status;
   const normalizedStatus = effectiveStatus.toUpperCase();
@@ -363,21 +364,46 @@ function PaymentReturnPage() {
     if (!appUtrParam && !transactionUtrParam) return;
 
     let cancelled = false;
-    setSyncState('syncing');
-    checkEnbdpayStatus({
-      appUtr: appUtrParam || undefined,
-      transactionUtr: transactionUtrParam || undefined,
-    })
-      .then((result) => {
-        if (cancelled) return;
-        setLiveStatus(result.responseStatus || result.status || '');
-        setSyncedBookingId(result.booking?.id || '');
-        setSyncState('synced');
-      })
-      .catch((error) => {
+    let retryCount = 0;
+    const maxRetries = 6;
+    const retryDelay = 5000;
 
-        if (!cancelled) setSyncState('failed');
-      });
+    const pollStatus = async () => {
+      setSyncState('syncing');
+      try {
+        const result = await checkEnbdpayStatus({
+          appUtr: appUtrParam || undefined,
+          transactionUtr: transactionUtrParam || undefined,
+          responseStatus: status || undefined,
+          bookingId: bookingIdParam || undefined,
+        });
+        if (cancelled) return;
+
+        const resolvedStatus = (result.responseStatus || result.status || '').toUpperCase();
+        setLiveStatus(resolvedStatus);
+        setSyncedBookingId(result.booking?.id || '');
+
+        const isTerminal = ['CAPTURED', 'AUTHORIZED', 'PROCESSED', 'SUCCESS', 'FAILED', 'DECLINED', 'REJECTED', 'ERROR', 'CANCELLED', 'CANCELED', 'VOIDED', 'AUTHORIZATION_DECLINED'].includes(resolvedStatus);
+
+        if (isTerminal || retryCount >= maxRetries) {
+          setSyncState('synced');
+        } else {
+          retryCount++;
+          setSyncState('syncing');
+          setTimeout(pollStatus, retryDelay);
+        }
+      } catch {
+        if (cancelled) return;
+        if (retryCount < maxRetries) {
+          retryCount++;
+          setTimeout(pollStatus, retryDelay);
+        } else {
+          setSyncState('failed');
+        }
+      }
+    };
+
+    pollStatus();
 
     return () => {
       cancelled = true;

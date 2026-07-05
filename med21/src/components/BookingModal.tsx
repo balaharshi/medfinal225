@@ -191,6 +191,8 @@ export default function BookingModal({
         serviceTitle: service,
         vendorName: 'Unassigned',
         serviceId: activeServiceObj?.id ? String(activeServiceObj.id) : null,
+        category: activeServiceObj?.category || null,
+        subcategory: activeServiceObj?.subcategory || null,
         price: activePrice,
         date,
         timeSlot: time,

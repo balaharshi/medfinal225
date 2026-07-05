@@ -6,6 +6,8 @@ type CreateBookingInput = {
   vendorName?: string;
   vendorId?: string | null;
   serviceId?: string | null;
+  category?: string;
+  subcategory?: string;
   price: number;
   date: string;
   timeSlot?: string;

@@ -33,6 +33,11 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
     Route::post('/payments/enbd/create', [PaymentController::class, 'createEnbdpayCheckout'])->middleware('throttle:5,1');
     Route::get('/payments/enbd/status', [PaymentController::class, 'getEnbdpayStatus'])->middleware('throttle:30,1');
     Route::post('/payments/enbd/webhook', [PaymentController::class, 'enbdpayWebhook']);
+    Route::post('/payments/enbd/capture', [PaymentController::class, 'captureTransaction'])->middleware('throttle:10,1');
+    Route::post('/payments/enbd/refund', [PaymentController::class, 'refundTransaction'])->middleware('throttle:10,1');
+    Route::post('/payments/enbd/void/auth', [PaymentController::class, 'voidAuthorization'])->middleware('throttle:10,1');
+    Route::post('/payments/enbd/void/capture', [PaymentController::class, 'voidCapture'])->middleware('throttle:10,1');
+    Route::post('/payments/enbd/void/refund', [PaymentController::class, 'voidRefund'])->middleware('throttle:10,1');
 
     Route::get('/categories', [CatalogController::class, 'getCategories']);
     Route::post('/categories', [CatalogController::class, 'createCategory'])->middleware($admin);

@@ -739,7 +739,6 @@ export default function CartDrawer({
                     onClick={() => {
                       if (!loggedInUser) {
                         toast.error('Please sign in to proceed with checkout.');
-                        onClose();
                         onAuthOpen?.();
                         return;
                       }

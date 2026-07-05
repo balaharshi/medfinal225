@@ -38,10 +38,12 @@ export async function createEnbdpayCheckout(input: CreateEnbdpayCheckoutInput) {
   };
 }
 
-export async function checkEnbdpayStatus(input: { appUtr?: string; transactionUtr?: string }) {
+export async function checkEnbdpayStatus(input: { appUtr?: string; transactionUtr?: string; responseStatus?: string; bookingId?: string }) {
   const params = new URLSearchParams();
   if (input.transactionUtr) params.set('transactionUtr', input.transactionUtr);
   if (input.appUtr && !input.transactionUtr) params.set('appUtr', input.appUtr);
+  if (input.responseStatus) params.set('responseStatus', input.responseStatus);
+  if (input.bookingId) params.set('bookingId', input.bookingId);
 
   const response = await fetch(`/api/payments/enbd/status?${params.toString()}`, {
     credentials: 'include',

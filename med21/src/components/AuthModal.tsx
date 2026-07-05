@@ -304,7 +304,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-xs">
+    <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-2 sm:p-4 backdrop-blur-xs">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl h-[96vh] md:h-[min(760px,94vh)] relative overflow-hidden transition-all text-left grid md:grid-cols-[0.95fr_1.05fr]">
         <div className="hidden md:flex relative min-h-0 bg-slate-950 overflow-hidden">
           <img

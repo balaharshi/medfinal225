@@ -61,7 +61,7 @@ return new class extends Migration
         $name = preg_replace('/\s-(\w)/', ' - $1', $name);
 
         // Fix title case for common words
-        $name = preg_replace('/\b(\w)/', function ($matches) {
+        $name = preg_replace_callback('/\b(\w)/', function ($matches) {
             return strtoupper($matches[1]);
         }, $name);
 

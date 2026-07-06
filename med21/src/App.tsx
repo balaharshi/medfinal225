@@ -1354,6 +1354,9 @@ function MainApp() {
                                   <span className="text-medical-green font-black">AED {formatAedWhole(srv.price)}</span>
                                   {srv.duration && <span className="text-slate-400 font-semibold">{srv.duration}</span>}
                                 </div>
+                                {(srv.shortDescription || srv.description) && (
+                                  <p className="text-[11px] text-slate-500 mt-1.5 line-clamp-2">{srv.shortDescription || srv.description}</p>
+                                )}
                                 {testCode && (
                                   <p className="text-[11px] text-slate-500 mt-1 line-clamp-1">{testCode}</p>
                                 )}

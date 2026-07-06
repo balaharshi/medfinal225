@@ -46,7 +46,7 @@ return [
         'api_key' => env('ENBDPAY_API_KEY'),
         'currency' => env('ENBDPAY_CURRENCY', 'AED'),
         'payment_method' => env('ENBDPAY_PAYMENT_METHOD', 'CARD'),
-        'transaction_type' => env('ENBDPAY_TRANSACTION_TYPE', 'PURCHASE'),
+        'transaction_type' => env('ENBDPAY_TRANSACTION_TYPE', 'AUTH'),
         'redirect_url' => env('ENBDPAY_REDIRECT_URL'),
         'webhook_url' => env('ENBDPAY_WEBHOOK_URL'),
         'webhook_secret' => env('ENBDPAY_WEBHOOK_SECRET'),

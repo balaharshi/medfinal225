@@ -295,17 +295,12 @@ export default function ServicesSection({
                           <Eye className="w-3 h-3" />
                           <span>View Details</span>
                         </button>
-                        {(srv.bookingNotice || srv.remarks) && (
+                        {(srv.bookingNotice) && (
                           <div className="mt-2 space-y-1">
                             {srv.bookingNotice && (
                               <div className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-600 text-[8px] sm:text-[9px] font-bold px-2 py-1 rounded-full">
                                 <Clock className="w-2.5 h-2.5" />
                                 <span>{srv.bookingNotice}</span>
-                              </div>
-                            )}
-                            {srv.remarks && (
-                              <div className="text-[8px] sm:text-[9px] text-amber-700 font-semibold">
-                                {srv.remarks}
                               </div>
                             )}
                           </div>
@@ -506,17 +501,12 @@ export default function ServicesSection({
                             <p className="text-[10px] text-slate-500 font-medium">4.9 Rating</p>
                           </div>
                         </div>
-                        {(quickViewService?.bookingNotice || quickViewService?.remarks) && (
+                        {(quickViewService?.bookingNotice) && (
                           <div className="mt-2 flex flex-wrap gap-2">
                             {quickViewService?.bookingNotice && (
                               <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold text-slate-600 border border-slate-200">
                                 <Clock className="w-3 h-3 text-medical-green" />
                                 {quickViewService.bookingNotice}
-                              </span>
-                            )}
-                            {quickViewService?.remarks && (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-semibold text-amber-700 border border-amber-100">
-                                {quickViewService.remarks}
                               </span>
                             )}
                           </div>

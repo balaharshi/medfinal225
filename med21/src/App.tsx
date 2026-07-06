@@ -108,7 +108,7 @@ const LAB_TESTS_ROUTE_BY_SECTION_ID: Record<string, string> = LAB_TESTS_AT_HOME_
 const LAB_TESTS_PAGE_COPY: Record<string, { title: string; description: string }> = LAB_TESTS_AT_HOME_CATEGORIES.reduce((acc, category) => {
   acc[category.slug] = {
     title: category.title,
-    description: '12 hours prior booking slots. All services will be provided in Dubai and SHJ ONLY.',
+    description: '12 hours prior booking slots.',
   };
   return acc;
 }, {} as Record<string, { title: string; description: string }>);
@@ -969,16 +969,13 @@ function MainApp() {
           <Eye className="w-3.5 h-3.5" />
           <span>View Details</span>
         </button>
-        {(srv.bookingNotice || srv.remarks) && (
+        {(srv.bookingNotice) && (
           <div className="space-y-1 mb-3">
             {srv.bookingNotice && (
               <div className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-full">
                 <Clock className="w-3 h-3" />
                 <span>{srv.bookingNotice}</span>
               </div>
-            )}
-            {srv.remarks && (
-              <div className="text-[10px] text-amber-700 font-semibold">{srv.remarks}</div>
             )}
           </div>
         )}
@@ -1727,7 +1724,7 @@ function MainApp() {
                 </h1>
                 <p className="text-slate-500 text-sm mt-1 max-w-xl">
                   {activeSectionId === 'customize-lab-package-section'
-                    ? 'Choose individual lab tests with 12 hours prior booking. All services will be provided in Dubai and SHJ only.'
+                    ? 'Choose individual lab tests with 12 hours prior booking.'
                     : LAB_TESTS_PAGE_COPY[currentLabTestsRoute || DEFAULT_LAB_TESTS_ROUTE]?.description || 'Lab tests at home with 12 hours prior booking slots.'}
                 </p>
               </div>

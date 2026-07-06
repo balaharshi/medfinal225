@@ -1387,32 +1387,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   },
 ];
 
-const BASE_HEALTHCARE_SERVICES_WITHOUT_LEGACY_HOME = BASE_HEALTHCARE_SERVICES.filter(
-  (service) => service.category !== 'home-healthcare' && !(service.category === 'lab-tests' && service.subcategory !== 'customize-lab-package'),
-);
-const CUSTOMIZE_LAB_SERVICES = parseCustomizeLabItems(customizeLabItemsRaw);
-
-export const SERVICE_CATEGORIES: ServiceCategory[] = mergeById(BASE_SERVICE_CATEGORIES, HOME_HEALTHCARE_CATEGORIES as ServiceCategory[]);
-export const HEALTHCARE_SERVICES: HealthcareService[] = withHomeHealthcareImages(
-  mergeById(
-    mergeById(mergeById(mergeById(BASE_HEALTHCARE_SERVICES_WITHOUT_LEGACY_HOME, CUSTOMIZE_LAB_SERVICES), LAB_TESTS_AT_HOME_SERVICES_WITH_LOCAL_IMAGES),
-    HOME_HEALTHCARE_SERVICES as HealthcareService[]),
-    OTHER_SERVICES,
-  ),
-);
-
-export const DUBAI_LOCATIONS = [
-  'Dubai Marina, Dubai',
-  'Downtown Dubai, Dubai',
-  'Palm Jumeirah, Dubai',
-  'Jumeirah, Dubai',
-  'Deira & Al Rigga, Dubai',
-  'Business Bay, Dubai',
-  'Al Barsha, Dubai',
-  'Mirdif, Dubai',
-  'JLT (Jumeirah Lake Towers), Dubai'
-];
-
 const OTHER_SERVICES: HealthcareService[] = [
   {
     id: 'srv-medical-tourism-facilitation',
@@ -1662,3 +1636,31 @@ const OTHER_SERVICES: HealthcareService[] = [
     bookingNotice: '24 hours prior booking',
   },
 ];
+
+const BASE_HEALTHCARE_SERVICES_WITHOUT_LEGACY_HOME = BASE_HEALTHCARE_SERVICES.filter(
+  (service) => service.category !== 'home-healthcare' && !(service.category === 'lab-tests' && service.subcategory !== 'customize-lab-package'),
+);
+const CUSTOMIZE_LAB_SERVICES = parseCustomizeLabItems(customizeLabItemsRaw);
+
+export const SERVICE_CATEGORIES: ServiceCategory[] = mergeById(BASE_SERVICE_CATEGORIES, HOME_HEALTHCARE_CATEGORIES as ServiceCategory[]);
+export const HEALTHCARE_SERVICES: HealthcareService[] = withHomeHealthcareImages(
+  mergeById(
+    mergeById(mergeById(mergeById(BASE_HEALTHCARE_SERVICES_WITHOUT_LEGACY_HOME, CUSTOMIZE_LAB_SERVICES), LAB_TESTS_AT_HOME_SERVICES_WITH_LOCAL_IMAGES),
+    HOME_HEALTHCARE_SERVICES as HealthcareService[]),
+    OTHER_SERVICES,
+  ),
+);
+
+export const DUBAI_LOCATIONS = [
+  'Dubai Marina, Dubai',
+  'Downtown Dubai, Dubai',
+  'Palm Jumeirah, Dubai',
+  'Jumeirah, Dubai',
+  'Deira & Al Rigga, Dubai',
+  'Business Bay, Dubai',
+  'Al Barsha, Dubai',
+  'Mirdif, Dubai',
+  'JLT (Jumeirah Lake Towers), Dubai'
+];
+
+

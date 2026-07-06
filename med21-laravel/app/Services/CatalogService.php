@@ -617,8 +617,8 @@ class CatalogService
         };
 
         $updates = [];
-        $set('title', $payload['title'] ?? null);
-        $set('slug', $has('slug') ? Str::slug((string) $payload['slug']) : (($payload['title'] ?? null) ? Str::slug($payload['title']) : ($partial ? null : '')));
+        $set('title', $this->sanitizeServiceName($payload['title'] ?? null));
+        $set('slug', $has('slug') ? Str::slug((string) $payload['slug']) : (($payload['title'] ?? null) ? Str::slug($this->sanitizeServiceName($payload['title'])) : ($partial ? null : '')));
         $set('category', $payload['category'] ?? ($partial ? null : 'home-healthcare'));
         $set('subcategory', $payload['subcategory'] ?? ($partial ? null : ''));
         $set('status', $payload['status'] ?? ($partial ? null : 'active'));
@@ -631,9 +631,9 @@ class CatalogService
         $set('duration', $payload['duration'] ?? ($partial ? null : '1 Hour'));
         $set('estimated_visit_time', $payload['estimatedVisitTime'] ?? ($partial ? null : ''));
         $set('image', $payload['image'] ?? ($partial ? null : $this->defaultImage));
-        $set('short_description', $payload['shortDescription'] ?? $payload['description'] ?? ($partial ? null : ''));
-        $set('full_description', $payload['fullDescription'] ?? $payload['description'] ?? ($partial ? null : ''));
-        $set('description', $payload['description'] ?? $payload['shortDescription'] ?? ($partial ? null : ''));
+        $set('short_description', $this->sanitizeDescription($payload['shortDescription'] ?? $payload['description'] ?? ($partial ? null : '')));
+        $set('full_description', $this->sanitizeDescription($payload['fullDescription'] ?? $payload['description'] ?? ($partial ? null : '')));
+        $set('description', $this->sanitizeDescription($payload['description'] ?? $payload['shortDescription'] ?? ($partial ? null : '')));
         $set('inclusions', $has('inclusions') ? $list($payload['inclusions']) : ($partial ? null : []));
         $set('preparation_instructions', $payload['preparationInstructions'] ?? ($partial ? null : ''));
         $set('who_is_it_for', $payload['whoIsItFor'] ?? ($partial ? null : ''));
@@ -642,15 +642,115 @@ class CatalogService
         $set('tags', $has('tags') ? (is_array($payload['tags']) ? $payload['tags'] : $list($payload['tags'])) : ($partial ? null : []));
         $set('display_priority', $has('displayPriority') ? (int) $payload['displayPriority'] : ($partial ? null : 100));
         $set('seo_title', $payload['seoTitle'] ?? ($partial ? null : ''));
-        $set('seo_description', $payload['seoDescription'] ?? ($partial ? null : ''));
+        $set('seo_description', $this->sanitizeDescription($payload['seoDescription'] ?? ($partial ? null : '')));
         $set('popular', $has('popular') ? (bool) $payload['popular'] : ($partial ? null : false));
         $set('enquiry_only', $has('enquiryOnly') ? (bool) $payload['enquiryOnly'] : ($partial ? null : false));
         $set('attributes', is_array($payload['attributes'] ?? null) ? $payload['attributes'] : ($partial ? null : []));
         $set('vendor_prices', is_array($payload['vendorPrices'] ?? null) ? $payload['vendorPrices'] : ($partial ? null : []));
-        $set('booking_notice', $payload['bookingNotice'] ?? ($partial ? null : ''));
-        $set('remarks', $payload['remarks'] ?? ($partial ? null : ''));
+        $set('booking_notice', $this->sanitizeBookingNotice($payload['bookingNotice'] ?? ($partial ? null : '')));
+        $set('remarks', $this->sanitizeDescription($payload['remarks'] ?? ($partial ? null : '')));
 
         return array_filter($updates, fn ($value) => $value !== null);
+    }
+
+    private function sanitizeServiceName(?string $name): ?string
+    {
+        if ($name === null) {
+            return null;
+        }
+
+        // Fix common misspellings
+        $name = str_ireplace('physiotheraphy', 'Physiotherapy', $name);
+        $name = str_ireplace('physiotherapy', 'Physiotherapy', $name);
+
+        // Add spaces around hyphens if missing
+        $name = preg_replace('/(\w)-(\w)/', '$1 - $2', $name);
+        $name = preg_replace('/(\w)-\s/', '$1 - ', $name);
+        $name = preg_replace('/\s-(\w)/', ' - $1', $name);
+
+        // Fix title case
+        $name = ucfirst(trim($name));
+
+        // Fix " - " formatting
+        $name = preg_replace('/\s*-\s*/', ' - ', $name);
+
+        // Clean up extra spaces
+        $name = preg_replace('/\s+/', ' ', trim($name));
+
+        return $name;
+    }
+
+    private function sanitizeDescription(?string $description): ?string
+    {
+        if ($description === null || $description === '') {
+            return $description;
+        }
+
+        // Remove vendor-specific text patterns
+        $patterns = [
+            '/\d+\s*hours?\s*(prior|before|notice)\s*(for\s*vendor\s*\d+(\s*and\s*\d+)?)?/i',
+            '/\d+\s*days?\s*(prior|before|notice)\s*(for\s*vendor\s*\d+(\s*and\s*\d+)?)?/i',
+            '/vendor\s*\d+(\s*and\s*\d+)?/i',
+            '/prior\s*notice\s*for\s*vendor/i',
+            '/hours?\s*prior\s*for\s*vendor/i',
+            '/days?\s*prior\s*for\s*vendor/i',
+        ];
+
+        foreach ($patterns as $pattern) {
+            $description = preg_replace($pattern, '', $description);
+        }
+
+        // Fix typos
+        $description = str_ireplace('prioir', 'prior', $description);
+        $description = str_ireplace('recieve', 'receive', $description);
+        $description = str_ireplace('seperate', 'separate', $description);
+
+        // Clean up extra spaces and punctuation
+        $description = preg_replace('/\s+/', ' ', $description);
+        $description = preg_replace('/\s+,/', ',', $description);
+        $description = preg_replace('/,\s*,/', ',', $description);
+        $description = preg_replace('/^\s*,/', '', $description);
+        $description = preg_replace('/,\s*$/', '', $description);
+
+        // Ensure proper ending punctuation
+        $description = trim($description);
+        if ($description !== '' && ! preg_match('/[.!?]$/', $description)) {
+            $description .= '.';
+        }
+
+        return $description;
+    }
+
+    private function sanitizeBookingNotice(?string $notice): ?string
+    {
+        if ($notice === null || $notice === '') {
+            return $notice;
+        }
+
+        // Remove vendor-specific text patterns
+        $patterns = [
+            '/\d+\s*hours?\s*(prior|before|notice)\s*(for\s*vendor\s*\d+(\s*and\s*\d+)?)?/i',
+            '/\d+\s*days?\s*(prior|before|notice)\s*(for\s*vendor\s*\d+(\s*and\s*\d+)?)?/i',
+            '/vendor\s*\d+(\s*and\s*\d+)?/i',
+            '/prior\s*notice\s*for\s*vendor/i',
+            '/hours?\s*prior\s*for\s*vendor/i',
+            '/days?\s*prior\s*for\s*vendor/i',
+        ];
+
+        foreach ($patterns as $pattern) {
+            $notice = preg_replace($pattern, '', $notice);
+        }
+
+        // Fix typos
+        $notice = str_ireplace('prioir', 'prior', $notice);
+
+        // Clean up
+        $notice = preg_replace('/\s+/', ' ', $notice);
+        $notice = preg_replace('/,\s*,/', ',', $notice);
+        $notice = preg_replace('/^\s*,/', '', $notice);
+        $notice = preg_replace('/,\s*$/', '', $notice);
+
+        return trim($notice);
     }
 
     public function getVendorProfileChangeRequests(string $vendorId): array

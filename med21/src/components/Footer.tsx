@@ -80,10 +80,10 @@ export default function Footer({ onNavigationClick }: FooterProps) {
         </div>
 
         {/* Catalog Columns Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12 text-left">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12 text-left">
           
           {/* Brand Info */}
-          <div className="space-y-4">
+          <div className="lg:col-span-3 space-y-4">
             <div className="flex items-center gap-2">
               <img src={newlogo} alt="MedZiva" className="h-20 w-auto" />
             </div>
@@ -108,48 +108,73 @@ export default function Footer({ onNavigationClick }: FooterProps) {
             </div>
           </div>
 
-          {/* Column 1: Services */}
-          <div className="space-y-3.5">
+          {/* Services - takes remaining space */}
+          <div className="lg:col-span-5 space-y-3.5">
             <h4 className="text-sm font-extrabold uppercase tracking-widest text-medical-green">
               Services
             </h4>
-            <ul className="space-y-2 text-xs text-gray-300">
-              <li><button onClick={() => handleFooterNavigation('services')} className="hover:text-white hover:underline transition-colors cursor-pointer">Home Healthcare</button></li>
-              <li><button onClick={() => handleFooterNavigation('services', 'doctor-on-call-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">Doctor on Call</button></li>
-              <li><button onClick={() => handleFooterNavigation('services', 'iv-therapy-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">IV Therapy</button></li>
-              <li><button onClick={() => handleFooterNavigation('services', 'occupational-therapy-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">Occupational Therapy</button></li>
-              <li><button onClick={() => handleFooterNavigation('services', 'speech-therapy-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">Speech Therapy</button></li>
-              <li><button onClick={() => handleFooterNavigation('lab-tests', 'routine-blood-tests-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">Routine Blood Tests</button></li>
-              <li><button onClick={() => handleFooterNavigation('lab-tests', 'preventive-health-packages-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">Preventive Health Packages</button></li>
-            </ul>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Home Healthcare</p>
+                <ul className="space-y-1 text-xs text-gray-300">
+                  <li><button onClick={() => handleFooterNavigation('services', 'home-healthcare-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">Nursing Care at Home</button></li>
+                  <li><button onClick={() => handleFooterNavigation('services', 'physiotherapy-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">Physiotherapy at Home</button></li>
+                  <li><button onClick={() => handleFooterNavigation('services', 'doctor-on-call-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">Doctor on Call</button></li>
+                  <li><button onClick={() => handleFooterNavigation('services', 'long-term-care-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">Long-Term / Specialized Care</button></li>
+                  <li><button onClick={() => handleFooterNavigation('services', 'speech-therapy-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">Speech and Language Therapy</button></li>
+                  <li><button onClick={() => handleFooterNavigation('services', 'occupational-therapy-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">Occupational Therapy</button></li>
+                  <li><button onClick={() => handleFooterNavigation('services', 'iv-therapy-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">IV Therapy</button></li>
+                </ul>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Lab Tests at Home</p>
+                <ul className="space-y-1 text-xs text-gray-300">
+                  <li><button onClick={() => handleFooterNavigation('lab-tests', 'routine-blood-tests-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">Routine Blood Tests</button></li>
+                  <li><button onClick={() => handleFooterNavigation('lab-tests', 'preventive-health-packages-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">Preventive Health Packages</button></li>
+                  <li><button onClick={() => handleFooterNavigation('lab-tests', 'mens-health-packages-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">Men's Health Packages</button></li>
+                  <li><button onClick={() => handleFooterNavigation('lab-tests', 'womens-health-packages-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">Women's Health Packages</button></li>
+                  <li><button onClick={() => handleFooterNavigation('lab-tests', 'std-sexual-health-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">STD / Sexual Health</button></li>
+                  <li><button onClick={() => handleFooterNavigation('lab-tests', 'specialized-diagnostic-tests-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">Specialized Diagnostic Tests</button></li>
+                  <li><button onClick={() => handleFooterNavigation('lab-tests', 'genetic-testing-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">Genetic Testing</button></li>
+                </ul>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Other Services</p>
+                <ul className="space-y-1 text-xs text-gray-300">
+                  <li><button onClick={() => handleFooterNavigation('wellness', 'medical-tourism-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">Medical Tourism Facilitation</button></li>
+                  <li><button onClick={() => handleFooterNavigation('wellness', 'shipping-crews-section')} className="hover:text-white hover:underline transition-colors cursor-pointer">Medical Facilitation for Shipping Crews</button></li>
+                </ul>
+              </div>
+            </div>
           </div>
 
-          {/* Column 2: Company */}
-          <div className="space-y-3.5">
-            <h4 className="text-sm font-extrabold uppercase tracking-widest text-medical-green">
-              Company
-            </h4>
-            <ul className="space-y-2 text-xs text-gray-300">
-              <li><button onClick={() => handleFooterNavigation('providers')} className="hover:text-white hover:underline transition-colors cursor-pointer">Join our Network</button></li>
-              <li><button onClick={() => handleFooterNavigation('wellness')} className="hover:text-white hover:underline transition-colors cursor-pointer">Other Services</button></li>
-              <li><button onClick={() => handleFooterNavigation('home')} className="hover:text-white hover:underline transition-colors cursor-pointer">Customer Success Stories</button></li>
-              <li><button onClick={() => handleFooterNavigation('support')} className="hover:text-white hover:underline transition-colors cursor-pointer">Contact Us</button></li>
-            </ul>
-          </div>
+          {/* Company + Support side by side */}
+          <div className="lg:col-span-4 grid grid-cols-2 gap-6">
+            <div className="space-y-3.5">
+              <h4 className="text-sm font-extrabold uppercase tracking-widest text-medical-green">
+                Company
+              </h4>
+              <ul className="space-y-2 text-xs text-gray-300">
+                <li><button onClick={() => handleFooterNavigation('providers')} className="hover:text-white hover:underline transition-colors cursor-pointer">Join our Network</button></li>
+                <li><button onClick={() => handleFooterNavigation('wellness')} className="hover:text-white hover:underline transition-colors cursor-pointer">Other Services</button></li>
+                <li><button onClick={() => handleFooterNavigation('home')} className="hover:text-white hover:underline transition-colors cursor-pointer">Customer Success Stories</button></li>
+                <li><button onClick={() => handleFooterNavigation('support')} className="hover:text-white hover:underline transition-colors cursor-pointer">Contact Us</button></li>
+              </ul>
+            </div>
 
-          {/* Column 3: Support */}
-          <div className="space-y-3.5">
-            <h4 className="text-sm font-extrabold uppercase tracking-widest text-medical-green">
-              Support
-            </h4>
-            <ul className="space-y-2 text-xs text-gray-300">
-              <li><button onClick={() => handleFooterNavigation('support')} className="hover:text-white hover:underline transition-colors cursor-pointer">Help &amp; FAQ</button></li>
-              <li><button onClick={() => handleFooterNavigation('terms', 'terms-payments')} className="hover:text-white hover:underline transition-colors cursor-pointer">Secure Payments Policies</button></li>
-              <li><button onClick={() => handleFooterNavigation('terms', 'terms-cancellation')} className="hover:text-white hover:underline transition-colors cursor-pointer">Hassle Free Cancellation</button></li>
-              <li><button onClick={() => handleFooterNavigation('terms', 'terms-cancellation')} className="hover:text-white hover:underline transition-colors cursor-pointer">Refund Policies</button></li>
-              <li><button onClick={() => handleFooterNavigation('terms')} className="hover:text-white hover:underline transition-colors cursor-pointer">Terms &amp; Conditions</button></li>
-              <li><button onClick={() => handleFooterNavigation('privacy')} className="hover:text-white hover:underline transition-colors cursor-pointer">Privacy Safeguards</button></li>
-            </ul>
+            <div className="space-y-3.5">
+              <h4 className="text-sm font-extrabold uppercase tracking-widest text-medical-green">
+                Support
+              </h4>
+              <ul className="space-y-2 text-xs text-gray-300">
+                <li><button onClick={() => handleFooterNavigation('support')} className="hover:text-white hover:underline transition-colors cursor-pointer">Help &amp; FAQ</button></li>
+                <li><button onClick={() => handleFooterNavigation('terms', 'terms-payments')} className="hover:text-white hover:underline transition-colors cursor-pointer">Secure Payments Policies</button></li>
+                <li><button onClick={() => handleFooterNavigation('terms', 'terms-cancellation')} className="hover:text-white hover:underline transition-colors cursor-pointer">Hassle Free Cancellation</button></li>
+                <li><button onClick={() => handleFooterNavigation('terms', 'terms-cancellation')} className="hover:text-white hover:underline transition-colors cursor-pointer">Refund Policies</button></li>
+                <li><button onClick={() => handleFooterNavigation('terms')} className="hover:text-white hover:underline transition-colors cursor-pointer">Terms &amp; Conditions</button></li>
+                <li><button onClick={() => handleFooterNavigation('privacy')} className="hover:text-white hover:underline transition-colors cursor-pointer">Privacy Safeguards</button></li>
+              </ul>
+            </div>
           </div>
 
         </div>

@@ -215,7 +215,7 @@ const BASE_SERVICE_CATEGORIES: ServiceCategory[] = [
   {
     id: 'cat-other-services-medical-tourism',
     title: 'Medical Tourism Facilitation',
-    image: 'https://images.unsplash.com/photo-1436491865332-7a61a109db05?auto=format&fit=crop&q=80&w=400',
+    image: 'https://images.unsplash.com/photo-1767216427262-ce74ba565c3c?auto=format&fit=crop&q=80&w=400',
     slug: 'medical-tourism-facilitation',
     description: 'End-to-end medical tourism coordination — from hospital selection to post-treatment care.'
   },
@@ -1394,7 +1394,7 @@ const OTHER_SERVICES: HealthcareService[] = [
     category: 'other-services-medical-tourism',
     price: 0,
     duration: '',
-    image: 'https://images.unsplash.com/photo-1436491865332-7a61a109db05?auto=format&fit=crop&q=80&w=400',
+    image: 'https://images.unsplash.com/photo-1767216427262-ce74ba565c3c?auto=format&fit=crop&q=80&w=400',
     description: 'Comprehensive medical tourism coordination including hospital identification, appointment scheduling, treatment plan coordination, travel planning, and post-treatment follow-up support.',
     shortDescription: 'End-to-end medical tourism coordination — from hospital selection to post-treatment care.',
     popular: false,

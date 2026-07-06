@@ -196,13 +196,13 @@ export default function EnquiryModal({
         </div>
 
         {/* Modal Content Scroll Frame */}
-        <div className="p-6 overflow-y-auto flex-grow text-left">
+        <div className="p-4 overflow-y-auto flex-grow text-left">
           {!success ? (
-            <form id="enquiry-modal-form" onSubmit={handleSubmit} noValidate className="space-y-4">
+            <form id="enquiry-modal-form" onSubmit={handleSubmit} noValidate className="space-y-3">
               
               {/* Informative Guidance Banner */}
-              <div className="bg-[#FAFBFD] border border-slate-200/80 p-4 rounded-2xl flex items-start gap-3 text-xs text-slate-600 line-normal font-medium">
-                <HelpCircle className="w-5 h-5 text-medical-green shrink-0 mt-0.5" />
+              <div className="bg-[#FAFBFD] border border-slate-200/80 p-3 rounded-2xl flex items-start gap-3 text-xs text-slate-600 line-normal font-medium">
+                <HelpCircle className="w-4 h-4 text-medical-green shrink-0 mt-0.5" />
                 <div>
                   <span className="font-extrabold text-slate-800 block mb-0.5">Custom Care &amp; Rates Enquiry</span>
                   If you need specialized diagnostics, monthly nurse schedules, or combined therapy rates, submit this enquiry form. Our dispatch team will revert soon.
@@ -210,7 +210,7 @@ export default function EnquiryModal({
               </div>
 
               {/* Selector for Service of interest */}
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 <label className="text-xs font-bold text-slate-600">Service Category of Interest</label>
                 <select
                   value={service}
@@ -228,8 +228,8 @@ export default function EnquiryModal({
               </div>
 
               {/* Customer/User Contact detail block */}
-              <div className="space-y-3.5">
-                <div className="space-y-1">
+              <div className="space-y-2.5">
+                <div className="space-y-0.5">
                   <label className="text-xs font-bold text-slate-600 flex items-center gap-1">
                     <User className="w-3.5 h-3.5 text-slate-400" />
                     Your Full Name <span className="text-red-600">*</span>
@@ -254,8 +254,8 @@ export default function EnquiryModal({
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  <div className="space-y-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="space-y-0.5">
                     <label className="text-xs font-bold text-slate-600 flex items-center gap-1">
                       <Mail className="w-3.5 h-3.5 text-slate-400" />
                       Email Address <span className="text-red-600">*</span>
@@ -280,7 +280,7 @@ export default function EnquiryModal({
                     )}
                   </div>
 
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     <label className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
                       <Phone className="w-3.5 h-3.5 text-slate-400" />
                       Mobile Number <span className="text-red-600">*</span>
@@ -320,12 +320,12 @@ export default function EnquiryModal({
               </div>
 
               {/* Inquiry Message text */}
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 <label className="text-xs font-bold text-slate-600">What is your question or specific requirement? <span className="text-red-600">*</span></label>
                 <textarea
                   required
                   placeholder="e.g. Do you offer daily physical rehabilitation? We require a therapist to visit us in JLT every Monday from 9AM. What is the billing cycle?"
-                  rows={3}
+                  rows={2}
                   value={message}
                   onChange={(e) => {
                     setMessage(e.target.value);

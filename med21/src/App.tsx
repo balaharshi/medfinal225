@@ -679,9 +679,9 @@ function MainApp() {
     }
 
     if (location.pathname === '/') {
-      setActiveSectionId(null);
       if (activeTab === 'services' || activeTab === 'products') {
         setActiveTab('home');
+        setActiveSectionId(null);
       }
     }
   }, [currentLabTestsRoute, currentServiceRoute, currentProductRoute, location.pathname]);
@@ -2181,93 +2181,153 @@ function MainApp() {
         )}
 
         {/* Dedicated view: WELLNESS Page */}
-        {activeTab === 'wellness' && (
+        {activeTab === 'wellness' && !activeSectionId && (
           <div className="max-w-7xl mx-auto py-10 px-4 text-left page-section">
             <div className="border-b border-slate-100 pb-5 mb-8">
               <span className="text-medical-green text-xs font-bold uppercase tracking-widest block mb-1">Additional Healthcare Services</span>
               <h1 className="text-3xl font-black text-blue-950">Other Services</h1>
               <p className="text-slate-500 text-sm mt-1 max-w-xl">
-                Medical tourism facilitation and shipping crew health services. Enquire to learn more.
+                Explore our medical tourism facilitation and shipping crew health services.
               </p>
             </div>
 
-            {/* Sub-category tabs */}
-            {(() => {
-              const otherServices = db.services.filter(s => s.category.startsWith('other-services-'));
-              const medicalTourism = otherServices.filter(s => s.category === 'other-services-medical-tourism');
-              const shippingCrews = otherServices.filter(s => s.category === 'other-services-shipping-crews');
-              const [activeSubTab, setActiveSubTab] = React.useState('medical-tourism');
-              const currentServices = activeSubTab === 'medical-tourism' ? medicalTourism : shippingCrews;
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <button
+                onClick={() => handleTabChange('wellness', 'medical-tourism-section')}
+                className="bg-white rounded-3xl border border-slate-200/80 p-8 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all text-left cursor-pointer"
+              >
+                <div className="relative h-48 rounded-2xl overflow-hidden mb-5 border border-slate-100">
+                  <img
+                    src="https://images.unsplash.com/photo-1767216427262-ce74ba565c3c?auto=format&fit=crop&q=80&w=800"
+                    alt="Medical Tourism Facilitation"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <h2 className="text-lg font-extrabold text-blue-950 mb-2">Medical Tourism Facilitation</h2>
+                <p className="text-sm text-slate-500 leading-relaxed mb-4">
+                  End-to-end medical tourism coordination — from hospital selection to post-treatment care.
+                </p>
+                <span className="inline-flex items-center gap-1.5 text-medical-green text-xs font-bold">
+                  View Services →
+                </span>
+              </button>
 
-              return (
-                <>
-                  <div className="flex gap-2 mb-8">
-                    <button
-                      onClick={() => setActiveSubTab('medical-tourism')}
-                      className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
-                        activeSubTab === 'medical-tourism'
-                          ? 'bg-medical-green text-white shadow-lg'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      Medical Tourism Facilitation
-                    </button>
-                    <button
-                      onClick={() => setActiveSubTab('shipping-crews')}
-                      className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
-                        activeSubTab === 'shipping-crews'
-                          ? 'bg-medical-green text-white shadow-lg'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      Shipping Crews
-                    </button>
-                  </div>
+              <button
+                onClick={() => handleTabChange('wellness', 'shipping-crews-section')}
+                className="bg-white rounded-3xl border border-slate-200/80 p-8 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all text-left cursor-pointer"
+              >
+                <div className="relative h-48 rounded-2xl overflow-hidden mb-5 border border-slate-100">
+                  <img
+                    src="https://images.unsplash.com/photo-1524522173746-f628baad3644?auto=format&fit=crop&q=80&w=800"
+                    alt="Medical Facilitation for Shipping Crews"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <h2 className="text-lg font-extrabold text-blue-950 mb-2">Medical Facilitation for Shipping Crews</h2>
+                <p className="text-sm text-slate-500 leading-relaxed mb-4">
+                  Comprehensive medical support for shipping crew members — fitness exams, consultations, and clearance.
+                </p>
+                <span className="inline-flex items-center gap-1.5 text-medical-green text-xs font-bold">
+                  View Services →
+                </span>
+              </button>
+            </div>
+          </div>
+        )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {currentServices.map((srv) => (
-                      <div 
-                        key={srv.id} 
-                        className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between"
-                      >
-                        <div>
-                          <div className="relative h-44 rounded-2xl overflow-hidden mb-4 border border-slate-100">
-                            <img
-                              src={getServiceImage(srv)}
-                              alt={srv.title}
-                              className={getServiceImageClassName(srv)}
-                              referrerPolicy="no-referrer"
-                              onError={(event) => handleServiceImageError(event, srv)}
-                            />
-                            {srv.popular && (
-                              <span className="absolute top-3 left-3 bg-amber-500 text-white text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider shadow">
-                                Popular
-                              </span>
-                            )}
-                          </div>
+        {activeTab === 'wellness' && activeSectionId === 'medical-tourism-section' && (
+          <div className="max-w-7xl mx-auto py-10 px-4 text-left page-section">
+            <div className="border-b border-slate-100 pb-5 mb-8">
+              <h1 className="text-3xl font-black text-blue-950">Medical Tourism Facilitation</h1>
+              <p className="text-slate-500 text-sm mt-1 max-w-xl">
+                Comprehensive medical tourism coordination from start to finish.
+              </p>
+            </div>
 
-                          <h3 className="text-sm sm:text-base font-extrabold text-blue-950 line-clamp-1 mb-1">{srv.title}</h3>
-                          <span className="text-[10px] bg-emerald-50 text-emerald-800 font-bold tracking-wider uppercase px-2 py-0.5 rounded-md inline-block mb-3">
-                            Enquiry Only
-                          </span>
-                          <p className="text-[13px] sm:text-xs text-slate-500 leading-relaxed font-normal mb-5">{srv.shortDescription || srv.description}</p>
-                        </div>
+            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs mb-8 flex flex-col md:flex-row overflow-hidden">
+              <div className="relative h-44 md:h-auto md:w-2/5 shrink-0">
+                <img
+                  src="https://images.unsplash.com/photo-1767216427262-ce74ba565c3c?auto=format&fit=crop&q=80&w=1200"
+                  alt="Medical Tourism Facilitation"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="p-6 flex flex-col justify-between flex-1">
+                <ul className="space-y-2 mb-5">
+                  {[
+                    'Identification of suitable hospitals and doctors',
+                    'Appointment scheduling with specialists',
+                    'Treatment plan coordination',
+                    'Pre-admission support and documentation assistance',
+                    'Medical visa guidance and documentation support',
+                    'Travel planning and coordination',
+                    'Medical document management',
+                    'Language and communication support',
+                    'Post-treatment follow-up consultations',
+                    'Home healthcare arrangements after discharge',
+                    'Rehabilitation and physiotherapy support',
+                    'Remote health monitoring and teleconsultations',
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-start gap-2.5 text-sm text-slate-700">
+                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-medical-green shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => triggerServiceEnquiry('Medical Tourism Facilitation')}
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm py-3 px-8 rounded-xl cursor-pointer transition-all flex items-center gap-2 self-start"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Enquire Now
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
-                        <div className="pt-4 border-t border-slate-100">
-                          <button
-                            onClick={() => triggerServiceEnquiry(srv.title)}
-                            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs py-3 px-5 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
-                          >
-                            <MessageCircle className="w-4 h-4" />
-                            Enquire Now
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              );
-            })()}
+        {activeTab === 'wellness' && activeSectionId === 'shipping-crews-section' && (
+          <div className="max-w-7xl mx-auto py-10 px-4 text-left page-section">
+            <div className="border-b border-slate-100 pb-5 mb-8">
+              <h1 className="text-3xl font-black text-blue-950">Medical Facilitation for Shipping Crews</h1>
+              <p className="text-slate-500 text-sm mt-1 max-w-xl">
+                Comprehensive medical support tailored for shipping crew members.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs mb-8 flex flex-col md:flex-row overflow-hidden">
+              <div className="relative h-44 md:h-auto md:w-2/5 shrink-0">
+                <img
+                  src="https://images.unsplash.com/photo-1524522173746-f628baad3644?auto=format&fit=crop&q=80&w=1200"
+                  alt="Medical Facilitation for Shipping Crews"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="p-6 flex flex-col justify-between flex-1">
+                <ul className="space-y-2 mb-5">
+                  {[
+                    'Medical Fitness Examination for OGUK / OEUK / Seafarers Medical / Qatar Energy Requirements',
+                    'Medical Consultations for Crew Members',
+                    'Diagnostic and Laboratory Services',
+                    'Emergency Medical Assistance',
+                    'Hospital and Specialist Referrals',
+                    'Medical Fitness and Clearance Services',
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-start gap-2.5 text-sm text-slate-700">
+                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-medical-green shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => triggerServiceEnquiry('Medical Facilitation for Shipping Crews')}
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm py-3 px-8 rounded-xl cursor-pointer transition-all flex items-center gap-2 self-start"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Enquire Now
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -2689,7 +2749,7 @@ function MainApp() {
           >
             {activeTab === 'wellness' && <motion.span layoutId="mobile-active-tab" className="absolute inset-0 rounded-xl bg-emerald-50" />}
             <span className="relative z-10 text-[22px] leading-none" aria-hidden="true">❤️</span>
-            <span className="relative z-10 text-[10px] font-bold">Wellness</span>
+            <span className="relative z-10 text-[10px] font-bold">Other Services</span>
           </button>
           <button
             onClick={() => handleTabChange('offers')}

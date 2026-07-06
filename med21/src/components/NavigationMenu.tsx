@@ -37,11 +37,17 @@ const productItems: { label: string; tab: ActiveTab; sectionId: string }[] = [
   { label: 'Rent Medical Equipment', tab: 'products', sectionId: 'rent-medical-equipments-section' },
 ];
 
+const otherServicesItems: { label: string; tab: ActiveTab; sectionId: string }[] = [
+  { label: 'Medical Tourism Facilitation', tab: 'wellness', sectionId: 'medical-tourism-section' },
+  { label: 'Medical Facilitation for Shipping Crews', tab: 'wellness', sectionId: 'shipping-crews-section' },
+];
+
 export default function NavigationMenu({ activeTab, activeSectionId, onTabChange }: NavigationMenuProps) {
   const [showServicesDropdown, setShowServicesDropdown] = useState(false);
   const [showHomeHealthcareDropdown, setShowHomeHealthcareDropdown] = useState(false);
   const [showLabTestsDropdown, setShowLabTestsDropdown] = useState(false);
   const [showProductsDropdown, setShowProductsDropdown] = useState(false);
+  const [showOtherServicesDropdown, setShowOtherServicesDropdown] = useState(false);
 
   const menuItems: { label: string; value: ActiveTab }[] = [
     { label: 'Other Services', value: 'wellness' },
@@ -241,7 +247,7 @@ export default function NavigationMenu({ activeTab, activeSectionId, onTabChange
               Create your own Package
             </button>
 
-            {menuItems.map((item) => {
+            {menuItems.filter(item => item.value !== 'wellness').map((item) => {
               const isActive = activeTab === item.value;
               return (
                 <button
@@ -257,6 +263,51 @@ export default function NavigationMenu({ activeTab, activeSectionId, onTabChange
                 </button>
               );
             })}
+
+            <div
+              className="relative"
+              onMouseEnter={() => setShowOtherServicesDropdown(true)}
+              onMouseLeave={() => setShowOtherServicesDropdown(false)}
+            >
+              <button
+                onClick={() => setShowOtherServicesDropdown((current) => !current)}
+                className={`relative px-3 py-3 text-xs sm:text-[13px] font-bold tracking-wide transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 ${
+                  activeTab === 'wellness'
+                    ? 'text-medical-blue border-b-2 border-medical-green font-extrabold pb-3'
+                    : 'text-slate-600 hover:text-medical-blue'
+                }`}
+                aria-expanded={showOtherServicesDropdown}
+                aria-haspopup="menu"
+              >
+                <span>Other Services</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showOtherServicesDropdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showOtherServicesDropdown && (
+                <div className="absolute left-0 top-full w-64 bg-white border border-slate-100 rounded-xl shadow-2xl z-50 py-2">
+                  {otherServicesItems.map((item) => {
+                    const isActive = activeSectionId === item.sectionId || (activeTab === 'wellness' && !activeSectionId);
+                    return (
+                      <button
+                        key={item.sectionId}
+                        onClick={() => {
+                          onTabChange(item.tab, item.sectionId);
+                          setShowOtherServicesDropdown(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-xs font-bold transition-colors cursor-pointer ${
+                          isActive
+                            ? 'bg-teal-50/80 text-medical-green'
+                            : 'text-slate-600 hover:bg-teal-50/60 hover:text-medical-green'
+                        }`}
+                        role="menuitem"
+                      >
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

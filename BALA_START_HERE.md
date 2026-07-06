@@ -28,189 +28,102 @@ This is a **healthcare website** (MedZiva) with TWO parts:
 
 ---
 
+## Server Details
+
+| Item | Value |
+|------|-------|
+| Server IP | 92.204.28.237 |
+| SSH User | rvdkqh1z30zk |
+| Staging URL | https://staging.medzivahealthcare.com |
+| Production URL | https://medzivahealthcare.com |
+| Node.js | v20.20.2 (installed via nvm) |
+
+---
+
 ## Where Things Live
 
 ```
-GoDaddy Server
+Server (92.204.28.237)
 │
-├── /public_html/              ← LIVE website (production)
-│   ├── index.html             ← React frontend (built files)
-│   ├── assets/                ← Images, CSS, JS bundles
-│   └── api/                   ← Laravel backend
-│       ├── public/            ← Laravel entry point
-│       ├── app/               ← PHP code
-│       └── .env               ← SECRETS (database password, API keys)
+├── /home/rvdkqh1z30zk/
+│   ├── public_html/
+│   │   ├── medzivahealthcare.com/        ← PRODUCTION frontend
+│   │   ├── staging.medzivahealthcare.com/ ← STAGING frontend
+│   │   └── api.medzivahealthcare.com/     ← PRODUCTION Laravel backend
+│   │
+│   └── staging/
+│       └── api/                           ← STAGING Laravel backend
 │
-├── /staging/                  ← TEST website (staging)
-│   ├── index.html             ← Same React frontend (copy)
-│   ├── assets/
-│   └── api/                   ← Same Laravel backend (copy)
-│       └── .env               ← DIFFERENT secrets (staging database)
-│
-└── databases
-    ├── medziva                ← Production database
-    └── medziva_staging        ← Staging database (separate!)
-```
-
-**IMPORTANT:** Staging and production are completely separate. Testing on staging NEVER affects the live site.
-
-```
-╔══════════════════════════════════════════════════════════════╗
-║  ⚠️  STAGING IS PASSWORD PROTECTED                          ║
-║                                                              ║
-║  staging.medzivahealthcare.com requires a username/password ║
-║  Only you and Bala should know these credentials            ║
-║  NEVER give the staging password to customers               ║
-╚══════════════════════════════════════════════════════════════╝
+└── Databases
+    ├── medziva                            ← Production database
+    └── medziva_staging                    ← Staging database
 ```
 
 ---
 
-## The Golden Rule
+## How To Deploy — STAGING
 
+**⚠️ IMPORTANT: Frontend must be built locally and uploaded. Server can't run Vite builds.**
+
+### Step 1: Ask Varun to build the frontend
+
+Varun builds it locally and puts a zip in the GitHub repo. You download it.
+
+### Step 2: Deploy Frontend
+
+```bash
+# SSH into server
+ssh rvdkqh1z30zk@92.204.28.237
+
+# Go to staging frontend folder
+cd /home/rvdkqh1z30zk/public_html/staging.medzivahealthcare.com
+
+# Download the zip from GitHub
+wget https://github.com/balaharshi/medfinal225/raw/main/med21/staging-frontend.zip
+
+# Clear old files
+rm -rf assets Archive.zip __MACOSX b1.png b23.png b23.png.bak hero-banner.png log.png newbane.png newlogo sounds med21 med21-laravel .git index.html
+
+# Extract
+unzip staging-frontend.zip
+
+# Clean up
+rm staging-frontend.zip
 ```
-╔══════════════════════════════════════════════════════════════╗
-║                                                              ║
-║   ALWAYS test on STAGING first.                              ║
-║   Only deploy to PRODUCTION when you are 100% sure.         ║
-║                                                              ║
-╚══════════════════════════════════════════════════════════════╝
+
+### Step 3: Deploy Backend
+
+```bash
+cd /home/rvdkqh1z30zk/staging/api
+git pull
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
 ```
+
+### Step 4: Verify
+
+Open: https://staging.medzivahealthcare.com
+Check everything works.
 
 ---
 
-## How To Deploy (Step by Step)
+## How To Deploy — PRODUCTION
 
-### First Time Setup (Do Once)
+**⚠️ Only deploy after Varun says it's OK.**
 
-**Step 1: Enable SSH on GoDaddy**
-```
-1. Log in to GoDaddy → cPanel
-2. Find "SSH Access" (under Security)
-3. Turn it ON
-4. Add your SSH public key:
-   - On your Mac, open Terminal
-   - Type: cat ~/.ssh/id_rsa.pub
-   - Copy everything it shows
-   - Paste into GoDaddy SSH page
-5. Note your SSH username (GoDaddy shows it)
+### Step 1: Deploy Frontend
+
+Same as staging but target folder is:
+```bash
+cd /home/rvdkqh1z30zk/public_html/medzivahealthcare.com
 ```
 
-**Step 2: Create Staging Subdomain**
-```
-1. GoDaddy cPanel → Subdomains
-2. Create new subdomain:
-   - Name: staging
-   - Domain: medzivahealthcare.com
-   - Document Root: /staging
-3. Click Create
-```
-
-**Step 3: Create Staging Database**
-```
-1. GoDaddy cPanel → MySQL Databases
-2. Create new database: medziva_staging
-3. Create new user (pick any name, strong password)
-4. Add user to database → ALL PRIVILEGES
-5. Write down: database name, username, password
-```
-
-**Step 4: Configure Deploy Script**
-```
-1. Open deploy.sh on your computer
-2. Find this line:  REMOTE_USER="YOUR_GODADDY_SSH_USER"
-3. Replace with your actual SSH username
-4. Save the file
-```
-
-**Step 5: Set Up Server Environment**
-```
-1. SSH into GoDaddy:
-   ssh YOUR_USERNAME@medzivahealthcare.com
-
-2. Navigate to staging:
-   cd /staging/api
-
-3. Create .env file:
-   cp .env.staging .env
-
-4. Edit .env with your database credentials:
-   nano .env
-   (Replace YOUR_STAGING_DB_PASSWORD with actual password)
-
-5. Generate encryption key:
-   php artisan key:generate
-
-6. Run database setup:
-   php artisan migrate --force
-
-7. Exit SSH:
-   exit
-```
-
-**Step 6: Lock Down Staging (IMPORTANT!)**
-```
-staging.medzivahealthcare.com is OPEN to anyone who types the URL.
-You MUST set up a password so customers can't see test data.
-
-How to do it (2 minutes):
-1. GoDaddy cPanel → Security → Password Protect Directories
-2. Navigate to /staging folder
-3. Check "Password protect this directory"
-4. Name it: Staging - Authorized Access Only
-5. Click Save
-6. Create a username and password (use a STRONG password)
-7. Click Add/Modify Authorized User
-
-Now when anyone visits staging, a popup asks for username/password.
-Only you and Bala should know this password. NEVER share it with customers.
-```
-
-### Every Time You Make a Change
-
-**Option A: Using the deploy script (Recommended)**
+### Step 2: Deploy Backend
 
 ```bash
-# 1. Make sure you're on the right branch
-git checkout develop
-
-# 2. Make your changes
-#    (edit files in med21/ or med21-laravel/)
-
-# 3. Test locally
-cd med21 && npm run dev
-
-# 4. When happy, commit
-git add .
-git commit -m "describe what you changed"
-git push origin develop
-
-# 5. Deploy to staging
-./deploy.sh staging
-
-# 6. Test at staging.medzivahealthcare.com
-
-# 7. When staging looks good, deploy to production
-git checkout main
-git merge develop
-git push origin main
-./deploy.sh production
-```
-
-**Option B: Manual upload (if SSH doesn't work)**
-
-```bash
-# 1. Build frontend
-cd med21
-cp .env.production .env
-npm run build
-
-# 2. Upload med21/dist/* to /public_html/ via FileZilla (FTP)
-# 3. Upload med21-laravel/* to /public_html/api/ via FileZilla
-
-# 4. On server (cPanel Terminal):
-cd /public_html/api
-composer install --no-dev
+cd /home/rvdkqh1z30zk/public_html/api.medzivahealthcare.com
+git pull
 php artisan migrate --force
 php artisan config:cache
 php artisan route:cache
@@ -218,22 +131,25 @@ php artisan route:cache
 
 ---
 
-## Git Branches — What They Mean
+## Quick Reference — Full Deploy Command
 
-```
-main        = PRODUCTION  (what's on the live website)
-develop     = STAGING     (what's being tested)
-feature/*   = WORK IN PROGRESS (individual tasks)
-```
+**Copy and paste this entire block for staging deploy:**
 
-**The flow:**
-```
-feature/xyz  →  develop  →  main
-   ↓               ↓          ↓
- you work     test here    go live
+```bash
+ssh rvdkqh1z30zk@92.204.28.237 "cd /home/rvdkqh1z30zk/staging/api && git pull && php artisan migrate --force && php artisan config:cache && php artisan route:cache"
 ```
 
-**NEVER push directly to main. Always go through develop first.**
+---
+
+## Common Issues
+
+| Problem | Solution |
+|---------|----------|
+| `npm run build` fails on server | Expected! Server can't run Vite. Build locally and upload. |
+| `git pull` fails | Check if .git folder exists. If not, init git (see DEPLOYMENT.md) |
+| `php artisan migrate` fails | Check database user has ALL PRIVILEGES in cPanel |
+| Site shows old version | Hard refresh: Ctrl+Shift+R / Cmd+Shift+R |
+| "Access denied" database error | Go to cPanel → MySQL Databases → Add User To Database → ALL PRIVILEGES |
 
 ---
 
@@ -241,58 +157,11 @@ feature/xyz  →  develop  →  main
 
 ```
 ❌  med21-laravel/.env          (secrets — database password, API keys)
-❌  med21-laravel/.env.staging  (template — has placeholder passwords)
-❌  med21-laravel/.env.production (template — has placeholder passwords)
-❌  med21/.env                  (Google Client ID)
-❌  med21/.env.staging          (template)
-❌  med21/.env.production       (template)
+❌  med21-laravel/.env.staging  (template)
+❌  med21-laravel/.env.production (template)
 ```
 
 **The .env files on the SERVER have the real passwords. The ones in git are templates only.**
-
----
-
-## What Each Folder Does
-
-```
-med21/                          ← React frontend
-├── src/
-│   ├── App.tsx                 ← Main app (big file, handles routing)
-│   ├── components/             ← UI pieces (buttons, modals, dashboards)
-│   ├── lib/
-│   │   └── api.ts              ← API client (use this for fetch calls)
-│   ├── services/               ← API calls for specific features
-│   ├── data.ts                 ← Service/category data
-│   └── types.ts                ← TypeScript definitions
-├── public/                     ← Images (logo, hero banner)
-├── .env                        ← Frontend secrets (Google Client ID)
-└── package.json                ← Dependencies (npm install)
-
-med21-laravel/                  ← Laravel backend
-├── app/
-│   ├── Http/Controllers/Api/   ← API endpoints (where requests go)
-│   ├── Models/                 ← Database table definitions
-│   └── Services/               ← Business logic
-├── database/
-│   ├── migrations/             ← Database structure
-│   └── seeders/                ← Default data (promo codes, etc.)
-├── routes/
-│   └── api.php                 ← All API routes (maps URLs to controllers)
-├── .env                        ← Backend secrets (DB password, API keys)
-└── composer.json               ← Dependencies (composer install)
-```
-
----
-
-## Common Mistakes to Avoid
-
-| Mistake | What Happens | How to Avoid |
-|---------|--------------|--------------|
-| Editing files on the server directly | Your changes get overwritten next deploy | Always edit locally, then deploy |
-| Forgetting to run `npm run build` | Frontend changes don't appear | Run build before deploying |
-| Pushing to main without testing | Live site breaks | Always test on staging first |
-| Sharing .env files | Passwords leak | Never commit .env to git |
-| Running `composer install` locally | Might install wrong PHP version | Run it on the server only |
 
 ---
 
@@ -300,46 +169,18 @@ med21-laravel/                  ← Laravel backend
 
 **On staging:** No worries. It's a test site. Fix it and redeploy.
 
-**On production:** 
+**On production:**
 1. Don't panic
-2. Roll back: `git revert HEAD` then `./deploy.sh production`
-3. Or restore from GoDaddy backup (cPanel → Backups)
+2. Roll back: `git revert HEAD`
+3. Redeploy
 
 ---
 
-## Quick Reference Commands
+## When Varun Says "Deploy to Staging"
 
-```bash
-# Deploy to staging
-./deploy.sh staging
-
-# Deploy to production
-./deploy.sh production
-
-# Build frontend only
-cd med21 && npm run build
-
-# Check git status
-git status
-
-# See what changed
-git diff
-
-# Undo changes
-git checkout -- filename
-
-# Go back to last commit
-git reset --hard HEAD
-
-# Create a new feature branch
-git checkout develop
-git checkout -b feature/your-feature-name
-
-# Merge feature into staging
-git checkout develop
-git merge feature/your-feature-name
-
-# Merge staging into production
-git checkout main
-git merge develop
-```
+1. Ask Varun to build the frontend and push the zip to GitHub
+2. Download the zip from GitHub
+3. Upload to staging folder via cPanel or wget
+4. Run backend deploy command
+5. Test the site
+6. Tell Varun it's done

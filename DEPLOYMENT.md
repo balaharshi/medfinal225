@@ -16,214 +16,185 @@
 │  │  /staging/api/     ← Laravel backend (test)      │  │
 │  └──────────────────┘    └──────────────────────────┘  │
 │                                                         │
-│  Frontend: React (Vite) → built to dist/               │
-│  Backend:  Laravel/PHP → API routes                    │
+│  Frontend: React (Vite) → built locally → uploaded      │
+│  Backend:  Laravel/PHP → deployed via SSH               │
 │  Database: MySQL (GoDaddy)                             │
+│                                                         │
+│  ⚠️  IMPORTANT: GoDaddy shared hosting cannot run       │
+│  Vite builds. Frontend MUST be built locally and        │
+│  uploaded via cPanel.                                  │
 └─────────────────────────────────────────────────────────┘
 ```
 
-## Git Branching
+## Server Details
 
-| Branch | Purpose | Deploys To |
-|--------|---------|------------|
-| `main` | Production code | medzivahealthcare.com |
-| `develop` | Staging/test code | staging.medzivahealthcare.com |
-| `feature/*` | Individual features | Merges into `develop` |
+| Item | Value |
+|------|-------|
+| Server IP | 92.204.28.237 |
+| SSH User | rvdkqh1z30zk |
+| Staging URL | https://staging.medzivahealthcare.com |
+| Production URL | https://medzivahealthcare.com |
+| Node.js | v20.20.2 (installed via nvm) |
 
-## First-Time Setup (GoDaddy)
+## Folder Structure
 
-### 1. Create Staging Subdomain
-1. Go to GoDaddy cPanel → **Subdomains**
-2. Create: `staging.medzivahealthcare.com`
-3. Document Root: `/staging`
-4. This creates a separate directory from production
-
-### 2. Create Staging Database
-1. cPanel → **MySQL Databases**
-2. Create database: `medziva_staging`
-3. Create user, add to database with ALL PRIVILEGES
-4. Note the database name, username, and password
-
-### 3. Enable SSH Access
-1. cPanel → **Security** → **SSH Access**
-2. Enable it
-3. Add your SSH public key (run `cat ~/.ssh/id_rsa.pub` on your Mac)
-4. Note your SSH username (shown in cPanel)
-
-### 4. Set Environment Variables
-1. Upload `med21-laravel/.env.staging` as `med21-laravel/.env` in `/staging/api/`
-2. Replace `YOUR_STAGING_DB_PASSWORD` with actual password
-3. Generate APP_KEY: `php artisan key:generate` (via SSH)
-4. Upload `med21/.env.staging` as `med21/.env` in `/staging/`
-5. Set `VITE_GOOGLE_CLIENT_ID` to your staging Google OAuth client ID
-
-### 5. Configure Deploy Script
-Edit `deploy.sh` and replace:
-- `YOUR_GODADDY_SSH_USER` with your actual SSH username
-
-### 6. Secure Staging Site (HTTP Basic Auth)
-
-**Why:** Anyone who types `staging.medzivahealthcare.com` can see it. Customers might find it, Google might index it, and test data could be exposed.
-
-**How to set up (GoDaddy cPanel):**
-
-1. Go to cPanel → **Security** → **Password Protect Directories**
-2. Click **Web Root** (or navigate to `/staging`)
-3. Click **Staging** folder (or create it if prompted)
-4. Check **"Password protect this directory"**
-5. Name it: `Staging - Authorized Access Only`
-6. Click **Save**
-7. Scroll down to **"Create User"**
-8. Enter a username (e.g., `staging-admin`)
-9. Enter a strong password (different from your production admin password)
-10. Click **Add/Modify Authorized User**
-
-**What happens:** When anyone visits staging.medzivahealthcare.com, a browser popup asks for username/password. They can't see anything until they enter it.
-
-**Also add noindex to prevent Google from indexing staging:**
-
-Create a file called `.htaccess` in `/staging/` with this content:
-
-```apache
-# Block search engines from indexing staging
-<IfModule mod_headers.c>
-    Header set X-Robots-Tag "noindex, nofollow"
-</IfModule>
-
-# Password protection (GoDaddy may add this automatically)
-AuthType Basic
-AuthName "Staging - Authorized Access Only"
-AuthUserFile /home/YOUR_GODADDY_USERNAME/.htpasswd
-Require valid-user
 ```
-
-Replace `YOUR_GODADDY_USERNAME` with your actual GoDaddy username.
-
-**Share credentials with Bala only. Never give staging password to customers.**
+Server (92.204.28.237)
+│
+├── /home/rvdkqh1z30zk/
+│   ├── public_html/
+│   │   ├── medzivahealthcare.com/        ← PRODUCTION frontend (built files)
+│   │   ├── staging.medzivahealthcare.com/ ← STAGING frontend (built files)
+│   │   └── api.medzivahealthcare.com/     ← PRODUCTION Laravel backend
+│   │
+│   └── staging/
+│       └── api/                           ← STAGING Laravel backend
+│
+└── Databases
+    ├── medziva                            ← Production database
+    └── medziva_staging                    ← Staging database
+```
 
 ## Deployment Workflow
 
-### Making Changes (Day-to-Day)
+### Frontend (React/Vite)
+
+**⚠️ GoDaddy shared hosting cannot run Vite builds.** The server lacks resources for the Rust-based SWC compiler. Frontend must be built locally and uploaded.
+
+#### Step-by-Step:
 
 ```bash
-# 1. Create feature branch from develop
-git checkout develop
-git checkout -b feature/my-new-feature
+# 1. Build locally
+cd med21
+npm run build
 
-# 2. Make changes, test locally
-npm run dev          # Run frontend locally
-cd ../med21-laravel && php artisan serve  # Run backend locally
+# 2. Create zip of dist folder
+cd ..
+zip -r staging-frontend.zip med21/dist/*
 
-# 3. Commit changes
-git add .
-git commit -m "feat: add new feature"
-git push origin feature/my-new-feature
+# 3. Upload via cPanel File Manager
+#    - Navigate to target folder:
+#      Staging: /home/rvdkqh1z30zk/public_html/staging.medzivahealthcare.com/
+#      Production: /home/rvdkqh1z30zk/public_html/medzivahealthcare.com/
+#    - Delete old files (keep .well-known and .htaccess)
+#    - Upload zip → Extract → Delete zip
+```
 
-# 4. Merge into develop (staging)
-git checkout develop
-git merge feature/my-new-feature
-git push origin develop
+### Backend (Laravel)
 
-# 5. Deploy to staging
-./deploy.sh staging
+Backend deploys via SSH:
 
-# 6. Test at staging.medzivahealthcare.com
+```bash
+# Staging
+ssh rvdkqh1z30zk@92.204.28.237
+cd /home/rvdkqh1z30zk/staging/api
+git pull
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
 
-# 7. When ready for production
+# Production
+ssh rvdkqh1z30zk@92.204.28.237
+cd /home/rvdkqh1z30zk/public_html/api.medzivahealthcare.com
+git pull
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+```
+
+### One-Command Deploy (Staging)
+
+```bash
+ssh rvdkqh1z30zk@92.204.28.237 "cd /home/rvdkqh1z30zk/staging/api && git pull && php artisan migrate --force && php artisan config:cache && php artisan route:cache"
+```
+
+## First-Time Server Setup
+
+### 1. Install Node.js (via nvm)
+
+```bash
+ssh rvdkqh1z30zk@92.204.28.237
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+source ~/.bashrc
+nvm install 20
+```
+
+### 2. Initialize Git on Server
+
+```bash
+# Staging backend
+cd /home/rvdkqh1z30zk/staging/api
+git init
+git remote add origin https://github.com/balaharshi/medfinal225.git
+git fetch origin
 git checkout main
-git merge develop
-git push origin main
-./deploy.sh production
+git reset --hard origin/main
+
+# Staging frontend
+cd /home/rvdkqh1z30zk/public_html/staging.medzivahealthcare.com
+git init
+git remote add origin https://github.com/balaharshi/medfinal225.git
+git fetch origin
+git checkout main
+git reset --hard origin/main
+# Then move files from med21/ subfolder to root
+cp -r med21/* .
+cp med21/.* . 2>/dev/null
+rm -rf med21 med21-laravel .git
 ```
 
-### Quick Deploy (No New Features)
+### 3. Set Up Database
 
-```bash
-# Just deploy current branch
-./deploy.sh staging     # Test first
-./deploy.sh production  # Then go live
-```
-
-## How the Deploy Script Works
-
-The script (`deploy.sh`) does incremental deployment:
-
-1. **Pulls latest code** from the current branch
-2. **Builds frontend** with the correct environment variables
-3. **Installs production dependencies** (no dev dependencies)
-4. **Uploads only changed files** via rsync (not everything)
-5. **Runs server commands** (migrate, cache, optimize)
-
-### What Gets Uploaded
-
-| Component | Source | Destination |
-|-----------|--------|-------------|
-| Frontend | `med21/dist/` | `/public_html/` (prod) or `/staging/` (staging) |
-| Backend | `med21-laravel/` | `/public_html/api/` (prod) or `/staging/api/` (staging) |
-
-### What's Excluded
-
-- `.env` files (already on server)
-- `node_modules/`
-- `vendor/` (composer install runs on server)
-- `.git/`
-
-## Manual Deployment (Without SSH)
-
-If SSH is not available, use FTP:
-
-1. Build frontend locally:
-   ```bash
-   cd med21
-   cp .env.production .env
-   npm run build
-   ```
-
-2. Upload `med21/dist/*` to `/public_html/` via FTP
-3. Upload `med21-laravel/*` to `/public_html/api/` via FTP
-4. On server via cPanel Terminal:
-   ```bash
-   cd /public_html/api
-   composer install --no-dev
-   php artisan migrate --force
-   php artisan config:cache
-   php artisan route:cache
-   ```
+1. cPanel → MySQL Databases
+2. Create database: `medziva_staging`
+3. Create user with password: `Healthcare@0909`
+4. Add user to database with ALL PRIVILEGES
 
 ## Environment Variables
 
-### Frontend (`med21/.env`)
+### Staging Backend (.env)
 
-| Variable | Staging | Production |
-|----------|---------|------------|
-| `VITE_API_BASE_URL` | `https://staging.medzivahealthcare.com` | `https://medzivahealthcare.com` |
-| `VITE_GOOGLE_CLIENT_ID` | staging client ID | production client ID |
+```
+APP_ENV=staging
+APP_DEBUG=true
+APP_URL=https://staging.medzivahealthcare.com
+DB_DATABASE=medziva_staging
+DB_USERNAME=medziva_staging
+DB_PASSWORD=Healthcare@0909
+ENBDPAY_BASE_URL=https://enbduat-acquiring-apigw.creditpluspinelabs.com
+ENBDPAY_TRANSACTION_TYPE=AUTH
+ENBDPAY_MOCK=true
+```
 
-### Backend (`med21-laravel/.env`)
+### Production Backend (.env)
 
-| Variable | Staging | Production |
-|----------|---------|------------|
-| `APP_ENV` | `staging` | `production` |
-| `APP_DEBUG` | `true` | `false` |
-| `APP_URL` | `https://staging.medzivahealthcare.com` | `https://medzivahealthcare.com` |
-| `DB_DATABASE` | `medziva_staging` | `medziva` |
-| `LOG_LEVEL` | `debug` | `error` |
+```
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://medzivahealthcare.com
+DB_DATABASE=medziva
+DB_USERNAME=medziva
+DB_PASSWORD=PRODUCTION_PASSWORD
+ENBDPAY_BASE_URL=https://api.emiratesnbdpay.com
+ENBDPAY_TRANSACTION_TYPE=AUTH
+ENBDPAY_MOCK=true
+```
 
 ## Troubleshooting
 
-### Laravel returns HTML instead of JSON
-- Check document root points to `public/` folder
-- Verify `.htaccess` exists in `public_html/api/public/`
-- Enable `mod_rewrite` in Apache
+### Frontend build fails on server
+- **Expected:** GoDaddy shared hosting can't run Vite builds
+- **Solution:** Build locally, upload zip via cPanel
 
-### CORS errors on staging
-- Add `staging.medzivahealthcare.com` to `SANCTUM_STATEFUL_DOMAINS`
-- Add to `CLIENT_ORIGIN` and `FRONTEND_URL`
+### Backend migration fails
+- Check database user has ALL PRIVILEGES in cPanel
+- Verify .env credentials match cPanel MySQL settings
 
-### Google Sign-In doesn't work on staging
-- Create a separate Google OAuth client for staging
-- Add `staging.medzivahealthcare.com` to authorized origins in Google Cloud Console
+### Changes not appearing on site
+- Frontend: Did you rebuild and upload the dist folder?
+- Backend: Did you run `php artisan config:cache`?
+- Try hard refresh: Ctrl+Shift+R / Cmd+Shift+R
 
-### Build fails locally
-- Delete `node_modules` and `package-lock.json`, run `npm install` again
-- Make sure Node.js 18+ is installed
+### Git pull fails on server
+- Check if .git folder exists: `ls -la /path/to/folder/.git`
+- If not, initialize git (see First-Time Server Setup)

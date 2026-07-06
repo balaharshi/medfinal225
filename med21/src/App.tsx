@@ -905,6 +905,14 @@ function MainApp() {
       ['Disclaimer', getServiceAttributeValue(srv, 'Disclaimer')],
     ]).filter(([, value]) => value);
 
+  const hasExtraDetails = (srv: HealthcareService) =>
+    getVisibleServiceDetailAttributes(srv).length > 0 ||
+    Boolean(srv.fullDescription && srv.fullDescription !== srv.description) ||
+    Boolean(srv.inclusions?.length) ||
+    Boolean(srv.preparationInstructions) ||
+    Boolean(srv.whoIsItFor) ||
+    Boolean(srv.availability);
+
   const getVisibleLabAttributes = (srv: HealthcareService) =>
     (srv.attributes || []).filter((item: any) =>
       !['Excel Row', 'Category', 'Collection', 'Coverage'].includes(item.label) && item.value,
@@ -1372,17 +1380,19 @@ function MainApp() {
                               <p className="text-[9px] text-slate-500 line-clamp-2 mt-0.5 min-h-[26px] leading-relaxed">
                                 {srv.shortDescription || srv.description}
                               </p>
-                              <button
-                                type="button"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  setServiceDetails(srv);
-                                }}
-                                className="mt-1 inline-flex items-center gap-1 text-[10px] font-extrabold text-medical-green hover:text-emerald-700 hover:underline cursor-pointer"
-                              >
-                                <Eye className="w-3 h-3" />
-                                <span>View Details</span>
-                              </button>
+                              {hasExtraDetails(srv) && (
+                                <button
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setServiceDetails(srv);
+                                  }}
+                                  className="mt-1 inline-flex items-center gap-1 text-[10px] font-extrabold text-medical-green hover:text-emerald-700 hover:underline cursor-pointer"
+                                >
+                                  <Eye className="w-3 h-3" />
+                                  <span>View Details</span>
+                                </button>
+                              )}
                               {(srv.bookingNotice) && (
                                 <div className="mt-2 space-y-1">
                                   <div className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-600 text-[9px] font-bold px-2 py-1 rounded-full">

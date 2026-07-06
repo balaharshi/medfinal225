@@ -36,6 +36,14 @@ const getVisibleServiceDetailAttributes = (srv: HealthcareService) =>
     ['Disclaimer', getServiceAttributeValue(srv, 'Disclaimer')],
   ].filter(([, value]) => value);
 
+const hasExtraDetails = (srv: HealthcareService) =>
+  getVisibleServiceDetailAttributes(srv).length > 0 ||
+  Boolean(srv.fullDescription && srv.fullDescription !== srv.description) ||
+  Boolean(srv.inclusions?.length) ||
+  Boolean(srv.preparationInstructions) ||
+  Boolean(srv.whoIsItFor) ||
+  Boolean(srv.availability);
+
 interface ServicesSectionProps {
   onServiceSelect: (serviceTitle: string, price: number) => void;
   onServiceEnquire?: (serviceTitle: string) => void;
@@ -283,18 +291,20 @@ export default function ServicesSection({
                         <p className="text-[10px] sm:text-[9px] text-slate-500 line-clamp-2 mt-0.5 min-h-[22px] sm:min-h-[26px] leading-relaxed">
                           {srv.shortDescription || srv.description}
                         </p>
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setQuickViewService(srv);
-                          }}
-                          className="mt-1 inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-extrabold text-medical-green hover:text-emerald-700 hover:underline cursor-pointer"
-                          aria-label={`View full details for ${srv.title}`}
-                        >
-                          <Eye className="w-3 h-3" />
-                          <span>View Details</span>
-                        </button>
+                        {hasExtraDetails(srv) && (
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setQuickViewService(srv);
+                            }}
+                            className="mt-1 inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-extrabold text-medical-green hover:text-emerald-700 hover:underline cursor-pointer"
+                            aria-label={`View full details for ${srv.title}`}
+                          >
+                            <Eye className="w-3 h-3" />
+                            <span>View Details</span>
+                          </button>
+                        )}
                         {(srv.bookingNotice) && (
                           <div className="mt-2 space-y-1">
                             {srv.bookingNotice && (

@@ -64,6 +64,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
 
     window.google.accounts.id.initialize({
       client_id: googleClientId,
+      ui_locale: 'en',
       callback: (response: { credential?: string }) => {
         if (response?.credential) {
           completeSocialAuth({ credential: response.credential });

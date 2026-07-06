@@ -50,6 +50,7 @@ export default function SocialAuthButtons({ disabled = false, googlePath = '/api
 
     window.google.accounts.id.initialize({
       client_id: googleClientId,
+      ui_locale: 'en',
       callback: (response: { credential?: string }) => {
         if (response?.credential) {
           completeSocialAuth({ credential: response.credential });

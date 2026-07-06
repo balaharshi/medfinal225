@@ -1,0 +1,65 @@
+name: Build & Validate
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: med21/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: med21
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: med21
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: https://medzivahealthcare.com
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/main'
+        with:
+          name: frontend-dist
+          path: med21/dist/
+          retention-days: 7
+
+  validate-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, json, bcmath, pdo, mysql
+          coverage: none
+
+      - name: Validate composer.json
+        working-directory: med21-laravel
+        run: composer validate --no-check-all --no-check-publish
+
+      - name: Install dependencies
+        working-directory: med21-laravel
+        run: composer install --prefer-dist --no-progress
+
+      - name: Check syntax
+        working-directory: med21-laravel
+        run: find app -name "*.php" -exec php -l {} \; 2>&1 | grep -v "No syntax errors" || true

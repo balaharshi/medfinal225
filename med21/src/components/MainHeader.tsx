@@ -562,7 +562,7 @@ export default function MainHeader({
               }`}
             >
               <User className="w-5 h-5 text-medical-blue" />
-              <span className="font-semibold">Wellness</span>
+              <span className="font-semibold">Other Services</span>
             </button>
             <button
               onClick={() => {

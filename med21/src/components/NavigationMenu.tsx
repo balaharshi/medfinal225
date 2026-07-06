@@ -44,7 +44,7 @@ export default function NavigationMenu({ activeTab, activeSectionId, onTabChange
   const [showProductsDropdown, setShowProductsDropdown] = useState(false);
 
   const menuItems: { label: string; value: ActiveTab }[] = [
-    { label: 'Wellness', value: 'wellness' },
+    { label: 'Other Services', value: 'wellness' },
     { label: 'Offers', value: 'offers' },
     { label: 'For Providers', value: 'providers' },
     { label: 'Help & Support', value: 'support' }

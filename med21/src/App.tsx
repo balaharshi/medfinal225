@@ -2184,61 +2184,90 @@ function MainApp() {
         {activeTab === 'wellness' && (
           <div className="max-w-7xl mx-auto py-10 px-4 text-left page-section">
             <div className="border-b border-slate-100 pb-5 mb-8">
-              <span className="text-medical-green text-xs font-bold uppercase tracking-widest block mb-1">Elite lifestyle and fitness directory</span>
-              <h1 className="text-3xl font-black text-blue-950">MedZiva Wellness &amp; Strength Coaching</h1>
+              <span className="text-medical-green text-xs font-bold uppercase tracking-widest block mb-1">Additional Healthcare Services</span>
+              <h1 className="text-3xl font-black text-blue-950">Other Services</h1>
               <p className="text-slate-500 text-sm mt-1 max-w-xl">
-                Certified home stretching coordinators, physical kinetic trainers, dietary nutritionists and mental wellness stress counseling designed for absolute restoration.
+                Medical tourism facilitation and shipping crew health services. Enquire to learn more.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {db.services.filter(s => s.category.includes('trainer') || s.category.includes('mental') || s.category.includes('nutrition') || s.category.includes('physio')).map((srv) => (
-                <div 
-                  key={srv.id} 
-                  className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="relative h-44 rounded-2xl overflow-hidden mb-4 border border-slate-100">
-                      <img
-                        src={getServiceImage(srv)}
-                        alt={srv.title}
-                        className={getServiceImageClassName(srv)}
-                        referrerPolicy="no-referrer"
-                        onError={(event) => handleServiceImageError(event, srv)}
-                      />
-                      {srv.popular && (
-                        <span className="absolute top-3 left-3 bg-amber-500 text-white text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider shadow">
-                          Popular
-                        </span>
-                      )}
-                      <span className="absolute bottom-3 right-3 bg-medical-blue text-white text-[10px] font-extrabold px-3 py-1 rounded-full">
-                        ⏱️ {srv.duration}
-                      </span>
-                    </div>
+            {/* Sub-category tabs */}
+            {(() => {
+              const otherServices = db.services.filter(s => s.category.startsWith('other-services-'));
+              const medicalTourism = otherServices.filter(s => s.category === 'other-services-medical-tourism');
+              const shippingCrews = otherServices.filter(s => s.category === 'other-services-shipping-crews');
+              const [activeSubTab, setActiveSubTab] = React.useState('medical-tourism');
+              const currentServices = activeSubTab === 'medical-tourism' ? medicalTourism : shippingCrews;
 
-                    <h3 className="text-sm sm:text-base font-extrabold text-blue-950 line-clamp-1 mb-1">{srv.title}</h3>
-                    <span className="text-[10px] bg-emerald-50 text-emerald-800 font-bold tracking-wider uppercase px-2 py-0.5 rounded-md inline-block mb-3">
-                      {srv.category.replace('-', ' ')}
-                    </span>
-                    <p className="text-[13px] sm:text-xs text-slate-500 leading-relaxed font-normal mb-5">{srv.shortDescription || srv.description}</p>
-                  </div>
-
-                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] text-slate-400 font-bold block leading-none uppercase">Starting from</span>
-                      <span className="text-base font-black text-medical-green mt-1 block">AED {formatAedWhole(srv.price)}</span>
-                    </div>
-
+              return (
+                <>
+                  <div className="flex gap-2 mb-8">
                     <button
-                      onClick={() => triggerServiceBooking(srv.title, srv.price)}
-                      className="bg-medical-green hover:bg-emerald-600 text-white font-bold text-xs py-3 px-5 rounded-xl cursor-pointer transition-all"
+                      onClick={() => setActiveSubTab('medical-tourism')}
+                      className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
+                        activeSubTab === 'medical-tourism'
+                          ? 'bg-medical-green text-white shadow-lg'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
                     >
-                      Book Session
+                      Medical Tourism Facilitation
+                    </button>
+                    <button
+                      onClick={() => setActiveSubTab('shipping-crews')}
+                      className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
+                        activeSubTab === 'shipping-crews'
+                          ? 'bg-medical-green text-white shadow-lg'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      Shipping Crews
                     </button>
                   </div>
-                </div>
-              ))}
-            </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {currentServices.map((srv) => (
+                      <div 
+                        key={srv.id} 
+                        className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between"
+                      >
+                        <div>
+                          <div className="relative h-44 rounded-2xl overflow-hidden mb-4 border border-slate-100">
+                            <img
+                              src={getServiceImage(srv)}
+                              alt={srv.title}
+                              className={getServiceImageClassName(srv)}
+                              referrerPolicy="no-referrer"
+                              onError={(event) => handleServiceImageError(event, srv)}
+                            />
+                            {srv.popular && (
+                              <span className="absolute top-3 left-3 bg-amber-500 text-white text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider shadow">
+                                Popular
+                              </span>
+                            )}
+                          </div>
+
+                          <h3 className="text-sm sm:text-base font-extrabold text-blue-950 line-clamp-1 mb-1">{srv.title}</h3>
+                          <span className="text-[10px] bg-emerald-50 text-emerald-800 font-bold tracking-wider uppercase px-2 py-0.5 rounded-md inline-block mb-3">
+                            Enquiry Only
+                          </span>
+                          <p className="text-[13px] sm:text-xs text-slate-500 leading-relaxed font-normal mb-5">{srv.shortDescription || srv.description}</p>
+                        </div>
+
+                        <div className="pt-4 border-t border-slate-100">
+                          <button
+                            onClick={() => triggerServiceEnquiry(srv.title)}
+                            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs py-3 px-5 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                            Enquire Now
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              );
+            })()}
           </div>
         )}
 

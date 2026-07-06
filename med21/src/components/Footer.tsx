@@ -131,7 +131,7 @@ export default function Footer({ onNavigationClick }: FooterProps) {
             </h4>
             <ul className="space-y-2 text-xs text-gray-300">
               <li><button onClick={() => handleFooterNavigation('providers')} className="hover:text-white hover:underline transition-colors cursor-pointer">Join our Network</button></li>
-              <li><button onClick={() => handleFooterNavigation('wellness')} className="hover:text-white hover:underline transition-colors cursor-pointer">Corporate Wellness</button></li>
+              <li><button onClick={() => handleFooterNavigation('wellness')} className="hover:text-white hover:underline transition-colors cursor-pointer">Other Services</button></li>
               <li><button onClick={() => handleFooterNavigation('home')} className="hover:text-white hover:underline transition-colors cursor-pointer">Customer Success Stories</button></li>
               <li><button onClick={() => handleFooterNavigation('support')} className="hover:text-white hover:underline transition-colors cursor-pointer">Contact Us</button></li>
             </ul>

@@ -23,6 +23,16 @@ return new class extends Migration
             // Fix booking notes - remove vendor-specific text
             $notes = $this->fixBookingNotes($notes);
 
+            // Override specific descriptions based on service name
+            if (stripos($name, 'physiotherapy') !== false) {
+                if (stripos($name, 'session/week') !== false || stripos($name, '6 sessions') !== false) {
+                    $name = 'Physiotherapy - 1 Hour Session/Week - 6 Sessions';
+                } else {
+                    $name = 'Physiotherapy - 1 Hour Session';
+                }
+                $description = 'A dedicated hour with a certified physiotherapist to assess, treat, and rehabilitate — helping you move better and recover faster.';
+            }
+
             DB::table('services')
                 ->where('id', $service->id)
                 ->update([

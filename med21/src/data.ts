@@ -155,7 +155,6 @@ const parseCustomizeLabItems = (raw: string): HealthcareService[] =>
         description: `${code} | Available in Dubai and SHJ only.`,
         popular: false,
         bookingNotice: '12 hours prior booking slots',
-        remarks: 'Dubai and SHJ only',
         attributes: [
           { label: 'Test Code', value: code },
           { label: 'Coverage', value: 'Dubai and SHJ only' },
@@ -575,7 +574,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Expert nursing support brought to you — routine care, recovery assistance, and health monitoring, all in one visit.",
     popular: true,
     bookingNotice: "12 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -597,7 +595,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Precise, hygienic care for minor wounds and small surgical sites — cleaned, dressed, and monitored by a trained nurse to support faster healing and prevent infection.",
     popular: false,
     bookingNotice: "12 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -619,7 +616,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Precise, hygienic care for minor wounds and medium surgical sites — cleaned, dressed, and monitored by a trained nurse to support faster healing and prevent infection.",
     popular: false,
     bookingNotice: "12 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -641,7 +637,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Precise, hygienic care for minor wounds and large surgical sites — cleaned, dressed, and monitored by a trained nurse to support faster healing and prevent infection.",
     popular: false,
     bookingNotice: "12 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -663,7 +658,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Safe, sterile catheter insertion and care delivered in the comfort of your home — performed by a trained clinical nurse with full privacy, dignity, and clinical precision.",
     popular: false,
     bookingNotice: "12 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -685,7 +679,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Complete your antibiotic course from the comfort of home — a qualified nurse administers your prescribed IV treatment safely and efficiently, so you recover without the hospital stay.",
     popular: false,
     bookingNotice: "12 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -707,7 +700,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -729,7 +721,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing patients on ventilator support, tracheostomy, or PEG feeding.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -747,7 +738,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -769,7 +759,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -791,7 +780,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -809,7 +797,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -827,7 +814,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -849,7 +835,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -871,7 +856,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -911,7 +895,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -929,7 +912,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -947,7 +929,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -965,7 +946,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -983,7 +963,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -1001,7 +980,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -1019,7 +997,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -1037,7 +1014,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -1055,7 +1031,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A dedicated hour with a certified physiotherapist to assess, treat, and rehabilitate — helping you move better, recover faster, and live more comfortably.",
     popular: true,
     bookingNotice: "12 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -1077,7 +1052,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A dedicated hour with a certified physiotherapist to assess, treat, and rehabilitate — helping you move better, recover faster, and live more comfortably.",
     popular: false,
     bookingNotice: "12 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -1098,7 +1072,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     image: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400",
     description: "A qualified doctor visits you for consultations, diagnosis, and treatment — no waiting rooms, no commute.",
     popular: true,
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -1119,7 +1092,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     image: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400",
     description: "A qualified doctor brought to your hotel — expert diagnosis and treatment, right where you are in the city.",
     popular: false,
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -1141,7 +1113,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Structured sessions addressing speech delays, articulation challenges, and swallowing difficulties — delivered by a qualified speech and language specialist.",
     popular: true,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Ephatha",
@@ -1159,7 +1130,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Practical, goal-driven sessions helping you regain independence in daily tasks — from fine motor skills and cognitive function to adaptive techniques for work, home, and life.",
     popular: true,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
       {
         vendorName: "Ephatha",
@@ -1177,7 +1147,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "This powerful blend of antioxidants and vitamins promotes a radiant complexion by reducing oxidative stress and improving skin health.",
     popular: true,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1196,7 +1165,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "For those looking to improve the appearance and health of their hair, nails and skin, this drip delivers essential nutrients to promote regeneration and hydration.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1215,7 +1183,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Supports your metabolism and energy levels with its potent blend of vitamins, minerals and amino acids. Ideal for patients dealing with fatigue, weight management issues or those seeking enhanced athletic performance.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1234,7 +1201,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Strengthen your immune defenses and ensure optimal hydration with this drip, formulated to help fight infections and promote recovery from illness.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1253,7 +1219,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Reduces mental fatigue and sharpens focus while promoting relaxation and reducing stress.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1272,7 +1237,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "This IV drip is designed to improve skin health and reduce acne through a blend of vitamins, minerals and antioxidants that support both skin and gut health.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1291,7 +1255,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "This drip is specifically designed to support recovery following surgery by providing essential vitamins and amino acids that enhance healing, reduce inflammation and boost overall recovery.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1310,7 +1273,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "This drip is designed to support women's fertility and reproductive health by improving egg quality, balancing hormones, reducing oxidative stress, and promoting overall reproductive wellness.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1329,7 +1291,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "This drip is designed to support men's sexual health and vitality by enhancing energy levels, promoting healthy blood flow, supporting testosterone production, and improving overall performance and wellness.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1348,7 +1309,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Promotes liver health and detoxification with this formula, ideal for those exposed to environmental toxins, medications or poor dietary habits.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1367,7 +1327,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Perfect for those seeking anti-aging benefits. This NAD+ drip supports cellular regeneration, improves energy levels and promotes overall longevity.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1386,7 +1345,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Perfect for those seeking anti-aging benefits. This NAD+ drip supports cellular regeneration, improves energy levels and promotes overall longevity.",
     popular: false,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {
@@ -1405,7 +1363,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Perfect for those seeking anti-aging benefits. This NAD+ drip supports cellular regeneration, improves energy levels and promotes overall longevity.",
     popular: true,
     bookingNotice: "24 hours prior booking",
-    remarks: "Dubai and Sharjah Only",
     vendorPrices: [
     ],
     attributes: {

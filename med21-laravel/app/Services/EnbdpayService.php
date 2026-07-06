@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\AuthTransaction;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -94,6 +95,34 @@ class EnbdpayService
             'paymentTransactionUtr' => $transactionUtr,
             'paymentResponseStatus' => $responseStatus,
         ]) : null;
+
+        $transactionType = strtoupper((string) ($payload['transactionType'] ?? config('services.enbdpay.transaction_type', 'PURCHASE')));
+
+        if ($transactionType === 'AUTH') {
+            $customer = $payload['customer'] ?? [];
+            $authorizedAmount = (float) $amount / 100;
+
+            AuthTransaction::create([
+                'booking_id' => $bookingId,
+                'app_utr' => $appUtr,
+                'order_id' => $orderId,
+                'transaction_utr' => $transactionUtr,
+                'authorized_amount' => $authorizedAmount,
+                'status' => 'AUTHORIZED',
+                'customer_name' => $customer['fullName'] ?? $customer['name'] ?? null,
+                'customer_email' => $customer['email'] ?? null,
+                'customer_phone' => $customer['phone'] ?? null,
+                'authorized_at' => now(),
+                'capture_deadline' => now()->addHours(24),
+            ]);
+
+            Log::info('AUTH transaction created', [
+                'appUtr' => $appUtr,
+                'orderId' => $orderId,
+                'amount' => $authorizedAmount,
+                'capture_deadline' => now()->addHours(24)->toDateTimeString(),
+            ]);
+        }
 
         return [...$response, 'responseStatus' => $responseStatus, 'redirectUri' => $redirectUri, 'transactionUtr' => $transactionUtr, 'appUtr' => $appUtr, 'orderId' => $orderId, 'bookingId' => $bookingId, 'booking' => $booking];
     }

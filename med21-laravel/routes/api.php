@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AdminPaymentController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\HealthController;
@@ -102,6 +103,13 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
 
     Route::get('/settings', [CatalogController::class, 'getSettings'])->middleware($admin);
     Route::post('/settings', [CatalogController::class, 'updateSettings'])->middleware($admin);
+
+    Route::prefix('admin/payments')->middleware($admin)->group(function (): void {
+        Route::get('/pending', [AdminPaymentController::class, 'getPendingPayments']);
+        Route::post('/capture', [AdminPaymentController::class, 'captureAuth']);
+        Route::post('/void', [AdminPaymentController::class, 'voidAuth']);
+        Route::post('/update-amount', [AdminPaymentController::class, 'updateAmount']);
+    });
 };
 
 $registerMedzivaRoutes();

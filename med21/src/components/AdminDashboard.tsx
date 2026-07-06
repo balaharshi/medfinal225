@@ -94,7 +94,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   });
 
   // Active Pane Tab inside Admin Console
-  const [activePane, setActivePane] = useState<"dashboard" | "bookings" | "services" | "categories" | "subcategories" | "vendor" | "vendorServices" | "customRequests" | "users" | "reports" | "roles" | "settings" | "enquiries" | "vendorChangeRequests">("dashboard");
+  const [activePane, setActivePane] = useState<"dashboard" | "bookings" | "services" | "categories" | "subcategories" | "vendor" | "vendorServices" | "customRequests" | "users" | "reports" | "roles" | "settings" | "enquiries" | "vendorChangeRequests" | "pendingPayments">("dashboard");
   const [reportPane, setReportPane] = useState<"overview" | "revenue" | "services" | "bookings" | "sales" | "vendors" | "customers">("overview");
 
   // Dynamic lists from backend
@@ -102,6 +102,8 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const [usersList, setUsersList] = useState<any[]>([]);
   const [bookingsList, setBookingsList] = useState<any[]>([]);
   const [enquiriesList, setEnquiriesList] = useState<any[]>([]);
+  const [pendingPaymentsList, setPendingPaymentsList] = useState<any[]>([]);
+  const [pendingPaymentsLoading, setPendingPaymentsLoading] = useState(false);
   const [vendorChangeRequestsList, setVendorChangeRequestsList] = useState<any[]>([]);
   const [vendorChangeRequestsSearch, setVendorChangeRequestsSearch] = useState("");
   const [vendorChangeRequestsStatusFilter, setVendorChangeRequestsStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
@@ -463,7 +465,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         return response.json();
       };
 
-      const [vendorsResult, usersResult, bookingsResult, settingsResult, enquiriesResult, categoriesResult, vendorChangeRequestsResult] = await Promise.allSettled([
+      const [vendorsResult, usersResult, bookingsResult, settingsResult, enquiriesResult, categoriesResult, vendorChangeRequestsResult, pendingPaymentsResult] = await Promise.allSettled([
         loadJson("/api/vendors"),
         loadJson("/api/users"),
         loadJson("/api/bookings"),
@@ -471,6 +473,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         loadJson("/api/enquiries"),
         loadJson("/api/categories"),
         loadJson("/api/vendorProfileChangeRequests"),
+        loadJson("/api/admin/payments/pending"),
       ]);
 
       if (vendorsResult.status === "fulfilled") {
@@ -521,6 +524,13 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
       if (vendorChangeRequestsResult.status === "fulfilled") {
         setVendorChangeRequestsList(Array.isArray(vendorChangeRequestsResult.value) ? vendorChangeRequestsResult.value : []);
+      } else {
+        
+      }
+
+      if (pendingPaymentsResult.status === "fulfilled") {
+        const pData = pendingPaymentsResult.value;
+        setPendingPaymentsList(Array.isArray(pData?.payments) ? pData.payments : Array.isArray(pData) ? pData : []);
       } else {
         
       }
@@ -1881,6 +1891,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
             {[
               { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
               { id: "bookings", label: "Bookings", icon: Calendar },
+              { id: "pendingPayments", label: "Pending Payments", icon: CreditCard },
               { id: "services", label: "Services", icon: HeartPulse },
               { id: "enquiries", label: "Enquiries", icon: Mail },
               { id: "vendorChangeRequests", label: "Vendor Change Requests", icon: FileText },
@@ -3911,6 +3922,157 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ---- MODULE G: PENDING PAYMENTS ---- */}
+        {activePane === "pendingPayments" && (
+          <div className="space-y-5">
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xs">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h3 className="font-black text-blue-950 text-sm">Pending AUTH Transactions</h3>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Transactions authorized but not yet captured. Auto-capture after 24 hours.
+                  </p>
+                </div>
+                <button
+                  onClick={async () => {
+                    setPendingPaymentsLoading(true);
+                    try {
+                      const res = await fetch("/api/admin/payments/pending", getAdminRequestInit());
+                      const data = await res.json();
+                      setPendingPaymentsList(Array.isArray(data?.payments) ? data.payments : Array.isArray(data) ? data : []);
+                    } catch (e) {
+                      toast.error("Failed to refresh");
+                    } finally {
+                      setPendingPaymentsLoading(false);
+                    }
+                  }}
+                  disabled={pendingPaymentsLoading}
+                  className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-xl text-[11px] font-bold text-slate-600 cursor-pointer"
+                >
+                  <RefreshCw className={`w-3 h-3 ${pendingPaymentsLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
+              </div>
+
+              {pendingPaymentsList.length === 0 ? (
+                <div className="text-center py-12">
+                  <CreditCard className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                  <p className="text-sm font-bold text-slate-400">No pending payments</p>
+                  <p className="text-[11px] text-slate-300 mt-1">All authorized transactions have been captured or voided.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[900px] text-xs">
+                    <thead className="text-[10px] uppercase text-slate-400">
+                      <tr>
+                        {["Order ID", "Customer", "Amount", "Status", "Authorized", "Capture By", "Actions"].map((head) => (
+                          <th key={head} className="text-left py-3 border-b border-slate-100">{head}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pendingPaymentsList.map((payment: any) => (
+                        <tr key={payment.id} className="border-b border-slate-50">
+                          <td className="py-3 font-black text-blue-950">{payment.order_id || payment.app_utr}</td>
+                          <td className="py-3">
+                            <div className="font-bold text-slate-700">{payment.customer_name || 'N/A'}</div>
+                            <div className="text-[10px] text-slate-400">{payment.customer_email || ''}</div>
+                          </td>
+                          <td className="py-3 font-bold text-emerald-700">AED {payment.authorized_amount}</td>
+                          <td className="py-3">
+                            <span className={`px-2 py-1 rounded-lg text-[10px] font-bold ${
+                              payment.status === 'AUTHORIZED' ? 'bg-amber-50 text-amber-700' :
+                              payment.status === 'CAPTURED' ? 'bg-emerald-50 text-emerald-700' :
+                              payment.status === 'VOIDED' ? 'bg-red-50 text-red-700' :
+                              'bg-slate-50 text-slate-600'
+                            }`}>
+                              {payment.status}
+                            </span>
+                          </td>
+                          <td className="py-3 text-slate-500">
+                            {payment.authorized_at ? new Date(payment.authorized_at).toLocaleString() : 'N/A'}
+                          </td>
+                          <td className="py-3">
+                            {payment.status === 'AUTHORIZED' ? (
+                              <span className={`font-bold ${payment.hours_until_capture <= 0 ? 'text-red-600' : 'text-slate-600'}`}>
+                                {payment.hours_until_capture <= 0 ? 'Ready now' : `${Math.round(payment.hours_until_capture)}h remaining`}
+                              </span>
+                            ) : (
+                              <span className="text-slate-400">—</span>
+                            )}
+                          </td>
+                          <td className="py-3">
+                            {payment.status === 'AUTHORIZED' && (
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={async () => {
+                                    const newAmount = prompt(`Capture amount (max AED ${payment.authorized_amount}):`, payment.authorized_amount);
+                                    if (newAmount === null) return;
+                                    const amount = parseFloat(newAmount);
+                                    if (isNaN(amount) || amount <= 0) {
+                                      toast.error("Invalid amount");
+                                      return;
+                                    }
+                                    try {
+                                      const res = await fetch("/api/admin/payments/capture", {
+                                        ...getAdminRequestInit(),
+                                        method: "POST",
+                                        headers: { ...getAdminRequestInit().headers, "Content-Type": "application/json" },
+                                        body: JSON.stringify({ id: payment.id, amount }),
+                                      });
+                                      const data = await res.json();
+                                      if (data.success) {
+                                        toast.success(`Captured AED ${amount}`);
+                                        setPendingPaymentsList((prev) => prev.map((p) => p.id === payment.id ? { ...p, status: 'CAPTURED', captured_amount: amount } : p));
+                                      } else {
+                                        toast.error(data.error || "Capture failed");
+                                      }
+                                    } catch (e) {
+                                      toast.error("Capture failed");
+                                    }
+                                  }}
+                                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold cursor-pointer"
+                                >
+                                  Capture
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    if (!confirm("Void this authorization? Customer will not be charged.")) return;
+                                    try {
+                                      const res = await fetch("/api/admin/payments/void", {
+                                        ...getAdminRequestInit(),
+                                        method: "POST",
+                                        headers: { ...getAdminRequestInit().headers, "Content-Type": "application/json" },
+                                        body: JSON.stringify({ id: payment.id }),
+                                      });
+                                      const data = await res.json();
+                                      if (data.success) {
+                                        toast.success("Authorization voided");
+                                        setPendingPaymentsList((prev) => prev.map((p) => p.id === payment.id ? { ...p, status: 'VOIDED' } : p));
+                                      } else {
+                                        toast.error(data.error || "Void failed");
+                                      }
+                                    } catch (e) {
+                                      toast.error("Void failed");
+                                    }
+                                  }}
+                                  className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-[10px] font-bold cursor-pointer"
+                                >
+                                  Void
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}

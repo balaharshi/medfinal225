@@ -9,6 +9,27 @@ import { DEFAULT_HEALTHCARE_SERVICE_IMAGE, resolveHealthcareServiceImage } from 
 import { HealthcareService } from '../types';
 import { formatAedWhole } from '../utils/money';
 
+const getServiceAttributeValue = (srv: HealthcareService, label: string) => {
+  const attributes = srv.attributes;
+  if (Array.isArray(attributes)) {
+    return attributes.find((item: any) => item.label === label)?.value;
+  }
+  if (attributes && typeof attributes === 'object') {
+    const key = label.replace(/[^a-zA-Z0-9]+(.)/g, (_, char) => char.toUpperCase()).replace(/^[A-Z]/, (char) => char.toLowerCase());
+    const snakeKey = label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    return (attributes as Record<string, any>)[key] || (attributes as Record<string, any>)[snakeKey] || (attributes as Record<string, any>)[label];
+  }
+  return undefined;
+};
+
+const hasExtraDetails = (srv: HealthcareService) =>
+  ['Key Ingredients', 'Clinical Benefits', 'Disclaimer'].some(label => getServiceAttributeValue(srv, label)) ||
+  Boolean(srv.fullDescription && srv.fullDescription !== srv.description) ||
+  Boolean(srv.inclusions?.length) ||
+  Boolean(srv.preparationInstructions) ||
+  Boolean(srv.whoIsItFor) ||
+  Boolean(srv.availability);
+
 interface ProductsSectionProps {
   onServiceSelect: (title: string, price: number) => void;
   onServiceEnquire?: (title: string) => void;
@@ -178,14 +199,16 @@ export default function ProductsSection({
                       <p className="text-[11px] sm:text-[10px] text-slate-500 line-clamp-2 leading-relaxed min-h-[26px]">
                         {srv.description}
                       </p>
-                      <button
-                        type="button"
-                        onClick={() => onViewDetails?.(srv)}
-                        className="mt-2 inline-flex items-center gap-1 text-[9px] font-extrabold text-medical-green hover:underline cursor-pointer"
-                      >
-                        <Eye className="w-3 h-3" />
-                        <span>View Details</span>
-                      </button>
+                      {hasExtraDetails(srv) && (
+                        <button
+                          type="button"
+                          onClick={() => onViewDetails?.(srv)}
+                          className="mt-2 inline-flex items-center gap-1 text-[9px] font-extrabold text-medical-green hover:underline cursor-pointer"
+                        >
+                          <Eye className="w-3 h-3" />
+                          <span>View Details</span>
+                        </button>
+                      )}
                     </div>
 
                     {/* Service Price & Action Call footer */}

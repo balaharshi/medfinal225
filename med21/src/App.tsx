@@ -969,14 +969,16 @@ function MainApp() {
         </div>
         <h3 className="text-base font-extrabold text-blue-950 mt-0.5 leading-snug line-clamp-2">{srv.title}</h3>
         <p className="text-xs text-slate-500 mt-2 mb-4 line-clamp-3 min-h-[48px]">{srv.shortDescription || srv.description}</p>
-        <button
-          type="button"
-          onClick={() => setServiceDetails(srv)}
-          className="mb-3 inline-flex items-center gap-1.5 text-xs font-extrabold text-medical-green hover:text-emerald-700 hover:underline cursor-pointer"
-        >
-          <Eye className="w-3.5 h-3.5" />
-          <span>View Details</span>
-        </button>
+        {hasExtraDetails(srv) && (
+          <button
+            type="button"
+            onClick={() => setServiceDetails(srv)}
+            className="mb-3 inline-flex items-center gap-1.5 text-xs font-extrabold text-medical-green hover:text-emerald-700 hover:underline cursor-pointer"
+          >
+            <Eye className="w-3.5 h-3.5" />
+            <span>View Details</span>
+          </button>
+        )}
         {(srv.bookingNotice) && (
           <div className="space-y-1 mb-3">
             {srv.bookingNotice && (

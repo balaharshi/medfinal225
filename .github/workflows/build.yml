@@ -17,13 +17,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: npm
           cache-dependency-path: med21/package-lock.json
 
       - name: Install frontend dependencies
         working-directory: med21
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Build frontend
         working-directory: med21
@@ -52,13 +52,11 @@ jobs:
           extensions: mbstring, xml, ctype, json, bcmath, pdo, mysql
           coverage: none
 
-      - name: Validate composer.json
+      - name: Update dependencies and validate
         working-directory: med21-laravel
-        run: composer validate --no-check-all --no-check-publish
-
-      - name: Install dependencies
-        working-directory: med21-laravel
-        run: composer install --prefer-dist --no-progress
+        run: |
+          composer update --prefer-dist --no-interaction
+          composer validate --no-check-all --no-check-publish
 
       - name: Check syntax
         working-directory: med21-laravel

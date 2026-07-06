@@ -1432,16 +1432,135 @@ Accept: application/json
 
 | Scenario | Transaction Type | Prerequisite |
 |----------|------------------|--------------|
-| 1. Purchase | PURCHASE | None |
-| 2. Authorized | AUTH | None |
-| 3. Failure | PURCHASE | None |
-| 4. Capture | AUTH → CAPTURE | Scenario 2 |
-| 5. Partial Capture | AUTH → PARTIAL CAPTURE | Scenario 2 |
-| 6. Partial Refund | PURCHASE → PARTIAL REFUND | Scenario 1 |
-| 7. Full Refund | PURCHASE → FULL REFUND | Scenario 1 |
-| 8. Void Auth | AUTH → VOID | Scenario 2 |
-| 9. Void Capture | AUTH → CAPTURE → REVERSE | Scenario 4 |
-| 10. Void Refund | PURCHASE → REFUND → CANCEL | Scenario 6 or 7 |
+| 1. AUTH Transaction | AUTH | None |
+| 2. AUTH → Partial Capture | AUTH → CAPTURE | Scenario 1 |
+| 3. AUTH → Full Capture | AUTH → CAPTURE | Scenario 1 |
+| 4. Failure Transaction | PURCHASE | None |
+| 5. Void Authorization | AUTH → VOID | Scenario 1 |
+| 6. Partial Refund | CAPTURE → REFUND | Scenario 3 |
+| 7. Full Refund | CAPTURE → REFUND | Scenario 3 |
+| 8. Void Capture | CAPTURE → REVERSE | Scenario 3 |
+| 9. Void Refund | REFUND → CANCEL | Scenario 6 or 7 |
+
+---
+
+## NOTE FOR AI ASSISTANT (OpenCode)
+
+**When helping Bala execute this testing:**
+
+### Prerequisites to Check First
+
+1. **Verify server configuration:**
+   ```bash
+   # Check if ENBD credentials are configured
+   ssh into staging server
+   cat .env | grep ENBD
+   # ENBDPAY_MOCK must be false
+   # ENBDPAY_USERNAME and ENBDPAY_API_KEY must have values
+   # ENBDPAY_TRANSACTION_TYPE must be AUTH (not PURCHASE)
+   ```
+
+2. **Verify IP is whitelisted:**
+   ```bash
+   curl -X POST https://enbduat-acquiring-apigw.creditpluspinelabs.com/v1/apis/tokens \
+     -H "Content-Type: application/json" \
+     -d '{"username":"YOUR_USERNAME","apiKey":"YOUR_API_KEY"}'
+   # Should return a token, not 403 error
+   ```
+
+3. **Get test card details from ENBD** before starting any testing.
+
+### Testing Order (Follow This Sequence)
+
+1. **First:** Test Scenario 1 (AUTH Transaction) - verify basic AUTH works
+2. **Then:** Test Scenario 2 (AUTH → Partial Capture) - this is MedZiva's main flow
+3. **Then:** Test Scenario 3 (AUTH → Full Capture) - after 24 hours flow
+4. **Then:** Test Scenario 5 (Void Authorization) - cancel within 24 hours
+5. **Then:** Test Scenario 4 (Failure Transaction) - test error handling
+6. **Last:** Test Scenarios 6-9 (Refund/Void) - only if needed
+
+### Common Issues to Watch For
+
+1. **If token endpoint returns 403:** IP not whitelisted. Contact ENBD.
+2. **If Capture returns error:** Check if transactionType is AUTH, not PURCHASE.
+3. **If Mock mode is on:** Change ENBDPAY_MOCK=false in .env and run `php artisan config:cache`.
+
+### Commands to Help Bala
+
+**Check current configuration:**
+```bash
+cd /path/to/med21-laravel
+cat .env | grep -E "ENBDPAY_(MOCK|USERNAME|API_KEY|TRANSACTION_TYPE)"
+```
+
+**Fix configuration if needed:**
+```bash
+# Edit .env file
+nano .env
+
+# Change these values:
+# ENBDPAY_MOCK=false
+# ENBDPAY_TRANSACTION_TYPE=AUTH
+# ENBDPAY_USERNAME=<from ENBD welcome kit>
+# ENBDPAY_API_KEY=<from ENBD welcome kit>
+
+# Clear cache
+php artisan config:cache
+```
+
+**Test token endpoint:**
+```bash
+curl -v -X POST https://enbduat-acquiring-apigw.creditpluspinelabs.com/v1/apis/tokens \
+  -H "Content-Type: application/json" \
+  -d '{"username":"YOUR_USERNAME","apiKey":"YOUR_API_KEY"}'
+```
+
+**Run Scenario 1 (Create AUTH):**
+```bash
+curl -X POST https://staging.medzivahealthcare.com/api/payments/enbd/create \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "bookingId": "1",
+    "amount": 100,
+    "transactionType": "AUTH",
+    "customer": {
+      "fullName": "Test Customer",
+      "email": "test@example.com",
+      "phone": "500000000"
+    }
+  }'
+```
+
+**Run Scenario 2 (Partial Capture):**
+```bash
+curl -X POST https://staging.medzivahealthcare.com/api/payments/enbd/capture \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "transactionUtr": "TRANSACTION_ID_FROM_SCENARIO_1",
+    "amount": 30
+  }'
+```
+
+**Run Scenario 5 (Void Auth):**
+```bash
+curl -X POST https://staging.medzivahealthcare.com/api/payments/enbd/void/auth \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "transactionUtr": "TRANSACTION_ID_FROM_SCENARIO_1"
+  }'
+```
+
+### What to Tell ENBD After Testing
+
+Once all scenarios pass, provide ENBD with:
+
+1. **Transaction IDs** from each scenario
+2. **Status values** for each transaction
+3. **Confirmation** that AUTH → Partial Capture flow works
+4. **Request** to proceed with Production Onboarding
 
 ---
 

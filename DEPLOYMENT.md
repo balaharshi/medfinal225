@@ -61,6 +61,46 @@
 Edit `deploy.sh` and replace:
 - `YOUR_GODADDY_SSH_USER` with your actual SSH username
 
+### 6. Secure Staging Site (HTTP Basic Auth)
+
+**Why:** Anyone who types `staging.medzivahealthcare.com` can see it. Customers might find it, Google might index it, and test data could be exposed.
+
+**How to set up (GoDaddy cPanel):**
+
+1. Go to cPanel → **Security** → **Password Protect Directories**
+2. Click **Web Root** (or navigate to `/staging`)
+3. Click **Staging** folder (or create it if prompted)
+4. Check **"Password protect this directory"**
+5. Name it: `Staging - Authorized Access Only`
+6. Click **Save**
+7. Scroll down to **"Create User"**
+8. Enter a username (e.g., `staging-admin`)
+9. Enter a strong password (different from your production admin password)
+10. Click **Add/Modify Authorized User**
+
+**What happens:** When anyone visits staging.medzivahealthcare.com, a browser popup asks for username/password. They can't see anything until they enter it.
+
+**Also add noindex to prevent Google from indexing staging:**
+
+Create a file called `.htaccess` in `/staging/` with this content:
+
+```apache
+# Block search engines from indexing staging
+<IfModule mod_headers.c>
+    Header set X-Robots-Tag "noindex, nofollow"
+</IfModule>
+
+# Password protection (GoDaddy may add this automatically)
+AuthType Basic
+AuthName "Staging - Authorized Access Only"
+AuthUserFile /home/YOUR_GODADDY_USERNAME/.htpasswd
+Require valid-user
+```
+
+Replace `YOUR_GODADDY_USERNAME` with your actual GoDaddy username.
+
+**Share credentials with Bala only. Never give staging password to customers.**
+
 ## Deployment Workflow
 
 ### Making Changes (Day-to-Day)

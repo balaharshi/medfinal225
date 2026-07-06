@@ -54,6 +54,16 @@ GoDaddy Server
 
 **IMPORTANT:** Staging and production are completely separate. Testing on staging NEVER affects the live site.
 
+```
+╔══════════════════════════════════════════════════════════════╗
+║  ⚠️  STAGING IS PASSWORD PROTECTED                          ║
+║                                                              ║
+║  staging.medzivahealthcare.com requires a username/password ║
+║  Only you and Bala should know these credentials            ║
+║  NEVER give the staging password to customers               ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
 ---
 
 ## The Golden Rule
@@ -136,6 +146,24 @@ GoDaddy Server
 
 7. Exit SSH:
    exit
+```
+
+**Step 6: Lock Down Staging (IMPORTANT!)**
+```
+staging.medzivahealthcare.com is OPEN to anyone who types the URL.
+You MUST set up a password so customers can't see test data.
+
+How to do it (2 minutes):
+1. GoDaddy cPanel → Security → Password Protect Directories
+2. Navigate to /staging folder
+3. Check "Password protect this directory"
+4. Name it: Staging - Authorized Access Only
+5. Click Save
+6. Create a username and password (use a STRONG password)
+7. Click Add/Modify Authorized User
+
+Now when anyone visits staging, a popup asks for username/password.
+Only you and Bala should know this password. NEVER share it with customers.
 ```
 
 ### Every Time You Make a Change

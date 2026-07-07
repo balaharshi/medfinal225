@@ -8,14 +8,42 @@ import { X, Calendar, Clock, Check, User, Phone, Mail, Award, CheckCircle2, Shie
 import { HEALTHCARE_SERVICES, SERVICE_CATEGORIES } from '../data';
 import toast from 'react-hot-toast';
 import { createEnbdpayCheckout } from '../services/enbdpay';
+import PhoneInput from './PhoneInput';
 import { createBooking } from '../services/bookings';
 import { formatAedWhole } from '../utils/money';
+
+const TIME_SLOTS = [
+  { label: '12:00 AM - 02:00 AM', startHour: 0, startMin: 0 },
+  { label: '02:00 AM - 04:00 AM', startHour: 2, startMin: 0 },
+  { label: '04:00 AM - 06:00 AM', startHour: 4, startMin: 0 },
+  { label: '06:00 AM - 08:00 AM', startHour: 6, startMin: 0 },
+  { label: '08:00 AM - 10:00 AM', startHour: 8, startMin: 0 },
+  { label: '10:00 AM - 12:00 PM', startHour: 10, startMin: 0 },
+  { label: '12:00 PM - 02:00 PM', startHour: 12, startMin: 0 },
+  { label: '02:00 PM - 04:00 PM', startHour: 14, startMin: 0 },
+  { label: '04:00 PM - 06:00 PM', startHour: 16, startMin: 0 },
+  { label: '06:00 PM - 08:00 PM', startHour: 18, startMin: 0 },
+  { label: '08:00 PM - 10:00 PM', startHour: 20, startMin: 0 },
+  { label: '10:00 PM - 12:00 AM', startHour: 22, startMin: 0 },
+] as const;
+
+const TIME_SLOTS_3HR = [
+  { label: '12:00 AM - 03:00 AM', startHour: 0, startMin: 0 },
+  { label: '03:00 AM - 06:00 AM', startHour: 3, startMin: 0 },
+  { label: '06:00 AM - 09:00 AM', startHour: 6, startMin: 0 },
+  { label: '09:00 AM - 12:00 PM', startHour: 9, startMin: 0 },
+  { label: '12:00 PM - 03:00 PM', startHour: 12, startMin: 0 },
+  { label: '03:00 PM - 06:00 PM', startHour: 15, startMin: 0 },
+  { label: '06:00 PM - 09:00 PM', startHour: 18, startMin: 0 },
+  { label: '09:00 PM - 12:00 AM', startHour: 21, startMin: 0 },
+] as const;
 
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
   preselectedServiceTitle?: string;
   preselectedPrice?: number;
+  isLabTest?: boolean;
   loggedInUser?: string | null;
   loggedInUserEmail?: string;
   loggedInUserPhone?: string;
@@ -28,6 +56,7 @@ export default function BookingModal({
   onClose,
   preselectedServiceTitle = '',
   preselectedPrice = 0,
+  isLabTest = false,
   loggedInUser = null,
   loggedInUserEmail = '',
   loggedInUserPhone = '',
@@ -42,7 +71,8 @@ export default function BookingModal({
   const [email, setEmail] = useState('');
   const [service, setService] = useState(preselectedServiceTitle || HEALTHCARE_SERVICES[0].title);
   const [date, setDate] = useState('');
-  const [time, setTime] = useState('09:00 AM - 10:00 AM (Morning)');
+  const [time, setTime] = useState(TIME_SLOTS[0].label);
+  const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
   const [refId, setRefId] = useState('');
   const [assignedClinician, setAssignedClinician] = useState('');
@@ -83,31 +113,45 @@ export default function BookingModal({
     }
   }, [isOpen, preselectedServiceTitle]);
 
+  const isToday = date === new Date().toISOString().split('T')[0];
+
+  const activeServiceObj = HEALTHCARE_SERVICES.find(s => s.title === service);
+  const activeTimeSlots = activeServiceObj?.id === 'srv-generic-nurse' ? TIME_SLOTS_3HR : TIME_SLOTS;
+
+  const leadTimeHours = activeServiceObj?.leadTimeHours ?? 12;
+
+  const availableSlots = isToday
+    ? activeTimeSlots.filter(slot => {
+        const now = new Date();
+        const slotTime = new Date();
+        slotTime.setHours(slot.startHour, slot.startMin, 0, 0);
+        const diffMs = slotTime.getTime() - now.getTime();
+        const diffHours = diffMs / (1000 * 60 * 60);
+        return diffHours >= leadTimeHours;
+      })
+    : activeTimeSlots;
+
+  useEffect(() => {
+    if (availableSlots.length === 0) return;
+    if (!availableSlots.some(s => s.label === time)) {
+      setTime(availableSlots[0].label);
+    }
+  }, [date, availableSlots, time]);
+
   const servicesList = HEALTHCARE_SERVICES.map(s => ({ id: s.id, title: s.title, price: s.price }));
 
-  const handleMobileChange = (val: string) => {
-    const cleanVal = val.replace(/\D/g, '');
-    if (cleanVal.length <= 9) {
-      setMobileNine(cleanVal);
-      const combined = cleanVal ? `+971 ${cleanVal}` : '';
-      setPhone(combined);
-      
-      if (cleanVal.length === 0) {
-        setMobileError('');
-      } else if (cleanVal.length === 9) {
-        setMobileError('');
-      } else {
-        setMobileError('UAE mobile number must be exactly 9 digits');
-      }
-    }
+  const handlePhoneChange = (fullNumber: string) => {
+    setPhone(fullNumber);
+    setMobileNine(fullNumber.replace(/\D/g, '').replace(/^971/, ''));
+    setMobileError('');
   };
 
   // Find price of selected service
-  const activeServiceObj = HEALTHCARE_SERVICES.find(s => s.title === service);
   const basePrice = activeServiceObj ? activeServiceObj.price : preselectedPrice || 250;
+  const collectionFee = isLabTest && basePrice < 1000 ? 150 : 0;
   const [promoDiscount, setPromoDiscount] = useState(0);
   const roundedDiscount = Math.round(promoDiscount);
-  const activePrice = Math.round(basePrice - promoDiscount);
+  const activePrice = Math.round(basePrice + collectionFee - promoDiscount);
 
   const applyPromoCode = async () => {
     const normalizedCode = promoCode.trim().toUpperCase();
@@ -155,12 +199,9 @@ export default function BookingModal({
       newErrors.patientName = 'Customer full name is required';
     }
     
-    if (!mobileNine) {
+    if (!phone) {
       newErrors.mobileNine = 'Mobile contact number is required';
       setMobileError('Mobile contact number is required');
-    } else if (mobileNine.length !== 9) {
-      newErrors.mobileNine = 'UAE mobile number must be exactly 9 digits';
-      setMobileError('UAE mobile number must be exactly 9 digits');
     }
 
     if (!email.trim()) {
@@ -171,6 +212,10 @@ export default function BookingModal({
 
     if (!date) {
       newErrors.date = 'Preferred dispatch date is required';
+    }
+
+    if (!address.trim()) {
+      newErrors.address = 'Home/apartment address is required';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -199,7 +244,7 @@ export default function BookingModal({
         region,
         status: 'Pending',
         paymentStatus: 'Unpaid',
-        notes,
+        notes: notes ? `Address: ${address}\n${notes}` : `Address: ${address}`,
       });
       const checkout = await createEnbdpayCheckout({
         amount: activePrice,
@@ -211,7 +256,7 @@ export default function BookingModal({
           fullName: patientName,
           email,
           phone,
-          address: notes || 'Dubai',
+          address,
         },
       });
       toast.dismiss('enbdpay-booking');
@@ -232,6 +277,7 @@ export default function BookingModal({
     setMobileError('');
     setEmail('');
     setDate('');
+    setAddress('');
     setNotes('');
     setFormErrors({});
     setPromoCode('');
@@ -328,29 +374,12 @@ export default function BookingModal({
                     Mobile Number <span className="text-red-600">*</span>
                   </label>
                   <div className="relative flex flex-col">
-                    <div className="relative flex items-center">
-                      <span className="absolute left-4.5 text-xs font-extrabold text-slate-500 select-none border-r border-slate-200 pr-3 mr-3.5">
-                        +971
-                      </span>
-                      <input
-                        type="tel"
-                        required
-                        maxLength={9}
-                        placeholder="50 123 4567"
-                        value={mobileNine}
-                        onChange={(e) => {
-                          handleMobileChange(e.target.value);
-                          if (formErrors.mobileNine) {
-                            setFormErrors(prev => ({ ...prev, mobileNine: '' }));
-                          }
-                        }}
-                        className={`w-full text-xs border rounded-xl p-3 pl-18 focus:outline-hidden focus:ring-1 ${
-                          mobileError || formErrors.mobileNine
-                            ? 'border-red-500 focus:ring-red-500 bg-red-50/5' 
-                            : 'border-slate-200 focus:ring-emerald-500'
-                        }`}
-                      />
-                    </div>
+                    <PhoneInput
+                      value={phone}
+                      onChange={handlePhoneChange}
+                      error={mobileError || formErrors.mobileNine}
+                      required
+                    />
                     {(mobileError || formErrors.mobileNine) && (
                       <p className="text-[10px] font-semibold text-red-600 mt-1 flex items-center gap-1">
                         <span>⚠️</span> {mobileError || formErrors.mobileNine}
@@ -395,7 +424,6 @@ export default function BookingModal({
                 >
                   <option value="Dubai">Dubai</option>
                   <option value="Sharjah">Sharjah</option>
-                  <option value="Abu Dhabi">Abu Dhabi</option>
                 </select>
               </div>
 
@@ -436,14 +464,36 @@ export default function BookingModal({
                     onChange={(e) => setTime(e.target.value)}
                     className="w-full text-xs border border-slate-200 rounded-xl p-3 bg-white focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
                   >
-                    <option>08:00 AM - 09:30 AM (Early Morning)</option>
-                    <option>10:00 AM - 11:30 AM (Pre Noon)</option>
-                    <option>12:30 PM - 02:00 PM (Afternoon)</option>
-                    <option>03:00 PM - 04:30 PM (Late Afternoon)</option>
-                    <option>05:30 PM - 07:00 PM (Evening)</option>
-                    <option>08:00 PM - 09:30 PM (Night Shift)</option>
+                    {availableSlots.map((slot) => (
+                      <option key={slot.label} value={slot.label}>
+                        {slot.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
+              </div>
+
+              {/* Address */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-600">Home/Apartment Address (Dubai) <span className="text-red-600">*</span></label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Villa 24, Jasmine District, Dubai Marina, Dubai, UAE"
+                  value={address}
+                  onChange={(e) => {
+                    setAddress(e.target.value);
+                    if (formErrors.address) {
+                      setFormErrors(prev => ({ ...prev, address: '' }));
+                    }
+                  }}
+                  className={`w-full text-xs border rounded-xl p-3 focus:outline-hidden focus:ring-1 ${
+                    formErrors.address ? 'border-red-500 focus:ring-red-500 bg-red-50/5' : 'border-slate-200 focus:ring-emerald-500'
+                  }`}
+                />
+                {formErrors.address && (
+                  <p className="text-[10px] font-semibold text-red-600 mt-1">{formErrors.address}</p>
+                )}
               </div>
 
               {/* Medical notes description text */}
@@ -496,6 +546,12 @@ export default function BookingModal({
 
               {/* Price representation */}
               <div className="pt-2 border-t border-slate-100 space-y-2">
+                {collectionFee > 0 && (
+                  <div className="flex justify-between text-xs text-amber-600">
+                    <span className="font-bold">Home Collection Fee</span>
+                    <span className="font-bold">AED {formatAedWhole(collectionFee)}</span>
+                  </div>
+                )}
                 {roundedDiscount > 0 && (
                   <div className="flex justify-between text-xs text-medical-green">
                     <span className="font-bold">Promo discount</span>
@@ -578,9 +634,17 @@ export default function BookingModal({
                 </div>
 
                 {/* Cost segment */}
-                <div className="pt-3.5 flex justify-between items-baseline text-sm">
-                  <span className="font-bold text-slate-500">Consultation Fee Paid</span>
-                  <span className="text-base font-black text-emerald-600">AED {formatAedWhole(activePrice)}</span>
+                <div className="pt-3.5 space-y-2">
+                  {collectionFee > 0 && (
+                    <div className="flex justify-between text-[11px] text-amber-600">
+                      <span>Home Collection Fee</span>
+                      <span>AED {formatAedWhole(collectionFee)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-baseline text-sm">
+                    <span className="font-bold text-slate-500">Total Paid</span>
+                    <span className="text-base font-black text-emerald-600">AED {formatAedWhole(activePrice)}</span>
+                  </div>
                 </div>
 
               </div>

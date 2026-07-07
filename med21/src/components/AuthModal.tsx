@@ -4,8 +4,9 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { X, Mail, Lock, User, Sparkles } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { X, Mail, Lock, User, Sparkles, Phone } from 'lucide-react';
+import { useForm, Controller } from 'react-hook-form';
+import PhoneInput from './PhoneInput';
 import toast from 'react-hot-toast';
 
 const newlogo = '/newlogo.png';
@@ -26,6 +27,7 @@ interface AuthModalProps {
 interface AuthFormValues {
   fullName: string;
   email: string;
+  phone: string;
   password: string;
   acceptedTerms: boolean;
 }
@@ -45,6 +47,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
   const {
     register,
     handleSubmit,
+    control,
     reset,
     formState: { errors },
   } = useForm<AuthFormValues>({
@@ -52,6 +55,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     defaultValues: {
       fullName: '',
       email: '',
+      phone: '',
       password: '',
       acceptedTerms: true,
     },
@@ -113,7 +117,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
   const getFriendlyAuthError = (data: any, signingUp: boolean) => {
     const message = String(data?.error || '').toLowerCase();
     if (message.includes('email is already registered')) {
-      return 'This email is already registered. Please use Customer login instead.';
+      return 'This email is already registered. Please use Login instead.';
     }
     if (message.includes('validation')) {
       return signingUp
@@ -145,6 +149,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             ? {
                 fullName: values.fullName.trim(),
                 email: values.email.trim(),
+                phone: values.phone.trim(),
                 password: values.password,
               }
             : {
@@ -327,10 +332,10 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                 Home healthcare made simple
               </span>
               <h2 className="text-2xl lg:text-3xl font-black leading-tight">
-                Secure access to your MedZiva care profile.
+                Your healthcare, one step away.
               </h2>
               <p className="max-w-sm text-sm font-medium leading-relaxed text-white/80">
-                Book visits, manage appointments, and continue with your saved healthcare history.
+                Book home visits, lab tests, and equipment rentals — all in one place.
               </p>
             </div>
           </div>
@@ -357,14 +362,14 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                 <span>
                   {authView === 'forgot' && 'Reset Your Password'}
                   {authView === 'reset' && 'Enter Reset Code'}
-                  {authView === 'login' && (isSignUp ? 'Create MedZiva Profile' : 'Sign in to MedZiva')}
+                    {authView === 'login' && (isSignUp ? 'Create MedZiva Account' : 'Sign in to MedZiva')}
                 </span>
                 <Sparkles className="w-5 h-5 text-emerald-400" />
               </h3>
               <p className="text-gray-500 text-xs sm:text-[13px]">
                 {authView === 'forgot' && 'Enter your email to receive a password reset code.'}
                 {authView === 'reset' && 'Enter the code sent to your email and choose a new password.'}
-                {authView === 'login' && (isSignUp ? 'Vetted home support visits await your dispatch.' : 'Access healthcare checkups and purchase history.')}
+                    {authView === 'login' && (isSignUp ? 'Join thousands of happy MedZiva customers.' : 'Book home healthcare services in minutes.')}
               </p>
             </div>
           </div>
@@ -512,7 +517,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                 !isSignUp ? 'text-medical-green border-b-2 border-medical-green pb-1' : 'text-slate-400 hover:text-slate-600'
               }`}
             >
-              Customer login
+              Login
             </button>
             <button
               type="button"
@@ -521,7 +526,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                 isSignUp ? 'text-medical-green border-b-2 border-medical-green pb-1' : 'text-slate-400 hover:text-slate-600'
               }`}
             >
-              Create Customer Login
+              Sign Up
             </button>
           </div>
 
@@ -541,6 +546,30 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
               />
               {errors.fullName && (
                 <p className="text-[10px] font-semibold text-red-600">{errors.fullName.message}</p>
+              )}
+            </div>
+          )}
+
+          {isSignUp && (
+            <div className="space-y-1 text-left">
+              <label className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+                <Phone className="w-3.5 h-3.5 text-slate-400" />
+                Mobile Number <span className="text-red-600">*</span>
+              </label>
+              <Controller
+                name="phone"
+                control={control}
+                rules={{ validate: (v) => !isSignUp || (v && v.trim().length > 0) || 'Mobile number is required' }}
+                render={({ field }) => (
+                  <PhoneInput
+                    value={field.value || ''}
+                    onChange={field.onChange}
+                    error={errors.phone?.message}
+                  />
+                )}
+              />
+              {errors.phone && (
+                <p className="text-[10px] font-semibold text-red-600">{errors.phone.message}</p>
               )}
             </div>
           )}
@@ -599,30 +628,17 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             </div>
           )}
 
-          <div className="flex items-start gap-2 pt-1 text-[10.5px] text-slate-400 text-left">
-            <input
-              type="checkbox"
-              id="accepted-privacy-checkbox"
-              {...register('acceptedTerms', {
-                validate: (value) => value || 'You must accept the terms to continue',
-              })}
-              className="mt-0.5 rounded border-slate-200 text-emerald-600 focus:ring-emerald-500"
-            />
-            <label htmlFor="accepted-privacy-checkbox" className="leading-snug">
-              I certify that all details submitted correspond to valid DHA regulations, and I consent to the storage of my medical appointments inside MedZiva. <span className="text-red-600">*</span>
-            </label>
-          </div>
-          {errors.acceptedTerms && (
-            <p className="text-[10px] font-semibold text-red-600 -mt-2">{errors.acceptedTerms.message}</p>
-          )}
-
           <button
             type="submit"
             disabled={authLoading}
             className="w-full bg-[#10B981] hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl text-xs tracking-wider transition-all mt-2 cursor-pointer shadow-md text-center"
           >
-            {authLoading ? 'PROCESSING...' : isSignUp ? 'REGISTER MEDZIVA MEMBERSHIP' : 'SIGN IN SECURELY'}
+            {authLoading ? 'Processing...' : isSignUp ? 'Create Account' : 'Login'}
           </button>
+
+          <p className="text-[10px] text-slate-400 text-center leading-snug mt-2">
+            By clicking {isSignUp ? 'Create Account' : 'Login'}, I certify that all details submitted are accurate and I consent to MedZiva's <span className="text-emerald-600 font-semibold cursor-pointer hover:underline">Terms &amp; Conditions</span>.
+          </p>
 
           <div className="flex items-center gap-3">
             <div className="h-px flex-1 bg-slate-100" />

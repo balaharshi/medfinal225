@@ -45,10 +45,18 @@ const homeHealthcareImageAliases: Record<string, string> = {
   'SURGERY RECOVERY IV THERAPY': 'IV antibiotics at home (with Dr Prescription)',
 };
 
-const LAB_TESTS_AT_HOME_SERVICES_WITH_LOCAL_IMAGES = (LAB_TESTS_AT_HOME_SERVICES as HealthcareService[]).map((service) => ({
-  ...service,
-  image: labTestsAtHomeImages[`./assets/images/lab-tests-at-home/${service.id}.jpg`] || service.image,
-}));
+const LAB_TESTS_TO_EXCLUDE_FROM_ROUTINE = new Set([
+  'srv-lab-home-complete-blood-count-cbc-with-differential',
+  'srv-lab-home-fasting-blood-sugar-fbs',
+  'srv-lab-home-hba1c-glycated-hemoglobin',
+]);
+
+const LAB_TESTS_AT_HOME_SERVICES_WITH_LOCAL_IMAGES = (LAB_TESTS_AT_HOME_SERVICES as HealthcareService[])
+  .filter((service) => !LAB_TESTS_TO_EXCLUDE_FROM_ROUTINE.has(service.id))
+  .map((service) => ({
+    ...service,
+    image: labTestsAtHomeImages[`./assets/images/lab-tests-at-home/${service.id}.jpg`] || service.image,
+  }));
 
 const getHomeHealthcareImageKey = (title: string) => {
   const normalizedTitle = title.replace(/&amp;/gi, '&').replace(/\s+/g, ' ').trim().toUpperCase();
@@ -151,42 +159,49 @@ const BASE_SERVICE_CATEGORIES: ServiceCategory[] = [
     title: 'Nursing Care at Home',
     image: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400',
     slug: 'home-healthcare',
-    description: 'Nurses providing premium in-home clinical care, wound antiseptic dressing, and support.'
+    description: 'Professional nursing support delivered at the comfort of your home, including routine nurse visits, wound dressing, catheterisation, and prescription-based IV antibiotic administration.'
   },
   {
     id: 'cat-physio',
     title: 'Physiotherapy at Home',
     image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=400',
     slug: 'physiotherapy',
-    description: 'Post-injury physical therapy, joint mobility restoration, and tailored skeletal recovery sessions.'
+    description: 'Professional physiotherapy sessions delivered at the comfort of your home, including rehabilitation support, mobility improvement, pain management, and recovery-focused exercises.'
   },
   {
     id: 'cat-doctor-on-call',
     title: 'Doctor on Call',
     image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400',
     slug: 'doctor-on-call',
-    description: '24/7 in-home primary physician consultations, checks, and on-call hotel dispatches in Dubai.'
+    description: 'Convenient medical consultations at your home with qualified doctors providing assessment, advice, treatment guidance, and follow-up care.'
+  },
+  {
+    id: 'cat-long-term-care',
+    title: 'Long-Term / Specialized Care',
+    image: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400',
+    slug: 'long-term-care',
+    description: 'Dedicated nursing support at home for long-term and specialized care needs, including ongoing monitoring, chronic condition management, and personalised patient assistance.'
   },
   {
     id: 'cat-speech',
     title: 'Speech and Language Therapy',
     image: 'https://images.unsplash.com/photo-1531983412531-1f49a365ffed?auto=format&fit=crop&q=80&w=400',
     slug: 'speech-therapy',
-    description: 'Interactive and professional diagnostic testing for children and adult communicational speech issues.'
+    description: 'Specialised therapy at home to support speech, communication, language development, and swallowing difficulties through personalised care plans.'
   },
   {
     id: 'cat-occupational',
     title: 'Occupational Therapy',
     image: 'https://images.unsplash.com/photo-1581594693702-fbdc51b2763b?auto=format&fit=crop&q=80&w=400',
     slug: 'occupational-therapy',
-    description: 'Functional diagnostic profiles helping to promote independent motor skills and daily work activities.'
+    description: 'Personalised therapy at home to improve daily living skills, independence, mobility, and functional abilities through tailored rehabilitation programmes.'
   },
   {
     id: 'cat-iv-therapy',
     title: 'IV Therapy',
     image: 'https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400',
     slug: 'iv-therapy',
-    description: 'Nurse-administered intravenous nutrient drips, energy infusions, and premium age reversal NAD+.'
+    description: 'Professional IV therapy administered at home under medical guidance, offering convenient access to prescribed treatments, hydration support, and wellness infusions.'
   },
   {
     id: 'cat-devices',
@@ -194,6 +209,55 @@ const BASE_SERVICE_CATEGORIES: ServiceCategory[] = [
     image: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=80&w=400',
     slug: 'devices-for-rent',
     description: 'Certified oxygen units, wheelchairs, electronic hospital beds, and clinical mobility lifts on weekly / Monthly.'
+  },
+  {
+    id: 'cat-lab-routine-blood-tests',
+    title: 'Routine Blood Tests',
+    image: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&q=80&w=400',
+    slug: 'routine-blood-tests',
+    description: 'Convenient home-based blood sample collection for routine health checks, diagnostic testing, and regular monitoring with reliable laboratory support.'
+  },
+  {
+    id: 'cat-lab-preventive-health-packages',
+    title: 'Preventive Health Packages',
+    image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=400',
+    slug: 'preventive-health-packages',
+    description: 'Comprehensive health screening packages designed for early detection, wellness monitoring, and proactive management of your overall health.'
+  },
+  {
+    id: 'cat-lab-mens-health-packages',
+    title: "Men's Health Packages",
+    image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&q=80&w=400',
+    slug: 'mens-health-packages',
+    description: "Specialised health screening packages designed to support men's wellness, including preventive care, early detection, and monitoring of key health conditions."
+  },
+  {
+    id: 'cat-lab-womens-health-packages',
+    title: "Women's Health Packages",
+    image: 'https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=400',
+    slug: 'womens-health-packages',
+    description: "Comprehensive health screening packages designed to support women's wellness, preventive care, early detection, and monitoring of key health needs."
+  },
+  {
+    id: 'cat-lab-std-sexual-health',
+    title: 'STD / Sexual Health',
+    image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=400',
+    slug: 'std-sexual-health',
+    description: 'Confidential testing and screening services for sexually transmitted infections, supporting early detection, prevention, and informed health management.'
+  },
+  {
+    id: 'cat-lab-specialized-diagnostic-tests',
+    title: 'Specialized Diagnostic Tests',
+    image: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&q=80&w=400',
+    slug: 'specialized-diagnostic-tests',
+    description: 'Advanced diagnostic testing services for accurate detection, specialised health assessments, and personalised care planning.'
+  },
+  {
+    id: 'cat-lab-genetic-testing',
+    title: 'Genetic Testing',
+    image: 'https://images.unsplash.com/photo-1530026405186-ed1f139313f8?auto=format&fit=crop&q=80&w=400',
+    slug: 'genetic-testing',
+    description: 'Advanced genetic testing services to assess inherited conditions, health risks, and personalised insights for informed healthcare decisions.'
   },
   {
     id: 'cat-other-services-medical-tourism',
@@ -224,12 +288,11 @@ const BASE_PRODUCTS: Product[] = [
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
-    description: 'All services provided in UAE except AUH. 12 hours prior booking required.',
+    description: 'Weekly and monthly rental options with listed security deposits.',
     attributes: [
       { label: 'MRP per week', value: 'AED 480' },
       { label: 'MRP per month', value: 'AED 1344' },
       { label: 'Security deposit', value: 'AED 2500' },
-      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -244,12 +307,11 @@ const BASE_PRODUCTS: Product[] = [
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
-    description: 'All services provided in UAE except AUH. 12 hours prior booking required.',
+    description: 'Weekly and monthly rental options with listed security deposits.',
     attributes: [
       { label: 'MRP per week', value: 'AED 660' },
       { label: 'MRP per month', value: 'AED 1848' },
       { label: 'Security deposit', value: 'AED 3000' },
-      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -264,12 +326,11 @@ const BASE_PRODUCTS: Product[] = [
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
-    description: 'All services provided in UAE except AUH. 12 hours prior booking required.',
+    description: 'Weekly and monthly rental options with listed security deposits.',
     attributes: [
       { label: 'MRP per week', value: 'AED 120' },
       { label: 'MRP per month', value: 'AED 336' },
       { label: 'Security deposit', value: 'AED 900' },
-      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -284,12 +345,11 @@ const BASE_PRODUCTS: Product[] = [
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
-    description: 'All services provided in UAE except AUH. 12 hours prior booking required.',
+    description: 'Weekly and monthly rental options with listed security deposits.',
     attributes: [
       { label: 'MRP per week', value: 'AED 300' },
       { label: 'MRP per month', value: 'AED 840' },
       { label: 'Security deposit', value: 'AED 2000' },
-      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -304,12 +364,11 @@ const BASE_PRODUCTS: Product[] = [
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
-    description: 'All services provided in UAE except AUH. 12 hours prior booking required.',
+    description: 'Weekly and monthly rental options with listed security deposits.',
     attributes: [
       { label: 'MRP per week', value: 'AED 360' },
       { label: 'MRP per month', value: 'AED 1008' },
       { label: 'Security deposit', value: 'AED 1500' },
-      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -324,12 +383,11 @@ const BASE_PRODUCTS: Product[] = [
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
-    description: 'All services provided in UAE except AUH. 12 hours prior booking required.',
+    description: 'Weekly and monthly rental options with listed security deposits.',
     attributes: [
       { label: 'MRP per week', value: 'AED 960' },
       { label: 'MRP per month', value: 'AED 2688' },
       { label: 'Security deposit', value: 'AED 3000' },
-      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -344,12 +402,11 @@ const BASE_PRODUCTS: Product[] = [
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
-    description: 'All services provided in UAE except AUH. 12 hours prior booking required.',
+    description: 'Weekly and monthly rental options with listed security deposits.',
     attributes: [
       { label: 'MRP per week', value: 'AED 780' },
       { label: 'MRP per month', value: 'AED 2184' },
       { label: 'Security deposit', value: 'AED 2500' },
-      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -364,12 +421,11 @@ const BASE_PRODUCTS: Product[] = [
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
-    description: 'All services provided in UAE except AUH. 12 hours prior booking required.',
+    description: 'Weekly and monthly rental options with listed security deposits.',
     attributes: [
       { label: 'MRP per week', value: 'AED 120' },
       { label: 'MRP per month', value: 'AED 336' },
       { label: 'Security deposit', value: 'AED 500' },
-      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -384,12 +440,11 @@ const BASE_PRODUCTS: Product[] = [
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
-    description: 'All services provided in UAE except AUH. 12 hours prior booking required.',
+    description: 'Weekly and monthly rental options with listed security deposits.',
     attributes: [
       { label: 'MRP per week', value: 'AED 180' },
       { label: 'MRP per month', value: 'AED 504' },
       { label: 'Security deposit', value: 'AED 1800' },
-      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -404,12 +459,11 @@ const BASE_PRODUCTS: Product[] = [
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
-    description: 'All services provided in UAE except AUH. 12 hours prior booking required.',
+    description: 'Weekly and monthly rental options with listed security deposits.',
     attributes: [
       { label: 'MRP per week', value: 'AED 240' },
       { label: 'MRP per month', value: 'AED 672' },
       { label: 'Security deposit', value: 'AED 1800' },
-      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -424,12 +478,11 @@ const BASE_PRODUCTS: Product[] = [
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
-    description: 'All services provided in UAE except AUH. 12 hours prior booking required.',
+    description: 'Weekly and monthly rental options with listed security deposits.',
     attributes: [
       { label: 'MRP per week', value: 'AED 420' },
       { label: 'MRP per month', value: 'AED 1176' },
       { label: 'Security deposit', value: 'AED 3000' },
-      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -444,12 +497,11 @@ const BASE_PRODUCTS: Product[] = [
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
-    description: 'All services provided in UAE except AUH. 12 hours prior booking required.',
+    description: 'Weekly and monthly rental options with listed security deposits.',
     attributes: [
       { label: 'MRP per week', value: 'AED 90' },
       { label: 'MRP per month', value: 'AED 252' },
       { label: 'Security deposit', value: 'AED 250' },
-      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
 ];
@@ -467,6 +519,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Expert nursing support brought to you — routine care, recovery assistance, and health monitoring, all in one visit.",
     popular: true,
     bookingNotice: "12 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -488,6 +541,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Precise, hygienic care for minor wounds and small surgical sites — cleaned, dressed, and monitored by a trained nurse to support faster healing and prevent infection.",
     popular: true,
     bookingNotice: "12 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -509,6 +563,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Precise, hygienic care for minor wounds and medium surgical sites — cleaned, dressed, and monitored by a trained nurse to support faster healing and prevent infection.",
     popular: false,
     bookingNotice: "12 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -530,6 +585,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Precise, hygienic care for minor wounds and large surgical sites — cleaned, dressed, and monitored by a trained nurse to support faster healing and prevent infection.",
     popular: false,
     bookingNotice: "12 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -551,6 +607,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Safe, sterile catheter insertion and care delivered in the comfort of your home — performed by a trained clinical nurse with full privacy, dignity, and clinical precision.",
     popular: false,
     bookingNotice: "12 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -572,6 +629,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Complete your antibiotic course from the comfort of home — a qualified nurse administers your prescribed IV treatment safely and efficiently, so you recover without the hospital stay.",
     popular: true,
     bookingNotice: "12 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -593,6 +651,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -614,6 +673,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing patients on ventilator support, tracheostomy, or PEG feeding.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -631,6 +691,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -652,6 +713,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -673,6 +735,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -690,6 +753,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -707,6 +771,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -728,6 +793,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -749,6 +815,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -770,6 +837,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A DHA-licensed nurse dedicated to your care — managing medications, monitoring vitals, and providing professional support through the day or night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -788,6 +856,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -805,6 +874,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -822,6 +892,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -839,6 +910,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -856,6 +928,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -873,6 +946,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -890,6 +964,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -907,6 +982,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Continuous, compassionate support from a live-in caregiver - helping with daily activities, mobility, and wellbeing, day and night.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Doctor Plus Home Healthcare",
@@ -924,6 +1000,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A dedicated hour with a certified physiotherapist to assess, treat, and rehabilitate — helping you move better, recover faster, and live more comfortably.",
     popular: true,
     bookingNotice: "12 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -945,6 +1022,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "A dedicated hour with a certified physiotherapist to assess, treat, and rehabilitate — helping you move better, recover faster, and live more comfortably.",
     popular: false,
     bookingNotice: "12 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
@@ -962,6 +1040,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     category: "doctor-on-call",
     price: 500,
     duration: "30 Min Session",
+    leadTimeHours: 12,
     image: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400",
     description: "A qualified doctor visits you for consultations, diagnosis, and treatment — no waiting rooms, no commute.",
     popular: true,
@@ -982,6 +1061,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     category: "doctor-on-call",
     price: 1000,
     duration: "30 Min Session",
+    leadTimeHours: 12,
     image: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400",
     description: "A qualified doctor brought to your hotel — expert diagnosis and treatment, right where you are in the city.",
     popular: false,
@@ -1006,6 +1086,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Structured sessions addressing speech delays, articulation challenges, and swallowing difficulties — delivered by a qualified speech and language specialist.",
     popular: true,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 24,
     vendorPrices: [
       {
         vendorName: "Ephatha",
@@ -1023,6 +1104,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Practical, goal-driven sessions helping you regain independence in daily tasks — from fine motor skills and cognitive function to adaptive techniques for work, home, and life.",
     popular: true,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
       {
         vendorName: "Ephatha",
@@ -1040,6 +1122,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "This powerful blend of antioxidants and vitamins promotes a radiant complexion by reducing oxidative stress and improving skin health.",
     popular: true,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
     ],
     attributes: {
@@ -1058,6 +1141,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "For those looking to improve the appearance and health of their hair, nails and skin, this drip delivers essential nutrients to promote regeneration and hydration.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
     ],
     attributes: {
@@ -1076,6 +1160,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Supports your metabolism and energy levels with its potent blend of vitamins, minerals and amino acids. Ideal for patients dealing with fatigue, weight management issues or those seeking enhanced athletic performance.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
     ],
     attributes: {
@@ -1094,6 +1179,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Strengthen your immune defenses and ensure optimal hydration with this drip, formulated to help fight infections and promote recovery from illness.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
     ],
     attributes: {
@@ -1112,6 +1198,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Reduces mental fatigue and sharpens focus while promoting relaxation and reducing stress.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
     ],
     attributes: {
@@ -1130,6 +1217,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "This IV drip is designed to improve skin health and reduce acne through a blend of vitamins, minerals and antioxidants that support both skin and gut health.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
     ],
     attributes: {
@@ -1148,6 +1236,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "This drip is specifically designed to support recovery following surgery by providing essential vitamins and amino acids that enhance healing, reduce inflammation and boost overall recovery.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
     ],
     attributes: {
@@ -1166,6 +1255,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "This drip is designed to support women's fertility and reproductive health by improving egg quality, balancing hormones, reducing oxidative stress, and promoting overall reproductive wellness.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
     ],
     attributes: {
@@ -1184,6 +1274,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "This drip is designed to support men's sexual health and vitality by enhancing energy levels, promoting healthy blood flow, supporting testosterone production, and improving overall performance and wellness.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
     ],
     attributes: {
@@ -1202,6 +1293,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Promotes liver health and detoxification with this formula, ideal for those exposed to environmental toxins, medications or poor dietary habits.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
     ],
     attributes: {
@@ -1220,6 +1312,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Perfect for those seeking anti-aging benefits. This NAD+ drip supports cellular regeneration, improves energy levels and promotes overall longevity.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
     ],
     attributes: {
@@ -1238,6 +1331,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Perfect for those seeking anti-aging benefits. This NAD+ drip supports cellular regeneration, improves energy levels and promotes overall longevity.",
     popular: false,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
     ],
     attributes: {
@@ -1256,6 +1350,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     description: "Perfect for those seeking anti-aging benefits. This NAD+ drip supports cellular regeneration, improves energy levels and promotes overall longevity.",
     popular: true,
     bookingNotice: "24 hours prior booking",
+    leadTimeHours: 12,
     vendorPrices: [
     ],
     attributes: {

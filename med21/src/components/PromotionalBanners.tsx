@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Flame, Sparkles, Heart, ArrowRight } from 'lucide-react';
+import { Flame, Sparkles, Heart, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import bloodTestImage from '../assets/images/lab-tests-at-home/srv-lab-home-complete-blood-count-cbc-with-differential.jpg';
 
@@ -39,7 +39,7 @@ export default function PromotionalBanners({
               className="inline-flex items-center gap-2 bg-white text-[#004A3C] hover:bg-emerald-50 font-extrabold text-xs px-6 py-3.5 rounded-xl tracking-wide transition-all shadow-md hover:-translate-y-0.5 active:scale-95 cursor-pointer"
             >
               <span>View All Offers</span>
-              <ArrowRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 

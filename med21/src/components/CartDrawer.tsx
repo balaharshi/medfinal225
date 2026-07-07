@@ -8,6 +8,7 @@ import { createPortal } from 'react-dom';
 import { X, Trash2, Plus, Minus, ShoppingBag, CheckCircle, Calendar, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import toast from 'react-hot-toast';
+import PhoneInput from './PhoneInput';
 import { CartItem } from '../types';
 import ConfirmDialog from './ConfirmDialog';
 import { createEnbdpayCheckout } from '../services/enbdpay';
@@ -28,6 +29,28 @@ interface CartDrawerProps {
   onAuthOpen?: () => void;
 }
 
+const TIME_SLOTS = [
+  { label: '12:00 AM - 02:00 AM', startHour: 0, startMin: 0 },
+  { label: '02:00 AM - 04:00 AM', startHour: 2, startMin: 0 },
+  { label: '04:00 AM - 06:00 AM', startHour: 4, startMin: 0 },
+  { label: '06:00 AM - 08:00 AM', startHour: 6, startMin: 0 },
+  { label: '08:00 AM - 10:00 AM', startHour: 8, startMin: 0 },
+  { label: '10:00 AM - 12:00 PM', startHour: 10, startMin: 0 },
+  { label: '12:00 PM - 02:00 PM', startHour: 12, startMin: 0 },
+  { label: '02:00 PM - 04:00 PM', startHour: 14, startMin: 0 },
+  { label: '04:00 PM - 06:00 PM', startHour: 16, startMin: 0 },
+  { label: '06:00 PM - 08:00 PM', startHour: 18, startMin: 0 },
+  { label: '08:00 PM - 10:00 PM', startHour: 20, startMin: 0 },
+  { label: '10:00 PM - 12:00 AM', startHour: 22, startMin: 0 },
+] as const;
+
+function parseSlotStartTime(slot: { startHour: number; startMin: number }): Date {
+  const now = new Date();
+  const d = new Date(now);
+  d.setHours(slot.startHour, slot.startMin, 0, 0);
+  return d;
+}
+
 export default function CartDrawer({
   isOpen,
   onClose,
@@ -46,7 +69,6 @@ export default function CartDrawer({
   const [patientAddress, setPatientAddress] = useState('');
   const [patientContact, setPatientContact] = useState('');
   const [patientEmail, setPatientEmail] = useState('');
-  const [mobileNine, setMobileNine] = useState('');
   const [mobileError, setMobileError] = useState('');
   const [patientName, setPatientName] = useState('');
   const [orderId, setOrderId] = useState('');
@@ -57,10 +79,27 @@ export default function CartDrawer({
   const [promoError, setPromoError] = useState('');
   const [isPromoLoading, setIsPromoLoading] = useState(false);
   const [promoDiscount, setPromoDiscount] = useState(0);
-  const [countryCode, setCountryCode] = useState('+971');
   const [region, setRegion] = useState('Dubai');
   const [dispatchDate, setDispatchDate] = useState('');
-  const [preferredTimeSlot, setPreferredTimeSlot] = useState('08:00 AM - 09:30 AM (Early Morning)');
+  const [preferredTimeSlot, setPreferredTimeSlot] = useState(TIME_SLOTS[0]);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState(TIME_SLOTS);
+
+  useEffect(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (dispatchDate === todayStr) {
+      const now = new Date();
+      const filtered = TIME_SLOTS.filter(slot => parseSlotStartTime(slot) > now);
+      setAvailableTimeSlots(filtered.length > 0 ? filtered : TIME_SLOTS);
+    } else {
+      setAvailableTimeSlots(TIME_SLOTS);
+    }
+  }, [dispatchDate]);
+
+  useEffect(() => {
+    if (availableTimeSlots.length > 0 && !availableTimeSlots.includes(preferredTimeSlot)) {
+      setPreferredTimeSlot(availableTimeSlots[0]);
+    }
+  }, [availableTimeSlots, preferredTimeSlot]);
 
   useEffect(() => {
     if (isOpen && loggedInUser) {
@@ -70,10 +109,7 @@ export default function CartDrawer({
 
   useEffect(() => {
     if (isOpen && loggedInUserPhone) {
-      const digits = loggedInUserPhone.replace(/\D/g, '');
-      const localDigits = digits.slice(-9);
-      setMobileNine((prev) => prev || localDigits);
-      setPatientContact((prev) => prev || `${countryCode} ${localDigits}`);
+      setPatientContact((prev) => prev || loggedInUserPhone);
     }
   }, [isOpen, loggedInUserPhone]);
 
@@ -136,23 +172,6 @@ export default function CartDrawer({
     setPromoError('');
   };
 
-  const handleMobileChange = (val: string) => {
-    const cleanVal = val.replace(/\D/g, '');
-    if (cleanVal.length <= 9) {
-      setMobileNine(cleanVal);
-      const combined = cleanVal ? `${countryCode} ${cleanVal}` : '';
-      setPatientContact(combined);
-
-      if (cleanVal.length === 0) {
-        setMobileError('');
-      } else if (cleanVal.length === 9) {
-        setMobileError('');
-      } else {
-        setMobileError('UAE mobile number must be exactly 9 digits');
-      }
-    }
-  };
-
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
@@ -171,12 +190,9 @@ export default function CartDrawer({
       newErrors.patientEmail = 'Please enter a valid email address';
     }
 
-    if (!mobileNine) {
+    if (!patientContact) {
       newErrors.mobileNine = 'Mobile contact number is required';
       setMobileError('Mobile contact number is required');
-    } else if (mobileNine.length !== 9) {
-      newErrors.mobileNine = 'UAE mobile number must be exactly 9 digits';
-      setMobileError('UAE mobile number must be exactly 9 digits');
     }
 
     if (!dispatchDate) {
@@ -202,7 +218,7 @@ export default function CartDrawer({
         serviceTitle: `Cart: ${itemList.slice(0, 100)}`,
         price: totalCost,
         date: dispatchDate,
-        timeSlot: preferredTimeSlot,
+        timeSlot: preferredTimeSlot.label,
         region,
         status: 'Pending',
         paymentStatus: 'Unpaid',
@@ -233,15 +249,14 @@ export default function CartDrawer({
   const resetCheckout = () => {
     setCheckoutStep('cart');
     setIsCheckingOut(false);
-    setMobileNine('');
+    setPatientContact('');
     setMobileError('');
     setPatientEmail('');
     setPendingDelete(null);
     setFormErrors({});
-    setCountryCode('+971');
     setRegion('Dubai');
     setDispatchDate('');
-    setPreferredTimeSlot('08:00 AM - 09:30 AM (Early Morning)');
+    setPreferredTimeSlot(TIME_SLOTS[0]);
     removePromoCode();
     onClearCart();
     onClose();
@@ -451,47 +466,17 @@ export default function CartDrawer({
                       <div className="space-y-1">
                         <label className="text-[11px] font-bold text-slate-600">Mobile Number <span className="text-red-600">*</span></label>
                         <div className="relative flex flex-col">
-                          <div className="flex gap-2">
-                            <select
-                              value={countryCode}
-                              onChange={(e) => {
-                                setCountryCode(e.target.value);
-                                if (mobileNine) {
-                                  setPatientContact(`${e.target.value} ${mobileNine}`);
-                                }
-                              }}
-                              className="w-[6.5rem] shrink-0 text-xs border border-slate-200 rounded-xl p-3 bg-white focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
-                            >
-                              <option value="+971">+971 (UAE)</option>
-                              <option value="+966">+966 (KSA)</option>
-                              <option value="+974">+974 (Qatar)</option>
-                              <option value="+973">+973 (Bahrain)</option>
-                              <option value="+968">+968 (Oman)</option>
-                              <option value="+965">+965 (Kuwait)</option>
-                              <option value="+20">+20 (Egypt)</option>
-                              <option value="+1">+1 (US/CA)</option>
-                              <option value="+44">+44 (UK)</option>
-                              <option value="+91">+91 (India)</option>
-                            </select>
-                            <input
-                              type="tel"
-                              required
-                              maxLength={9}
-                              placeholder="5X XXX XXXX"
-                              value={mobileNine}
-                              onChange={(e) => {
-                                handleMobileChange(e.target.value);
-                                if (formErrors.mobileNine) {
-                                  setFormErrors(prev => ({ ...prev, mobileNine: '' }));
-                                }
-                              }}
-                              className={`flex-1 min-w-0 text-xs border rounded-xl p-3 focus:outline-hidden focus:ring-1 ${
-                                mobileError || formErrors.mobileNine
-                                  ? 'border-red-500 focus:ring-red-500 bg-red-50/5'
-                                  : 'border-slate-200 focus:ring-emerald-500'
-                              }`}
-                            />
-                          </div>
+                          <PhoneInput
+                            value={patientContact}
+                            onChange={(val) => {
+                              setPatientContact(val);
+                              setMobileError('');
+                              if (formErrors.mobileNine) {
+                                setFormErrors(prev => ({ ...prev, mobileNine: '' }));
+                              }
+                            }}
+                            error={mobileError || formErrors.mobileNine}
+                          />
                           {(mobileError || formErrors.mobileNine) && (
                             <p className="text-[10px] font-semibold text-red-600 mt-1 flex items-center gap-1">
                               <span>⚠️</span> {mobileError || formErrors.mobileNine}
@@ -515,7 +500,6 @@ export default function CartDrawer({
                         >
                           <option value="Dubai">Dubai</option>
                           <option value="Sharjah">Sharjah</option>
-                          <option value="Abu Dhabi">Abu Dhabi</option>
                         </select>
                       </div>
 
@@ -550,16 +534,16 @@ export default function CartDrawer({
                           Preferred Time Slot <span className="text-red-600">*</span>
                         </label>
                         <select
-                          value={preferredTimeSlot}
-                          onChange={(e) => setPreferredTimeSlot(e.target.value)}
+                          value={preferredTimeSlot.label}
+                          onChange={(e) => {
+                            const found = availableTimeSlots.find(s => s.label === e.target.value);
+                            if (found) setPreferredTimeSlot(found);
+                          }}
                           className="w-full text-xs border border-slate-200 rounded-xl p-3 bg-white focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
                         >
-                          <option>08:00 AM - 09:30 AM (Early Morning)</option>
-                          <option>10:00 AM - 11:30 AM (Pre Noon)</option>
-                          <option>12:30 PM - 02:00 PM (Afternoon)</option>
-                          <option>03:00 PM - 04:30 PM (Late Afternoon)</option>
-                          <option>05:30 PM - 07:00 PM (Evening)</option>
-                          <option>08:00 PM - 09:30 PM (Night Shift)</option>
+                          {availableTimeSlots.map((slot) => (
+                            <option key={slot.label} value={slot.label}>{slot.label}</option>
+                          ))}
                         </select>
                       </div>
                     </div>
@@ -663,7 +647,7 @@ export default function CartDrawer({
                         </div>
                         <div className="flex justify-between">
                           <span className="text-[10px] text-slate-400 uppercase font-bold">Contact</span>
-                          <span className="font-bold text-slate-900">{mobileNine ? mobileNine.replace(/(\d{2})(\d{3})(\d{4})/, '$1 $2 $3') : '5X XXX XXXX'}</span>
+                          <span className="font-bold text-slate-900">{patientContact || '5X XXX XXXX'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-[10px] text-slate-400 uppercase font-bold">Delivery Address</span>

@@ -19,6 +19,7 @@ export const HOME_HEALTHCARE_SERVICES = [
     description: 'Expert nursing support brought to you - routine care, recovery assistance, and health monitoring, all in one visit.',
     popular: true,
     bookingNotice: '12 hours prior booking',
+    leadTimeHours: 12,
   },
   {
     id: 'srv-wound-small',
@@ -30,6 +31,7 @@ export const HOME_HEALTHCARE_SERVICES = [
     description: 'Precise, hygienic care for minor wounds and small surgical sites - cleaned, dressed, and monitored by a trained nurse to support faster healing and prevent infection.',
     popular: false,
     bookingNotice: '12 hours prior booking',
+    leadTimeHours: 12,
   },
   {
     id: 'srv-wound-medium',
@@ -41,6 +43,7 @@ export const HOME_HEALTHCARE_SERVICES = [
     description: 'Precise, hygienic care for minor wounds and medium surgical sites - cleaned, dressed, and monitored by a trained nurse to support faster healing and prevent infection.',
     popular: false,
     bookingNotice: '12 hours prior booking',
+    leadTimeHours: 12,
   },
   {
     id: 'srv-wound-large',
@@ -52,6 +55,7 @@ export const HOME_HEALTHCARE_SERVICES = [
     description: 'Precise, hygienic care for minor wounds and large surgical sites - cleaned, dressed, and monitored by a trained nurse to support faster healing and prevent infection.',
     popular: false,
     bookingNotice: '12 hours prior booking',
+    leadTimeHours: 12,
   },
   {
     id: 'srv-catheterisation-female',
@@ -63,6 +67,7 @@ export const HOME_HEALTHCARE_SERVICES = [
     description: 'Safe, sterile catheter insertion and care delivered in the comfort of your home - performed by a trained clinical nurse with full privacy, dignity, and clinical precision.',
     popular: false,
     bookingNotice: '12 hours prior booking',
+    leadTimeHours: 12,
   },
   {
     id: 'srv-iv-antibiotics-prescription',
@@ -74,5 +79,6 @@ export const HOME_HEALTHCARE_SERVICES = [
     description: 'Complete your antibiotic course from the comfort of home - a qualified nurse administers your prescribed IV treatment safely and efficiently, so you recover without the hospital stay.',
     popular: false,
     bookingNotice: '12 hours prior booking',
+    leadTimeHours: 12,
   },
 ];

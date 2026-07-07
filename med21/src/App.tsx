@@ -31,7 +31,7 @@ import {
   HelpCircle, 
   Check, 
   PhoneCall, 
-  ArrowUpRight, 
+  ChevronRight, 
   Award, 
   Copy,
   Clock,
@@ -51,7 +51,7 @@ import {
 import { useSEO } from './hooks/useSEO';
 import NotFoundPage from './components/NotFoundPage';
 
-const SITE_DEFAULT_DESCRIPTION = 'Premium healthcare marketplace in Dubai — book home healthcare, lab tests, IV therapy, and medical equipment rental from DHA-compliant providers.';
+const SITE_DEFAULT_DESCRIPTION = 'Premium healthcare marketplace in Dubai — book home healthcare, lab tests, IV therapy, and medical equipment rental from DHA compliant providers.';
 
 // Static Data and Types
 import {
@@ -63,7 +63,7 @@ import {
   resolveHealthcareServiceImage,
 } from './data';
 import { ActiveTab, CartItem, Product, HealthcareService, ServiceCategory } from './types';
-import { LAB_TESTS_AT_HOME_CATEGORIES, LAB_TESTS_AT_HOME_EXPECTED_COUNTS } from '../../shared/labTestsAtHomeCatalog.js';
+import { LAB_TESTS_AT_HOME_CATEGORIES } from '../../shared/labTestsAtHomeCatalog.js';
 
 // UI Components
 import MainHeader from './components/MainHeader';
@@ -81,6 +81,8 @@ import ProfileModal from './components/ProfileModal';
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 const VendorDashboard = lazy(() => import('./components/VendorDashboard'));
 import EnquiryModal from './components/EnquiryModal';
+import RentalBookingModal from './components/RentalBookingModal';
+import PhoneInput from './components/PhoneInput';
 import ErrorBoundary from './components/ErrorBoundary';
 import SocialProofPopup from './components/SocialProofPopup';
 import { subscribeToNotifications } from './services/pusherClient';
@@ -133,7 +135,7 @@ const HOME_ADDITIONAL_HEALTHCARE_CATEGORIES = [
     id: 'cat-long-term-care',
     title: 'Long-Term / Specialized Care',
     slug: 'long-term-care',
-    description: 'Long-term nursing, caregiver, companion care, and specialized home healthcare support.',
+    description: 'Dedicated nursing support at home for long-term and specialized care needs, including ongoing monitoring, chronic condition management, and personalised patient assistance.',
   },
   {
     id: 'cat-rent-medical-equipments',
@@ -145,13 +147,30 @@ const HOME_ADDITIONAL_HEALTHCARE_CATEGORIES = [
     id: 'cat-iv-therapy',
     title: 'IV Therapy',
     slug: 'iv-therapy',
-    description: 'Nurse-administered intravenous nutrient drips, energy infusions, and premium age reversal NAD+.',
+    description: 'Professional IV therapy administered at home under medical guidance, offering convenient access to prescribed treatments, hydration support, and wellness infusions.',
   },
   ...LAB_TESTS_AT_HOME_CATEGORIES.map((category) => ({
     id: `cat-lab-${category.slug}`,
     title: category.title,
     slug: category.slug,
-    description: 'Lab tests at home with 12 hours prior booking, available in Dubai and Sharjah.',
+    description: category.slug === 'routine-blood-tests'
+      ? 'Convenient home-based blood sample collection for routine health checks, diagnostic testing, and regular monitoring with reliable laboratory support.'
+      : category.slug === 'preventive-health-packages'
+      ? 'Comprehensive health screening packages designed for early detection, wellness monitoring, and proactive management of your overall health.'
+      : category.slug === 'mens-health-packages'
+      ? "Specialised health screening packages designed to support men's wellness, including preventive care, early detection, and monitoring of key health conditions."
+      : category.slug === 'womens-health-packages'
+      ? "Comprehensive health screening packages designed to support women's wellness, preventive care, early detection, and monitoring of key health needs."
+      : category.slug === 'std-sexual-health'
+      ? 'Confidential testing and screening services for sexually transmitted infections, supporting early detection, prevention, and informed health management.'
+      : category.slug === 'specialized-diagnostic-tests'
+      ? 'Advanced diagnostic testing services for accurate detection, specialised health assessments, and personalised care planning.'
+      : category.slug === 'genetic-testing'
+      ? 'Advanced genetic testing services to assess inherited conditions, health risks, and personalised insights for informed healthcare decisions.'
+      : 'Lab tests at home with 12 hours prior booking, available in Dubai and Sharjah.',
+    image: category.slug === 'womens-health-packages'
+      ? 'https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=400'
+      : undefined,
   })),
 ];
 
@@ -176,7 +195,7 @@ const PRODUCT_CATEGORY_BY_ROUTE: Record<string, string> = {
 const PRODUCT_PAGE_COPY: Record<string, { title: string; description: string }> = {
   'rent-medical-equipments': {
     title: 'Rent Medical Equipment',
-    description: 'Weekly and monthly rental options with listed security deposits. All services provided in UAE except AUH, with 12 hours prior booking.',
+    description: 'Weekly and monthly rental options with listed security deposits.',
   },
   'buy-medical-equipments': {
     title: 'Buy Medical Equipment',
@@ -267,7 +286,7 @@ export default function AppWrapper() {
       <Toaster
         position="bottom-left"
         toastOptions={{
-          duration: 3500,
+          duration: 2000,
           style: {
             borderRadius: '16px',
             padding: '14px 16px',
@@ -526,6 +545,8 @@ function MainApp() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
+  const [isRentalOpen, setIsRentalOpen] = useState(false);
+  const [selectedRentalProduct, setSelectedRentalProduct] = useState<any>(null);
   const [showBookingSuccess, setShowBookingSuccess] = useState(false);
 
   // Auto-redirect to My Bookings after 3 seconds
@@ -542,6 +563,7 @@ function MainApp() {
   // Prefilled parameters for home visiting scheduler selection
   const [preselectedServiceTitle, setPreselectedServiceTitle] = useState('');
   const [preselectedPrice, setPreselectedPrice] = useState(0);
+  const [bookingIsLabTest, setBookingIsLabTest] = useState(false);
   const [preselectedEnquiryServiceTitle, setPreselectedEnquiryServiceTitle] = useState('');
 
   // Authenticated profile state is kept in memory so personal data is not exposed in browser storage.
@@ -752,6 +774,7 @@ function MainApp() {
         ...existingCategory,
         ...category,
         image:
+          category.image ||
           existingCategory?.image ||
           matchingService?.image ||
           'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&q=80&w=400',
@@ -1087,6 +1110,7 @@ function MainApp() {
 
   // Cart Interactions
   const handleAddToCart = (product: Product | HealthcareService) => {
+    if ('enquiryOnly' in product && product.enquiryOnly) return;
     const existing = cart.find((it) => it.product.id === product.id);
     setCart((prevCart) =>
       existing
@@ -1121,7 +1145,7 @@ function MainApp() {
   }, [cart]);
 
   // Trigger home visit wizard with presets
-  const triggerServiceBooking = (serviceTitle: string, price: number) => {
+  const triggerServiceBooking = (serviceTitle: string, price: number, isLabTest?: boolean) => {
     if (!loggedInUser) {
       triggerToast('Please log in with your customer account first to proceed with booking.');
       setIsAuthOpen(true);
@@ -1129,7 +1153,18 @@ function MainApp() {
     }
     setPreselectedServiceTitle(serviceTitle);
     setPreselectedPrice(price);
+    setBookingIsLabTest(isLabTest || false);
     setIsBookingOpen(true);
+  };
+
+  const triggerRentalBooking = (product: any) => {
+    if (!loggedInUser) {
+      triggerToast('Please log in with your customer account first to proceed with booking.');
+      setIsAuthOpen(true);
+      return;
+    }
+    setSelectedRentalProduct(product);
+    setIsRentalOpen(true);
   };
 
   // Trigger service custom enquiry panel
@@ -1276,7 +1311,7 @@ function MainApp() {
   const seoData = useMemo(() => {
     if (activeTab === 'services' && currentServiceRoute) {
       const routeLabels: Record<string, { title: string; desc: string }> = {
-        'nursing-care-at-home': { title: 'Nursing Care at Home', desc: 'Professional nursing care at home in Dubai. DHA-compliant nurses for wound dressing, catheter care, IV antibiotics, and general medical support.' },
+        'nursing-care-at-home': { title: 'Nursing Care at Home', desc: 'Professional nursing care at home in Dubai. DHA compliant nurses for wound dressing, catheter care, IV antibiotics, and general medical support.' },
         'long-term-specialized-care': { title: 'Long-Term Specialized Care', desc: 'Long-term nursing, caregiver, and companion care at home in Dubai. Live-in and daily care options.' },
         'physiotherapy-at-home': { title: 'Physiotherapy at Home', desc: 'At-home physiotherapy sessions in Dubai. Recovery, rehab, and chronic pain management by certified physiotherapists.' },
         'doctor-on-call': { title: 'Doctor on Call', desc: 'Doctor visits at your home or hotel in Dubai. General physicians and specialists available with advance booking.' },
@@ -1312,7 +1347,7 @@ function MainApp() {
       return { title: 'Terms & Conditions', description: 'MedZiva terms and conditions for using our healthcare marketplace platform.' };
     }
     if (activeTab === 'about') {
-      return { title: 'About Us', description: 'MedZiva International Healthcare L.L.C — premium healthcare marketplace in Dubai connecting patients with DHA-compliant providers.', canonicalPath: '/about' };
+      return { title: 'About Us', description: 'MedZiva International Healthcare L.L.C — premium healthcare marketplace in Dubai connecting patients with DHA compliant providers.', canonicalPath: '/about' };
     }
     return { title: 'Home', description: SITE_DEFAULT_DESCRIPTION, canonicalPath: '/' };
   }, [activeTab, currentServiceRoute]);
@@ -1373,6 +1408,40 @@ function MainApp() {
         activeSectionId={activeSectionId}
         onTabChange={handleTabChange} 
       />
+
+      {/* 3.5 Service Category Navigation Bar */}
+      {activeTab === 'services' && (
+        <div className="bg-white border-b border-slate-100 sticky top-[52px] z-[29]">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar py-2.5">
+              {[
+                { label: 'Nursing Care', sectionId: 'home-healthcare-section' },
+                { label: 'Physiotherapy', sectionId: 'physiotherapy-section' },
+                { label: 'Doctor on Call', sectionId: 'doctor-on-call-section' },
+                { label: 'Long-Term Care', sectionId: 'long-term-care-section' },
+                { label: 'Speech Therapy', sectionId: 'speech-therapy-section' },
+                { label: 'Occupational Therapy', sectionId: 'occupational-therapy-section' },
+                { label: 'IV Therapy', sectionId: 'iv-therapy-section' },
+              ].map((cat) => {
+                const isActive = activeSectionId === cat.sectionId || (!activeSectionId && cat.sectionId === 'home-healthcare-section');
+                return (
+                  <button
+                    key={cat.sectionId}
+                    onClick={() => handleTabChange('services', cat.sectionId)}
+                    className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                      isActive
+                        ? 'bg-medical-green text-white shadow-sm'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 4. Display Core layouts based on dynamic state ActiveTab */}
       <main className="flex-grow">
@@ -1498,30 +1567,45 @@ function MainApp() {
 
                               {/* Booking actions */}
                               <div className="flex gap-1">
-                                <button
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    handleAddToCart(srv);
-                                  }}
-                                  className={`flex-1 py-1.5 px-3 font-black text-[10px] rounded-lg tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 shadow-2xs ${
-                                    isAdded
-                                      ? 'bg-emerald-50 text-medical-green border border-emerald-200'
-                                      : 'bg-medical-blue hover:bg-blue-900 active:scale-95 text-white'
-                                  }`}
-                                >
-                                  <ShoppingCart className="w-2.5 h-2.5" />
-                                  <span>{isAdded ? 'Added' : 'Add to Cart'}</span>
-                                </button>
-                                <button
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    triggerServiceBooking(srv.title, srv.price);
-                                  }}
-                                  className="flex-1 py-1.5 px-3 bg-medical-green hover:bg-emerald-600 active:scale-95 text-white font-black text-[10px] rounded-lg tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
-                                >
-                                  <CalendarClock className="w-2.5 h-2.5" />
-                                  <span>BOOK</span>
-                                </button>
+                                {srv.enquiryOnly ? (
+                                  <button
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      triggerServiceEnquiry(srv.title);
+                                    }}
+                                    className="flex-1 py-1.5 px-3 bg-orange-500 hover:bg-orange-600 active:scale-95 text-white font-black text-[10px] rounded-lg tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
+                                  >
+                                    <MessageCircle className="w-2.5 h-2.5" />
+                                    <span>ENQUIRE</span>
+                                  </button>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        handleAddToCart(srv);
+                                      }}
+                                      className={`flex-1 py-1.5 px-3 font-black text-[10px] rounded-lg tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 shadow-2xs ${
+                                        isAdded
+                                          ? 'bg-emerald-50 text-medical-green border border-emerald-200'
+                                          : 'bg-medical-blue hover:bg-blue-900 active:scale-95 text-white'
+                                      }`}
+                                    >
+                                      <ShoppingCart className="w-2.5 h-2.5" />
+                                      <span>{isAdded ? 'Added' : 'Add to Cart'}</span>
+                                    </button>
+                                    <button
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        triggerServiceBooking(srv.title, srv.price, srv.category === 'lab-tests-at-home');
+                                      }}
+                                      className="flex-1 py-1.5 px-3 bg-medical-green hover:bg-emerald-600 active:scale-95 text-white font-black text-[10px] rounded-lg tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
+                                    >
+                                      <CalendarClock className="w-2.5 h-2.5" />
+                                      <span>BOOK</span>
+                                    </button>
+                                  </>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -1610,18 +1694,19 @@ function MainApp() {
                                   <p className="text-[11px] text-slate-500 mt-1 line-clamp-1">{testCode}</p>
                                 )}
                               </div>
-                              <button
-                                type="button"
-                                onClick={() => handleAddToCart(srv)}
-                                className={`shrink-0 rounded-xl px-3 py-2 text-[11px] font-black transition-all cursor-pointer flex items-center gap-1.5 ${
-                                  isAdded
-                                    ? 'bg-emerald-50 text-medical-green border border-emerald-200'
-                                    : 'bg-medical-blue text-white hover:bg-blue-900'
-                                }`}
-                              >
-                                <ShoppingCart className="w-3.5 h-3.5" />
-                                <span>{isAdded ? 'Added' : 'Add to Cart'}</span>
-                              </button>
+                          <button
+                            type="button"
+                            onClick={isAdded ? undefined : () => handleAddToCart(srv)}
+                            disabled={isAdded}
+                            className={`shrink-0 rounded-xl px-3 py-2 text-[11px] font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                              isAdded
+                                ? 'bg-emerald-50 text-medical-green border border-emerald-200 opacity-60 cursor-not-allowed'
+                                : 'bg-medical-blue text-white hover:bg-blue-900'
+                            }`}
+                          >
+                            <ShoppingCart className="w-3.5 h-3.5" />
+                            <span>{isAdded ? 'Added' : 'Add to Cart'}</span>
+                          </button>
                             </div>
                           </div>
                         );
@@ -1653,13 +1738,13 @@ function MainApp() {
                   onClick={() => handleTabChange('services')}
                   className="bg-medical-green hover:bg-emerald-600 text-white font-bold text-xs sm:text-sm py-2.5 sm:py-3 px-5 sm:px-6 rounded-xl cursor-pointer transition-all active:scale-95 shadow-lg flex items-center gap-2"
                 >
-                  Book a Service <ArrowUpRight className="w-4 h-4" />
+                  Book a Service <ChevronRight className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => handleTabChange('products')}
                   className="bg-white hover:bg-slate-50 text-blue-900 font-bold text-xs sm:text-sm py-2.5 sm:py-3 px-5 sm:px-6 rounded-xl cursor-pointer transition-all active:scale-95 shadow-lg border border-slate-200 flex items-center gap-2"
                 >
-                  Explore Products <ArrowUpRight className="w-4 h-4" />
+                  Explore Products <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </section>
@@ -1699,7 +1784,7 @@ function MainApp() {
                     className="text-xs sm:text-sm font-bold text-medical-green hover:text-emerald-700 hover:underline transition-all flex items-center gap-1 cursor-pointer"
                   >
                     <span>View all products</span>
-                    <ArrowUpRight className="w-4 h-4" />
+                    <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
 
@@ -1747,17 +1832,17 @@ function MainApp() {
 
                         <div className="grid grid-cols-2 gap-2">
                           <button
-                            onClick={() => handleAddToCart(prod)}
-                            className="w-full py-2 bg-medical-blue hover:bg-blue-900 active:scale-95 text-white font-black text-[9px] rounded-lg tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 shadow-lg shadow-medical-blue/20"
-                          >
-                            <span>Add to Cart</span>
-                          </button>
-                          <button
-                            onClick={() => triggerServiceBooking(prod.name, prod.price)}
+                            onClick={() => triggerRentalBooking(prod)}
                             className="w-full py-2 bg-medical-green hover:bg-emerald-600 active:scale-95 text-white font-black text-[9px] rounded-lg tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 shadow-lg shadow-medical-green/30"
                           >
                             <CalendarClock className="w-3 h-3" />
                             <span>BOOK</span>
+                          </button>
+                          <button
+                            onClick={() => triggerRentalBooking(prod)}
+                            className="w-full py-2 bg-medical-green hover:bg-emerald-600 active:scale-95 text-white font-black text-[9px] rounded-lg tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 shadow-lg shadow-medical-green/30"
+                          >
+                            <span>Book Now</span>
                           </button>
                         </div>
                       </div>
@@ -1908,11 +1993,6 @@ function MainApp() {
                   />
                 </div>
               )}
-              {currentLabTestsRoute && (
-                <div className="bg-emerald-50 text-medical-green border border-emerald-100 rounded-xl px-4 py-3 text-xs font-black">
-                  {displayedLabServices.length} / {LAB_TESTS_AT_HOME_EXPECTED_COUNTS[currentLabTestsRoute] || displayedLabServices.length} records
-                </div>
-              )}
             </div>
 
             {activeSectionId === 'customize-lab-package-section' ? (
@@ -1961,18 +2041,19 @@ function MainApp() {
                               <p className="text-[11px] text-slate-500 mt-1 line-clamp-1">{testCode}</p>
                             )}
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => handleAddToCart(srv)}
-                            className={`shrink-0 rounded-xl px-3 py-2 text-[11px] font-black transition-all cursor-pointer flex items-center gap-1.5 ${
-                              isAdded
-                                ? 'bg-emerald-50 text-medical-green border border-emerald-200'
-                                : 'bg-medical-blue text-white hover:bg-blue-900'
-                            }`}
-                          >
-                            <ShoppingCart className="w-3.5 h-3.5" />
-                            <span>{isAdded ? 'Added' : 'Add to Cart'}</span>
-                          </button>
+                              <button
+                                type="button"
+                                onClick={isAdded ? undefined : () => handleAddToCart(srv)}
+                                disabled={isAdded}
+                                className={`shrink-0 rounded-xl px-3 py-2 text-[11px] font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                                  isAdded
+                                    ? 'bg-emerald-50 text-medical-green border border-emerald-200 opacity-60 cursor-not-allowed'
+                                    : 'bg-medical-blue text-white hover:bg-blue-900'
+                                }`}
+                              >
+                                <ShoppingCart className="w-3.5 h-3.5" />
+                                <span>{isAdded ? 'Added' : 'Add to Cart'}</span>
+                              </button>
                         </div>
                       );
                     })}
@@ -2042,7 +2123,7 @@ function MainApp() {
                           Add to Cart
                         </button>
                         <button
-                          onClick={() => triggerServiceBooking(srv.title, srv.price)}
+                          onClick={() => triggerServiceBooking(srv.title, srv.price, true)}
                           className="bg-medical-green hover:bg-emerald-600 text-white font-bold text-xs py-3 px-5 rounded-xl cursor-pointer transition-all"
                         >
                           Book Now
@@ -2121,13 +2202,22 @@ function MainApp() {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => handleAddToCart(prod)}
-                        className="bg-medical-green hover:bg-emerald-600 active:scale-95 p-2.5 text-white rounded-xl transition-all cursor-pointer shadow-2xs flex items-center justify-center"
-                        title="Add to Cart"
-                      >
-                        <ShoppingCart className="w-4 h-4" />
-                      </button>
+                      {prod.category === 'devices-for-rent' ? (
+                        <button
+                          onClick={() => triggerRentalBooking(prod)}
+                          className="flex-1 bg-medical-green hover:bg-emerald-600 text-white text-xs font-black py-2.5 rounded-xl transition-all cursor-pointer"
+                        >
+                          Book Now
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleAddToCart(prod)}
+                          className="bg-medical-green hover:bg-emerald-600 active:scale-95 p-2.5 text-white rounded-xl transition-all cursor-pointer shadow-2xs flex items-center justify-center"
+                          title="Add to Cart"
+                        >
+                          <ShoppingCart className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -2518,7 +2608,10 @@ function MainApp() {
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-slate-600">Mobile Number</label>
-                      <input type="tel" placeholder="e.g. +971 50 123 4567" required className="w-full text-xs border border-slate-200 rounded-xl p-3" value={providerPhone} onChange={(e) => setProviderPhone(e.target.value)} />
+                      <PhoneInput
+                        value={providerPhone}
+                        onChange={setProviderPhone}
+                      />
                     </div>
                     <div className="space-y-1 sm:col-span-2">
                       <label className="text-xs font-bold text-slate-600">Email Address</label>
@@ -2733,7 +2826,7 @@ function MainApp() {
                   Who We Are
                 </h2>
                 <p className="text-sm text-slate-600 leading-7">
-                  MedZiva is a premium healthcare marketplace based in Dubai, United Arab Emirates. We connect patients with DHA-compliant healthcare providers, enabling seamless booking of home healthcare services, lab tests at home, IV therapy, physiotherapy, and medical equipment rental.
+                  MedZiva is a premium healthcare marketplace based in Dubai, United Arab Emirates. We connect patients with DHA compliant healthcare providers, enabling seamless booking of home healthcare services, lab tests at home, IV therapy, physiotherapy, and medical equipment rental.
                 </p>
                 <p className="text-sm text-slate-600 leading-7 mt-3">
                   As an aggregator and booking facilitation platform, MedZiva does not directly provide medical services. All healthcare services are delivered by independent, licensed third-party providers who meet Dubai Health Authority (DHA) standards.
@@ -2912,7 +3005,7 @@ function MainApp() {
                         if (selected.enquiryOnly || selected.price <= 0) {
                           triggerServiceEnquiry(selected.title);
                         } else {
-                          triggerServiceBooking(selected.title, selected.price);
+                          triggerServiceBooking(selected.title, selected.price, selected.category === 'lab-tests-at-home');
                         }
                       }}
                       className="flex w-full flex-1 items-center justify-center gap-2 rounded-xl bg-medical-green px-5 py-3 text-xs font-extrabold text-white hover:bg-emerald-600 cursor-pointer"
@@ -3032,9 +3125,11 @@ function MainApp() {
           setIsBookingOpen(false);
           setPreselectedServiceTitle('');
           setPreselectedPrice(0);
+          setBookingIsLabTest(false);
         }}
         preselectedServiceTitle={preselectedServiceTitle}
         preselectedPrice={preselectedPrice}
+        isLabTest={bookingIsLabTest}
         loggedInUser={loggedInUser}
         loggedInUserEmail={loggedInUserEmail}
         loggedInUserPhone={loggedInUserPhone}
@@ -3043,6 +3138,7 @@ function MainApp() {
           setIsBookingOpen(false);
           setPreselectedServiceTitle('');
           setPreselectedPrice(0);
+          setBookingIsLabTest(false);
           setShowBookingSuccess(true);
         }}
       />
@@ -3088,6 +3184,18 @@ function MainApp() {
           setLoggedInUserAddress(updatedAddress);
         }}
         onSuccessToast={triggerToast}
+      />
+
+      {/* 9. Rental Equipment Booking modal */}
+      <RentalBookingModal
+        isOpen={isRentalOpen}
+        onClose={() => { setIsRentalOpen(false); setSelectedRentalProduct(null); }}
+        product={selectedRentalProduct}
+        onSuccessToast={triggerToast}
+        loggedInUser={loggedInUser}
+        loggedInUserEmail={loggedInUserEmail}
+        loggedInUserPhone={loggedInUserPhone}
+        loggedInUserAddress={loggedInUserAddress}
       />
 
       <SocialProofPopup 

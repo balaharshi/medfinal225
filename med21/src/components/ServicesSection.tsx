@@ -5,7 +5,7 @@
 
 import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronRight, ChevronLeft, CalendarClock, ArrowRight, Eye, X, ShieldCheck, Heart, Clock, Star, MessageCircle, CheckCircle } from 'lucide-react';
+import { ChevronRight, ChevronLeft, CalendarClock, Eye, X, ShieldCheck, Heart, Clock, Star, MessageCircle, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   DEFAULT_HEALTHCARE_SERVICE_IMAGE,
@@ -125,10 +125,10 @@ export default function ServicesSection({
           <button
             id="view-all-services-link"
             onClick={onExploreMore}
-            className="text-[12.5px] font-bold text-medical-green hover:underline flex items-center gap-1 transition-all cursor-pointer"
+            className="text-xs sm:text-sm font-bold text-medical-green hover:text-emerald-700 hover:underline flex items-center gap-1 transition-all cursor-pointer"
           >
             <span>View all services</span>
-            <ArrowRight className="w-4 h-4" />
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
 

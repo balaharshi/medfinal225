@@ -51,6 +51,7 @@ import {
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import ConfirmDialog from "./ConfirmDialog";
 import SocialAuthButtons from "./SocialAuthButtons";
+import PhoneInput from "./PhoneInput";
 import { HEALTHCARE_SERVICES } from "../data";
 import { subscribeToNotifications } from "../services/pusherClient";
 
@@ -2834,12 +2835,9 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-slate-500 uppercase">Primary Contact Number</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. +971 4 999 8888" 
-                  value={vendorContact} 
-                  onChange={e => setVendorContact(e.target.value)} 
-                  className="w-full text-xs p-2.5 border border-slate-200 rounded-lg"
+                <PhoneInput
+                  value={vendorContact}
+                  onChange={setVendorContact}
                 />
               </div>
 
@@ -4471,12 +4469,9 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-600">Contact Information</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. +971 50 123 4567" 
-                  value={vendorContact} 
-                  onChange={e => setVendorContact(e.target.value)} 
-                  className="w-full text-xs border border-slate-200 rounded-xl p-3 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                <PhoneInput
+                  value={vendorContact}
+                  onChange={setVendorContact}
                 />
               </div>
 

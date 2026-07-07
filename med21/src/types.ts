@@ -67,6 +67,7 @@ export interface HealthcareService {
   prep?: string;
   result?: string;
   bookingNotice?: string;
+  leadTimeHours?: number;
   remarks?: string;
   attributes?: any[];
   vendorPrices?: Array<{

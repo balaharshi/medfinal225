@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Send, CheckCircle2, MessageSquare, Phone, Mail, User, HelpCircle, ShieldCheck } from 'lucide-react';
 import { HEALTHCARE_SERVICES, SERVICE_CATEGORIES } from '../data';
 import toast from 'react-hot-toast';
+import PhoneInput from './PhoneInput';
 
 interface EnquiryModalProps {
   isOpen: boolean;
@@ -30,7 +31,6 @@ export default function EnquiryModal({
   const [success, setSuccess] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
-  const [mobileNine, setMobileNine] = useState('');
   const [mobileError, setMobileError] = useState('');
   const [email, setEmail] = useState('');
   const [service, setService] = useState(preselectedServiceTitle || HEALTHCARE_SERVICES[0].title);
@@ -54,8 +54,7 @@ export default function EnquiryModal({
 
   useEffect(() => {
     if (isOpen && loggedInUserPhone) {
-      setMobileNine((prev) => prev || loggedInUserPhone);
-      setPhone((prev) => prev || `+971 ${loggedInUserPhone}`);
+      setPhone((prev) => prev || loggedInUserPhone);
     }
   }, [isOpen, loggedInUserPhone]);
 
@@ -66,23 +65,6 @@ export default function EnquiryModal({
   }, [isOpen, preselectedServiceTitle]);
 
   const servicesList = HEALTHCARE_SERVICES.map(s => s.title);
-
-  const handleMobileChange = (val: string) => {
-    const cleanVal = val.replace(/\D/g, '');
-    if (cleanVal.length <= 9) {
-      setMobileNine(cleanVal);
-      const combined = cleanVal ? `+971 ${cleanVal}` : '';
-      setPhone(combined);
-      
-      if (cleanVal.length === 0) {
-        setMobileError('');
-      } else if (cleanVal.length === 9) {
-        setMobileError('');
-      } else {
-        setMobileError('UAE mobile number must be exactly 9 digits');
-      }
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,12 +80,9 @@ export default function EnquiryModal({
       newErrors.email = 'Please enter a valid email address';
     }
 
-    if (!mobileNine) {
+    if (!phone) {
       newErrors.mobileNine = 'Mobile contact number is required';
       setMobileError('Mobile contact number is required');
-    } else if (mobileNine.length !== 9) {
-      newErrors.mobileNine = 'UAE mobile number must be exactly 9 digits';
-      setMobileError('UAE mobile number must be exactly 9 digits');
     }
 
     if (!message.trim()) {
@@ -160,7 +139,6 @@ export default function EnquiryModal({
     setSuccess(false);
     setCustomerName('');
     setPhone('');
-    setMobileNine('');
     setMobileError('');
     setEmail('');
     setMessage('');
@@ -287,27 +265,17 @@ export default function EnquiryModal({
                     </label>
                     <div className="relative flex flex-col">
                       <div className="relative flex items-center">
-                        <span className="absolute left-4.5 text-xs font-extrabold text-slate-500 select-none border-r border-slate-200 pr-3 mr-3.5">
-                          +971
-                        </span>
-                        <input
-                          type="tel"
-                          required
-                          maxLength={9}
-                          placeholder="50 123 4567"
-                          value={mobileNine}
-                          onChange={(e) => {
-                            handleMobileChange(e.target.value);
-                            if (formErrors.mobileNine) {
-                              setFormErrors(prev => ({ ...prev, mobileNine: '' }));
-                            }
-                          }}
-                          className={`w-full text-xs border rounded-xl p-3 pl-18 focus:outline-hidden focus:ring-1 ${
-                            mobileError || formErrors.mobileNine
-                              ? 'border-red-500 focus:ring-red-500 bg-red-50/5' 
-                              : 'border-slate-200 focus:ring-emerald-500'
-                          }`}
-                        />
+                      <PhoneInput
+                        value={phone}
+                        onChange={(val) => {
+                          setPhone(val);
+                          setMobileError('');
+                          if (formErrors.mobileNine) {
+                            setFormErrors(prev => ({ ...prev, mobileNine: '' }));
+                          }
+                        }}
+                        error={mobileError || formErrors.mobileNine}
+                      />
                       </div>
                       {(mobileError || formErrors.mobileNine) && (
                         <p className="text-[10px] font-semibold text-red-600 mt-1 flex items-center gap-1">

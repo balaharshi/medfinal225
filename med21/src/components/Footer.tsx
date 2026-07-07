@@ -101,7 +101,7 @@ export default function Footer({ onNavigationClick }: FooterProps) {
               <img src={newlogo} alt="MedZiva" className="h-20 w-auto" />
             </div>
             <p className="text-gray-400 text-[12.5px] leading-relaxed font-normal">
-              Premium Healthcare Marketplace delivering DHA-compliant healthcare, elite home medical assistance, and hospital equipment rentals across all residences of Dubai.
+              Premium Healthcare Marketplace delivering DHA compliant healthcare, elite home medical assistance, and hospital equipment rentals across all residences of Dubai.
             </p>
             
             {/* Contact quick items */}

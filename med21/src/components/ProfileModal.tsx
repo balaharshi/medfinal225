@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, Mail, Phone, MapPin, CheckCircle, Shield, Award, Edit3, Save, Calendar, Clock, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
+import PhoneInput from './PhoneInput';
 
 interface Booking {
   id: string;
@@ -45,7 +46,7 @@ export default function ProfileModal({
 }: ProfileModalProps) {
   const [nameVal, setNameVal] = useState(fullName);
   const [emailVal, setEmailVal] = useState(email);
-  const [mobileNine, setMobileNine] = useState(phone);
+  const [phoneVal, setPhoneVal] = useState(phone);
   const [addressVal, setAddressVal] = useState(address);
   const [mobileError, setMobileError] = useState('');
   const [isSaved, setIsSaved] = useState(false);
@@ -108,7 +109,7 @@ export default function ProfileModal({
     if (isOpen) {
       setNameVal(fullName);
       setEmailVal(email);
-      setMobileNine(phone);
+      setPhoneVal(phone);
       setAddressVal(address);
       setMobileError('');
       setIsSaved(false);
@@ -117,18 +118,6 @@ export default function ProfileModal({
   }, [isOpen, fullName, email, phone, address]);
 
   if (!isOpen) return null;
-
-  const handleMobileChange = (val: string) => {
-    const cleanVal = val.replace(/\D/g, '');
-    if (cleanVal.length <= 9) {
-      setMobileNine(cleanVal);
-      if (cleanVal.length === 0 || cleanVal.length === 9) {
-        setMobileError('');
-      } else {
-        setMobileError('UAE mobile number must be exactly 9 digits');
-      }
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,12 +133,9 @@ export default function ProfileModal({
       newErrors.email = 'Please enter a valid email address';
     }
 
-    if (!mobileNine) {
-      newErrors.mobileNine = 'Mobile number is required';
+    if (!phoneVal) {
+      newErrors.phoneVal = 'Mobile number is required';
       setMobileError('Mobile number is required');
-    } else if (mobileNine.length !== 9) {
-      newErrors.mobileNine = 'UAE mobile number must be exactly 9 digits';
-      setMobileError('Please enter a valid 9-digit mobile number');
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -159,7 +145,7 @@ export default function ProfileModal({
 
     setFormErrors({});
     
-    onSave(nameVal.trim(), emailVal.trim(), mobileNine, addressVal.trim());
+    onSave(nameVal.trim(), emailVal.trim(), phoneVal, addressVal.trim());
     setIsSaved(true);
     onSuccessToast('Your premium MedZiva profile has been updated!');
     setTimeout(() => {
@@ -302,31 +288,20 @@ export default function ProfileModal({
                     Mobile Number <span className="text-red-600">*</span>
                   </label>
                   <div className="relative flex flex-col">
-                    <div className="relative flex items-center">
-                      <span className="absolute left-4 text-xs font-extrabold text-slate-500 select-none border-r border-slate-200 pr-3 mr-3.5">
-                        +971
-                      </span>
-                      <input
-                        type="tel"
-                        maxLength={9}
-                        placeholder="50 123 4567"
-                        value={mobileNine}
-                        onChange={(e) => {
-                          handleMobileChange(e.target.value);
-                          if (formErrors.mobileNine) {
-                            setFormErrors(prev => ({ ...prev, mobileNine: '' }));
-                          }
-                        }}
-                        className={`w-full text-xs border rounded-xl p-3 pl-18 focus:outline-hidden focus:ring-1 text-slate-800 font-medium ${
-                          mobileError || formErrors.mobileNine
-                            ? 'border-red-500 focus:ring-red-500 bg-red-50/5' 
-                            : 'border-slate-200 focus:ring-emerald-500'
-                        }`}
-                      />
-                    </div>
-                    {(mobileError || formErrors.mobileNine) && (
+                    <PhoneInput
+                      value={phoneVal}
+                      onChange={(val) => {
+                        setPhoneVal(val);
+                        setMobileError('');
+                        if (formErrors.phoneVal) {
+                          setFormErrors(prev => ({ ...prev, phoneVal: '' }));
+                        }
+                      }}
+                      error={mobileError || formErrors.phoneVal}
+                    />
+                    {(mobileError || formErrors.phoneVal) && (
                       <p className="text-[10px] font-semibold text-red-600 mt-1 flex items-center gap-1">
-                        <span>⚠️</span> {mobileError || formErrors.mobileNine}
+                        <span>⚠️</span> {mobileError || formErrors.phoneVal}
                       </p>
                     )}
                   </div>

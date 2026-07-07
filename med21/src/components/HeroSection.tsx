@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ShieldCheck, CalendarRange, UserCheck, Headphones, ArrowRight } from 'lucide-react';
+import { ShieldCheck, CalendarRange, UserCheck, Headphones, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
 
 
@@ -115,7 +115,7 @@ export default function HeroSection({ onBookServiceClick, onExploreProductsClick
                 className="flex-1 w-full px-5 sm:px-6 py-2.5 sm:py-3 bg-medical-blue hover:bg-blue-900 text-white font-extrabold text-[11px] sm:text-xs tracking-wider rounded-xl transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-2"
               >
                 <span>Book a Service</span>
-                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
               
               <button

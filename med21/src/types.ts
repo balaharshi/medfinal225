@@ -100,6 +100,7 @@ export type ActiveTab =
   | 'offers' 
   | 'providers' 
   | 'support'
+  | 'about'
   | 'privacy'
   | 'terms'
   | 'admin'

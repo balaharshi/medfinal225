@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useMemo, useEffect, type SyntheticEvent } from 'react';
+import { useState, useMemo, useEffect, lazy, Suspense, type SyntheticEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
@@ -37,8 +37,21 @@ import {
   Clock,
   ChevronDown,
   MessageCircle,
-  Eye
+  Eye,
+  Stethoscope,
+  FileText,
+  Shield,
+  Star,
+  Users,
+  Globe,
+  HeartPulse,
+  MapPin,
+  Mail
 } from 'lucide-react';
+import { useSEO } from './hooks/useSEO';
+import NotFoundPage from './components/NotFoundPage';
+
+const SITE_DEFAULT_DESCRIPTION = 'Premium healthcare marketplace in Dubai — book home healthcare, lab tests, IV therapy, and medical equipment rental from DHA-compliant providers.';
 
 // Static Data and Types
 import {
@@ -65,8 +78,8 @@ import CartDrawer from './components/CartDrawer';
 import BookingModal from './components/BookingModal';
 import AuthModal from './components/AuthModal';
 import ProfileModal from './components/ProfileModal';
-import AdminDashboard from './components/AdminDashboard';
-import VendorDashboard from './components/VendorDashboard';
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+const VendorDashboard = lazy(() => import('./components/VendorDashboard'));
 import EnquiryModal from './components/EnquiryModal';
 import ErrorBoundary from './components/ErrorBoundary';
 import { subscribeToNotifications } from './services/pusherClient';
@@ -245,9 +258,9 @@ export default function AppWrapper() {
           <Route path="/products" element={<Navigate to={`/products/${DEFAULT_PRODUCT_ROUTE}`} replace />} />
           <Route path="/products/:productSlug" element={<MainApp />} />
           <Route path="/payment/return" element={<PaymentReturnPage />} />
-          <Route path="/admin" element={<AdminDashboardApp />} />
-          <Route path="/vendor" element={<VendorDashboardApp />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/admin" element={<Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-medical-green border-t-transparent rounded-full" /></div>}><AdminDashboardApp /></Suspense>} />
+          <Route path="/vendor" element={<Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-medical-green border-t-transparent rounded-full" /></div>}><VendorDashboardApp /></Suspense>} />
+          <Route path="*" element={<NotFoundPageWrapper />} />
         </Routes>
       </Router>
       <Toaster
@@ -277,6 +290,11 @@ export default function AppWrapper() {
       />
     </>
   );
+}
+
+function NotFoundPageWrapper() {
+  const navigate = useNavigate();
+  return <NotFoundPage onGoHome={() => navigate('/')} />;
 }
 
 function AdminDashboardApp() {
@@ -954,6 +972,7 @@ function MainApp() {
             alt={srv.title}
             className={getServiceImageClassName(srv)}
             referrerPolicy="no-referrer"
+            loading="lazy"
             onError={(event) => handleServiceImageError(event, srv)}
           />
           {srv.popular && (
@@ -1246,6 +1265,53 @@ function MainApp() {
     }, 2000);
   };
 
+  // Dynamic SEO per tab/page
+  const seoData = useMemo(() => {
+    if (activeTab === 'services' && currentServiceRoute) {
+      const routeLabels: Record<string, { title: string; desc: string }> = {
+        'nursing-care-at-home': { title: 'Nursing Care at Home', desc: 'Professional nursing care at home in Dubai. DHA-compliant nurses for wound dressing, catheter care, IV antibiotics, and general medical support.' },
+        'long-term-specialized-care': { title: 'Long-Term Specialized Care', desc: 'Long-term nursing, caregiver, and companion care at home in Dubai. Live-in and daily care options.' },
+        'physiotherapy-at-home': { title: 'Physiotherapy at Home', desc: 'At-home physiotherapy sessions in Dubai. Recovery, rehab, and chronic pain management by certified physiotherapists.' },
+        'doctor-on-call': { title: 'Doctor on Call', desc: 'Doctor visits at your home or hotel in Dubai. General physicians and specialists available with advance booking.' },
+        'speech-and-language-therapy': { title: 'Speech and Language Therapy', desc: 'Speech language therapy sessions at home in Dubai. For children and adults with communication difficulties.' },
+        'occupational-therapy': { title: 'Occupational Therapy', desc: 'Occupational therapy sessions at home in Dubai. Daily living skill rehabilitation and sensory integration.' },
+        'iv-therapy': { title: 'IV Therapy at Home', desc: 'Nurse-administered IV nutrient drips, energy infusions, and premium NAD+ therapy at home in Dubai.' },
+      };
+      const data = routeLabels[currentServiceRoute] || { title: 'Healthcare Services', desc: SITE_DEFAULT_DESCRIPTION };
+      return { title: data.title, description: data.desc, canonicalPath: `/services/${currentServiceRoute}` };
+    }
+    if (activeTab === 'lab-tests') {
+      return { title: 'Lab Tests at Home', description: 'Book lab tests at home in Dubai. Routine blood tests, preventive health packages, STD screening, and genetic testing with home sample collection.', canonicalPath: '/services/lab-tests-at-home' };
+    }
+    if (activeTab === 'products') {
+      return { title: 'Medical Equipment', description: 'Rent or buy certified medical equipment in Dubai. Hospital beds, oxygen concentrators, wheelchairs, BP monitors, and more.', canonicalPath: '/products' };
+    }
+    if (activeTab === 'wellness') {
+      return { title: 'Other Services', description: 'Medical tourism facilitation and medical support for shipping crew members in Dubai and Sharjah.' };
+    }
+    if (activeTab === 'providers') {
+      return { title: 'For Healthcare Providers', description: 'Join MedZiva\'s premium healthcare network. Register as a provider to offer home healthcare, lab tests, and medical services.' };
+    }
+    if (activeTab === 'support') {
+      return { title: 'Help & Support', description: 'Customer support and FAQ center for bookings, cancellations, payments, accounts, and services.' };
+    }
+    if (activeTab === 'offers') {
+      return { title: 'Offers & Promotions', description: 'Exclusive healthcare deals, promo codes, and seasonal offers from MedZiva.' };
+    }
+    if (activeTab === 'privacy') {
+      return { title: 'Privacy Policy', description: 'MedZiva privacy policy — how we collect, use, and protect your personal and health data.' };
+    }
+    if (activeTab === 'terms') {
+      return { title: 'Terms & Conditions', description: 'MedZiva terms and conditions for using our healthcare marketplace platform.' };
+    }
+    if (activeTab === 'about') {
+      return { title: 'About Us', description: 'MedZiva International Healthcare L.L.C — premium healthcare marketplace in Dubai connecting patients with DHA-compliant providers.', canonicalPath: '/about' };
+    }
+    return { title: 'Home', description: SITE_DEFAULT_DESCRIPTION, canonicalPath: '/' };
+  }, [activeTab, currentServiceRoute]);
+
+  useSEO(seoData);
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans transition-all selection:bg-teal-500 selection:text-white">
       
@@ -1360,6 +1426,7 @@ function MainApp() {
                                 alt={srv.title}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                 referrerPolicy="no-referrer"
+                                loading="lazy"
                                 onError={(event) => handleServiceImageError(event, srv)}
                               />
                               {/* Hover Quick Look Overlay */}
@@ -1473,6 +1540,7 @@ function MainApp() {
                                 alt={prod.name}
                                 className={prod.subcategory === 'rent-medical-equipments' || prod.subcategory === 'buy-medical-equipments' || prod.subcategory === 'supplements' ? 'h-full w-full rounded-2xl object-cover' : 'max-h-36 max-w-full object-contain mix-blend-multiply'}
                                 referrerPolicy="no-referrer"
+                                loading="lazy"
                               />
                             </div>
                             <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
@@ -1520,6 +1588,7 @@ function MainApp() {
                                   alt={srv.title}
                                   className="h-full w-full object-cover"
                                   referrerPolicy="no-referrer"
+                                  loading="lazy"
                                   onError={(event) => handleServiceImageError(event, srv)}
                                 />
                               </div>
@@ -1640,6 +1709,7 @@ function MainApp() {
                             alt={prod.name}
                             className={prod.subcategory === 'rent-medical-equipments' || prod.subcategory === 'buy-medical-equipments' || prod.subcategory === 'supplements' ? 'h-full w-full rounded-xl object-cover' : 'max-h-28 max-w-full object-contain mix-blend-multiply'}
                             referrerPolicy="no-referrer"
+                            loading="lazy"
                           />
                           <span className="absolute top-2 left-2 bg-emerald-50 border border-emerald-100 text-medical-green text-[9px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider">
                             Popular
@@ -1910,6 +1980,7 @@ function MainApp() {
                           alt={srv.title}
                           className={getServiceImageClassName(srv)}
                           referrerPolicy="no-referrer"
+                          loading="lazy"
                           onError={(event) => handleServiceImageError(event, srv)}
                         />
                         {srv.popular && (
@@ -2003,6 +2074,7 @@ function MainApp() {
                           alt={prod.name}
                           className={prod.subcategory === 'rent-medical-equipments' || prod.subcategory === 'buy-medical-equipments' || prod.subcategory === 'supplements' ? 'h-full w-full rounded-2xl object-cover' : 'max-h-36 max-w-full object-contain mix-blend-multiply'}
                           referrerPolicy="no-referrer"
+                          loading="lazy"
                         />
                       </div>
 
@@ -2201,6 +2273,7 @@ function MainApp() {
                     src="https://images.unsplash.com/photo-1767216427262-ce74ba565c3c?auto=format&fit=crop&q=80&w=800"
                     alt="Medical Tourism Facilitation"
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                 </div>
                 <h2 className="text-lg font-extrabold text-blue-950 mb-2">Medical Tourism Facilitation</h2>
@@ -2221,6 +2294,7 @@ function MainApp() {
                     src="https://images.unsplash.com/photo-1524522173746-f628baad3644?auto=format&fit=crop&q=80&w=800"
                     alt="Medical Facilitation for Shipping Crews"
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                 </div>
                 <h2 className="text-lg font-extrabold text-blue-950 mb-2">Medical Facilitation for Shipping Crews</h2>
@@ -2250,6 +2324,7 @@ function MainApp() {
                   src="https://images.unsplash.com/photo-1767216427262-ce74ba565c3c?auto=format&fit=crop&q=80&w=1200"
                   alt="Medical Tourism Facilitation"
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
               </div>
               <div className="p-6 flex flex-col justify-between flex-1">
@@ -2301,6 +2376,7 @@ function MainApp() {
                   src="https://images.unsplash.com/photo-1524522173746-f628baad3644?auto=format&fit=crop&q=80&w=1200"
                   alt="Medical Facilitation for Shipping Crews"
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
               </div>
               <div className="p-6 flex flex-col justify-between flex-1">
@@ -2584,6 +2660,101 @@ function MainApp() {
           </div>
         )}
 
+        {activeTab === 'about' && (
+          <div className="max-w-4xl mx-auto py-12 px-4 text-left">
+            <div className="border-b border-slate-100 pb-5 mb-8">
+              <span className="text-emerald-600 text-xs font-bold uppercase tracking-widest block mb-1">About Us</span>
+              <h1 className="text-3xl font-black text-blue-950">MedZiva International Healthcare L.L.C</h1>
+            </div>
+
+            <div className="space-y-8">
+              <section className="bg-white rounded-2xl border border-slate-200/70 p-5 sm:p-6">
+                <h2 className="text-base font-black text-blue-950 mb-3 flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-medical-green" />
+                  Who We Are
+                </h2>
+                <p className="text-sm text-slate-600 leading-7">
+                  MedZiva is a premium healthcare marketplace based in Dubai, United Arab Emirates. We connect patients with DHA-compliant healthcare providers, enabling seamless booking of home healthcare services, lab tests at home, IV therapy, physiotherapy, and medical equipment rental.
+                </p>
+                <p className="text-sm text-slate-600 leading-7 mt-3">
+                  As an aggregator and booking facilitation platform, MedZiva does not directly provide medical services. All healthcare services are delivered by independent, licensed third-party providers who meet Dubai Health Authority (DHA) standards.
+                </p>
+              </section>
+
+              <section className="bg-white rounded-2xl border border-slate-200/70 p-5 sm:p-6">
+                <h2 className="text-base font-black text-blue-950 mb-3 flex items-center gap-2">
+                  <Stethoscope className="w-5 h-5 text-medical-green" />
+                  Our Services
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    { icon: <Home className="w-4 h-4" />, title: 'Home Healthcare', desc: 'Nursing care, doctor on call, long-term care, and specialized medical support at your doorstep.' },
+                    { icon: <Beaker className="w-4 h-4" />, title: 'Lab Tests at Home', desc: 'Routine blood tests, preventive health packages, STD screening, and genetic testing with home sample collection.' },
+                    { icon: <Activity className="w-4 h-4" />, title: 'Physiotherapy', desc: 'At-home physiotherapy sessions for recovery, rehab, and chronic pain management.' },
+                    { icon: <HeartPulse className="w-4 h-4" />, title: 'IV Therapy', desc: 'Nurse-administered IV nutrient drips, energy infusions, and premium NAD+ therapy.' },
+                    { icon: <UserCircle className="w-4 h-4" />, title: 'Speech & Occupational Therapy', desc: 'Specialized therapy sessions for children and adults at home.' },
+                    { icon: <ShoppingCart className="w-4 h-4" />, title: 'Medical Equipment', desc: 'Rent or buy certified medical equipment including hospital beds, oxygen concentrators, and monitoring devices.' },
+                  ].map((item) => (
+                    <div key={item.title} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                      <div className="w-8 h-8 bg-medical-green/10 rounded-lg flex items-center justify-center text-medical-green shrink-0 mt-0.5">
+                        {item.icon}
+                      </div>
+                      <div>
+                        <h3 className="text-xs font-extrabold text-blue-950 mb-1">{item.title}</h3>
+                        <p className="text-[11px] text-slate-500 leading-relaxed">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="bg-white rounded-2xl border border-slate-200/70 p-5 sm:p-6">
+                <h2 className="text-base font-black text-blue-950 mb-3 flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-medical-green" />
+                  Our Commitment
+                </h2>
+                <div className="space-y-3">
+                  {[
+                    { label: 'DHA Compliance', desc: 'All providers on our platform are licensed and regulated by the Dubai Health Authority.' },
+                    { label: 'Data Privacy', desc: 'We follow strict HIPAA-aligned data protection standards to safeguard your personal and health information.' },
+                    { label: 'Transparent Pricing', desc: 'All service prices are displayed upfront. No hidden charges or surprise fees.' },
+                    { label: 'Quality Assurance', desc: 'We vet all providers through a rigorous onboarding process to ensure consistent care quality.' },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-start gap-3">
+                      <CheckCircle2 className="w-4 h-4 text-medical-green shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-xs font-extrabold text-blue-950">{item.label}: </span>
+                        <span className="text-xs text-slate-600">{item.desc}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="bg-white rounded-2xl border border-slate-200/70 p-5 sm:p-6">
+                <h2 className="text-base font-black text-blue-950 mb-3 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-medical-green" />
+                  Contact Us
+                </h2>
+                <div className="space-y-3 text-sm text-slate-600">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="w-4 h-4 text-medical-green shrink-0" />
+                    <span>Al Gaizi Plaza, Al Garhoud, Dubai, UAE</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Phone className="w-4 h-4 text-medical-green shrink-0" />
+                    <a href="tel:+971559510794" className="hover:text-medical-green transition-colors">+971 55 951 0794</a>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Mail className="w-4 h-4 text-medical-green shrink-0" />
+                    <a href="mailto:info@medzivahealthcare.com" className="hover:text-medical-green transition-colors">info@medzivahealthcare.com</a>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        )}
+
         <AnimatePresence>
           {serviceDetails && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-950/70 p-3 backdrop-blur-sm">
@@ -2608,6 +2779,7 @@ function MainApp() {
                     alt={serviceDetails.title}
                     className="h-full w-full object-cover"
                     referrerPolicy="no-referrer"
+                    loading="lazy"
                     onError={(event) => handleServiceImageError(event, serviceDetails)}
                   />
                 </div>

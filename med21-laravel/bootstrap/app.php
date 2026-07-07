@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\AuthorizeRole::class,
             'vendor.self_or_admin' => \App\Http\Middleware\VendorSelfOrAdmin::class,
         ]);
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (Throwable $e, Illuminate\Http\Request $request) {

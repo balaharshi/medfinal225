@@ -101,6 +101,12 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
 
     Route::post('/promos/validate', [CatalogController::class, 'validatePromo'])->middleware('throttle:20,1');
 
+    Route::post('/newsletter/subscribe', function (Illuminate\Http\Request $request) {
+        $request->validate(['email' => 'required|email']);
+        \Log::info('Newsletter subscription', ['email' => $request->email]);
+        return response()->json(['message' => 'Subscribed successfully']);
+    })->middleware('throttle:5,1');
+
     Route::get('/settings', [CatalogController::class, 'getSettings'])->middleware($admin);
     Route::post('/settings', [CatalogController::class, 'updateSettings'])->middleware($admin);
 

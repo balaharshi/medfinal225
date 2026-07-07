@@ -114,7 +114,7 @@ export default function SocialProofPopup({ services, products, cartOpen }: Socia
   };
 
   const scheduleNext = () => {
-    currentDelayRef.current += 30000 + Math.random() * 29000;
+    currentDelayRef.current += 50000 + Math.random() * 40000;
     timerRef.current = setTimeout(showNotif, currentDelayRef.current);
   };
 

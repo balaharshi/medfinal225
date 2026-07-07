@@ -265,7 +265,7 @@ export default function AppWrapper() {
         </Routes>
       </Router>
       <Toaster
-        position="top-right"
+        position="bottom-left"
         toastOptions={{
           duration: 3500,
           style: {
@@ -3092,7 +3092,8 @@ function MainApp() {
 
       <SocialProofPopup 
         services={homeHealthcareServices.filter(s => s.subcategory !== 'customize-lab-package')} 
-        products={db.products} 
+        products={db.products}
+        cartOpen={isCartOpen}
       />
 
     </div>

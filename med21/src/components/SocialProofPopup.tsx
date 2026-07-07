@@ -54,9 +54,10 @@ function pickRandom<T>(arr: T[]): T {
 interface SocialProofPopupProps {
   services: HealthcareService[];
   products: Product[];
+  cartOpen?: boolean;
 }
 
-export default function SocialProofPopup({ services, products }: SocialProofPopupProps) {
+export default function SocialProofPopup({ services, products, cartOpen }: SocialProofPopupProps) {
   const [notification, setNotification] = useState<SocialProofNotification | null>(null);
   const [visible, setVisible] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -135,12 +136,30 @@ export default function SocialProofPopup({ services, products }: SocialProofPopu
     }, 400);
   };
 
+  useEffect(() => {
+    if (cartOpen && notification) {
+      setVisible(false);
+      if (timerRef.current) clearTimeout(timerRef.current);
+    } else if (!cartOpen && notification && !visible) {
+      setTimeout(() => {
+        setVisible(true);
+        setTimeout(() => {
+          setVisible(false);
+          setTimeout(() => {
+            setNotification(null);
+            scheduleNext();
+          }, 400);
+        }, 6000);
+      }, 300);
+    }
+  }, [cartOpen]);
+
   if (!notification) return null;
 
   return (
     <div
-      className={`fixed bottom-4 right-4 z-[9999] transition-all duration-[400ms] ease-in-out ${
-        visible
+      className={`fixed bottom-16 left-4 z-[9999] transition-all duration-[400ms] ease-in-out ${
+        visible && !cartOpen
           ? 'translate-y-0 opacity-100 pointer-events-auto'
           : 'translate-y-4 opacity-0 pointer-events-none'
       }`}

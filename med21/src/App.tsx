@@ -2205,7 +2205,7 @@ function MainApp() {
                       {prod.category === 'devices-for-rent' ? (
                         <button
                           onClick={() => triggerRentalBooking(prod)}
-                          className="flex-1 bg-medical-green hover:bg-emerald-600 text-white text-xs font-black py-2.5 rounded-xl transition-all cursor-pointer"
+                          className="bg-medical-green hover:bg-emerald-600 text-white text-[10px] font-black px-4 py-2 rounded-lg transition-all cursor-pointer whitespace-nowrap"
                         >
                           Book Now
                         </button>

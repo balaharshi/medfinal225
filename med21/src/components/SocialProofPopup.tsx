@@ -62,7 +62,7 @@ export default function SocialProofPopup({ services, products, cartOpen }: Socia
   const [visible, setVisible] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const notifIdRef = useRef(0);
-  const currentDelayRef = useRef(40000 + Math.random() * 30000);
+  const currentDelayRef = useRef(45000 + Math.random() * 30000);
 
   const generateNotification = (): SocialProofNotification => {
     const isService = Math.random() > 0.4;
@@ -102,6 +102,7 @@ export default function SocialProofPopup({ services, products, cartOpen }: Socia
     const notif = generateNotification();
     setNotification(notif);
     setVisible(true);
+    localStorage.setItem('socialProofLastShown', Date.now().toString());
 
     setTimeout(() => {
       setVisible(false);
@@ -119,7 +120,13 @@ export default function SocialProofPopup({ services, products, cartOpen }: Socia
 
   useEffect(() => {
     if (services.length === 0 && products.length === 0) return;
-    const firstDelay = 8000 + Math.random() * 12000;
+
+    const STORAGE_KEY = 'socialProofLastShown';
+    const MIN_INTERVAL = 60000;
+    const lastShown = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+    const elapsed = Date.now() - lastShown;
+    const firstDelay = elapsed < MIN_INTERVAL ? Math.max(MIN_INTERVAL - elapsed, 5000) : 8000 + Math.random() * 12000;
+
     timerRef.current = setTimeout(showNotif, firstDelay);
 
     return () => {

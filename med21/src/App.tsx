@@ -2581,7 +2581,7 @@ function MainApp() {
         {activeTab === 'providers' && (
           <div className="max-w-3xl mx-auto py-12 px-4 text-left">
             <div className="bg-medical-blue text-white p-6 sm:p-10 rounded-t-3xl text-center relative overflow-hidden">
-              <h1 className="text-2xl sm:text-3xl font-black">Join UAE&apos;s Premium Healthcare Network</h1>
+              <h1 className="text-2xl sm:text-3xl font-black">Partner with Us</h1>
             </div>
 
             <div className="bg-white rounded-b-3xl border border-slate-200 border-t-0 p-6 sm:p-8 space-y-6">
@@ -2631,6 +2631,10 @@ function MainApp() {
                         'IV Therapy',
                         'Long-Term Care',
                         'Lab Tests at Home',
+                        'Medical Devices for Rent',
+                        'Medical Tourism',
+                        'Medical Facilitation for Shipping Crews',
+                        'Other',
                       ].map((spec) => (
                         <label key={spec} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer p-2 rounded-lg hover:bg-slate-50 border border-slate-100">
                           <input

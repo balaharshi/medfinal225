@@ -29,7 +29,7 @@ export default function TrustFeatures() {
       id: 'tf-cancel',
       icon: <CalendarX className="w-5 h-5 text-medical-green" />,
       title: 'Easy Cancellations',
-      desc: 'Hassle-free, quick cancellations done and credited within 24 hours.'
+      desc: 'Hassle-free cancellations with at least 24 hours notice before the appointment.'
     },
     {
       id: 'tf-support',

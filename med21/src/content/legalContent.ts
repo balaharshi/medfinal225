@@ -10,11 +10,11 @@ export const FAQ_SECTIONS = [
   {
     title: 'Cancellations and Rescheduling',
     items: [
-      { question: 'Can I cancel my appointment? What is the deadline?', answer: 'Yes. Appointments can be canceled with a minimum of 24 hours’ notice before the scheduled time.' },
-      { question: 'Will I get a full refund if I cancel?', answer: 'Refund eligibility depends on the service type and cancellation timing. At least 24 hours’ notice is required to receive a full refund.' },
-      { question: 'What happens if I cancel within 24 hours?', answer: 'Late cancellations may receive a partial refund or no refund, depending on the provider’s policy.' },
-      { question: 'How do I reschedule my appointment?', answer: 'You can reschedule through the platform or by contacting customer support.' },
-      { question: 'How much notice do I need to give to reschedule?', answer: 'We recommend providing at least 24 hours’ notice to ensure availability.' },
+      { question: 'Can I cancel my appointment? What is the deadline?', answer: 'Yes. Appointments can be canceled with a minimum of 24 hours notice before the scheduled time. Cancellations requested within 24 hours of the appointment are not eligible for a refund.' },
+      { question: 'Will I get a full refund if I cancel?', answer: 'Refund eligibility depends on the service type and cancellation timing. At least 24 hours notice is required to receive a full refund.' },
+      { question: 'What happens if I cancel within 24 hours?', answer: 'Cancellations within 24 hours of the appointment time are treated as a no-show and are not eligible for a refund.' },
+      { question: 'How do I reschedule my appointment?', answer: 'You can reschedule through the platform or by contacting customer support. Rescheduling must be done at least 24 hours before the original appointment time.' },
+      { question: 'How much notice do I need to give to reschedule?', answer: 'Rescheduling requires at least 24 hours notice before the original appointment time. Requests within 24 hours may not be accommodated.' },
     ],
   },
   {
@@ -92,7 +92,7 @@ export const TERMS_SECTIONS = [
   { title: '1.15 Contact', paragraphs: ['For queries or concerns, email info@medzivahealthcare.com.'] },
   { title: '1.16 Complaints and Dispute Resolution', paragraphs: ['If you are dissatisfied with a service, you may contact Medziva at info@medzivahealthcare.com and we will assist by communicating your concerns to the provider. Upon your request, we will provide the provider\'s contact details so you may address the matter directly.', 'Medziva is not responsible for resolving disputes between customers and providers. Any claim arising from the provision of healthcare services is a matter between you and the provider.', 'Where applicable, complaints concerning healthcare services may be directed to the Dubai Health Authority (DHA) or the relevant regulatory authority. Medziva will provide the necessary provider information to support such complaints.'] },
   { id: 'terms-cancellation', title: '2. Cancellation Policy', paragraphs: ['Cancellations made more than 24 hours before the scheduled appointment are eligible for a full refund. Cancellations within 24 hours may be treated as a no-show, and any refund may be reduced by a cancellation fee.', 'If you are dissatisfied with a service, contact info@medzivahealthcare.com so our team can assist.'] },
-  { id: 'terms-rescheduling', title: '3. Rescheduling Policy', paragraphs: ['At least 24 hours’ notice is required to reschedule an appointment. Contact Customer Support through WhatsApp between 8:00 AM and 10:00 PM for assistance selecting a suitable time.'] },
+  { id: 'terms-rescheduling', title: '3. Rescheduling Policy', paragraphs: ['Rescheduling must be done at least 24 hours before the original appointment time. Contact Customer Support through WhatsApp between 8:00 AM and 10:00 PM for assistance selecting a suitable time.'] },
   { title: '4. Registration and Account Credentials', paragraphs: ['Your username is typically the email address used during registration. To reset your password, select “Forgot Password,” follow the instructions sent to your registered email, and create a new secure password.', 'For technical support, contact us through WhatsApp or email info@medzivahealthcare.com.', 'You may book for family or friends by providing their details during booking or contacting Customer Support.', 'To use a promo code, enter it at checkout, select Apply, confirm the discount, and complete payment.'] },
   { title: '5. Disclaimer', paragraphs: ['Medziva may change or discontinue any website content, feature, or applicable term. Changes become effective when published across the digital platform.', 'Medziva acts as an intermediary platform connecting users with independent healthcare providers. Medziva does not control, supervise, or guarantee the quality of services provided by third-party providers. Users acknowledge that Medziva\'s role is limited to facilitating bookings and that any service-related claims are between the user and the provider.'] },
 ];

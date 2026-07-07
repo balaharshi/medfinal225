@@ -180,7 +180,7 @@ export default function Footer({ onNavigationClick }: FooterProps) {
                 Support
               </h4>
               <ul className="space-y-2 text-xs text-gray-300">
-                <li><button onClick={() => handleFooterNavigation('support')} className="hover:text-white hover:underline transition-colors cursor-pointer">Help &amp; FAQ</button></li>
+                <li><button onClick={() => handleFooterNavigation('support')} className="hover:text-white hover:underline transition-colors cursor-pointer">Help &amp; FAQs</button></li>
                 <li><button onClick={() => handleFooterNavigation('terms', 'terms-payments')} className="hover:text-white hover:underline transition-colors cursor-pointer">Secure Payments Policies</button></li>
                 <li><button onClick={() => handleFooterNavigation('terms', 'terms-cancellation')} className="hover:text-white hover:underline transition-colors cursor-pointer">Hassle Free Cancellation</button></li>
                 <li><button onClick={() => handleFooterNavigation('terms', 'terms-cancellation')} className="hover:text-white hover:underline transition-colors cursor-pointer">Refund Policies</button></li>

@@ -1335,7 +1335,7 @@ function MainApp() {
       return { title: 'For Healthcare Providers', description: 'Join MedZiva\'s premium healthcare network. Register as a provider to offer home healthcare, lab tests, and medical services.' };
     }
     if (activeTab === 'support') {
-      return { title: 'Help & Support', description: 'Customer support and FAQ center for bookings, cancellations, payments, accounts, and services.' };
+      return { title: 'Help & Support', description: 'Customer support and FAQs center for bookings, cancellations, payments, accounts, and services.' };
     }
     if (activeTab === 'offers') {
       return { title: 'Offers & Promotions', description: 'Exclusive healthcare deals, promo codes, and seasonal offers from MedZiva.' };
@@ -2687,12 +2687,12 @@ function MainApp() {
           </div>
         )}
 
-        {/* Dedicated view: HELP & SUPPORT FAQ page */}
+        {/* Dedicated view: HELP & SUPPORT FAQs page */}
         {activeTab === 'support' && (
           <div className="max-w-4xl mx-auto py-12 px-4 text-left">
             <div className="border-b border-slate-100 pb-5 mb-8">
               <span className="text-emerald-600 text-xs font-bold uppercase tracking-widest block mb-1">Help Desk</span>
-              <h1 className="text-3xl font-black text-blue-950">Customer Support &amp; FAQ Center</h1>
+              <h1 className="text-3xl font-black text-blue-950">Customer Support &amp; FAQs Center</h1>
               <p className="text-slate-500 text-sm mt-1">
                 Answers about bookings, cancellations, payments, accounts, services, privacy, and legal matters.
               </p>

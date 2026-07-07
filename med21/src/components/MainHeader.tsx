@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { Search, User, ShoppingCart, LogOut, ChevronDown, Menu, X, Home, Activity, Beaker, Flame, Phone } from 'lucide-react';
+import { Search, User, ShoppingCart, LogOut, ChevronDown, Menu, X, Home, Activity, Beaker, Flame, Phone, Globe } from 'lucide-react';
 import { ActiveTab } from '../types';
 import ConfirmDialog from './ConfirmDialog';
 
@@ -621,6 +621,18 @@ export default function MainHeader({
             >
               <Activity className="w-5 h-5 text-medical-blue" />
               <span className="font-semibold">Help &amp; Support</span>
+            </button>
+            <button
+              onClick={() => {
+                closeMobileMenu();
+                onTabChange?.('about');
+              }}
+              className={`w-full flex items-center gap-3 p-3 rounded-lg text-left ${
+                activeTab === 'about' ? 'bg-teal-50/80 text-medical-green' : 'hover:bg-slate-50 text-slate-700'
+              }`}
+            >
+              <Globe className="w-5 h-5 text-medical-blue" />
+              <span className="font-semibold">About Us</span>
             </button>
           </div>
         </div>

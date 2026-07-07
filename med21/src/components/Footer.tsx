@@ -26,19 +26,23 @@ export default function Footer({ onNavigationClick }: FooterProps) {
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (email.trim().length > 3) {
+      let success = false;
       try {
-        await fetch('/api/newsletter/subscribe', {
+        const res = await fetch('/api/newsletter/subscribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: email.trim() }),
         });
+        success = res.ok;
       } catch {
-        // Silently fail - still show success to user
+        success = false;
       }
-      setSubscribed(true);
-      setTimeout(() => {
-        setEmail('');
-      }, 3000);
+      if (success) {
+        setSubscribed(true);
+        setTimeout(() => {
+          setEmail('');
+        }, 3000);
+      }
     }
   };
 

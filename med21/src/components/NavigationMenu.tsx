@@ -53,7 +53,8 @@ export default function NavigationMenu({ activeTab, activeSectionId, onTabChange
     { label: 'Other Services', value: 'wellness' },
     { label: 'Offers', value: 'offers' },
     { label: 'For Providers', value: 'providers' },
-    { label: 'Help & Support', value: 'support' }
+    { label: 'Help & Support', value: 'support' },
+    { label: 'About', value: 'about' }
   ];
 
   return (

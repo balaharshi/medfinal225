@@ -1869,28 +1869,19 @@ function MainApp() {
                       </div>
 
                       <div className="p-3 pt-2 border-t border-slate-100 bg-gradient-to-b from-white to-slate-50/50 flex flex-col justify-end">
-                        <div className="flex items-baseline gap-0.5 mb-2 justify-between">
+                        <div className="flex items-center justify-between gap-2">
                           <div className="flex items-baseline gap-0.5">
                             <span className="text-[8px] text-slate-400 font-extrabold uppercase leading-none">FROM</span>
                             <span className="text-sm font-black text-medical-green">
                               AED {formatAedWhole(prod.price)}
                             </span>
                           </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
                           <button
                             onClick={() => triggerRentalBooking(prod)}
-                            className="w-full py-2 bg-medical-green hover:bg-emerald-600 active:scale-95 text-white font-black text-[9px] rounded-lg tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 shadow-lg shadow-medical-green/30"
+                            className="py-1.5 px-3 bg-medical-green hover:bg-emerald-600 active:scale-95 text-white font-black text-[9px] rounded-lg tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 shadow-lg shadow-medical-green/30"
                           >
                             <CalendarClock className="w-3 h-3" />
-                            <span>BOOK</span>
-                          </button>
-                          <button
-                            onClick={() => triggerRentalBooking(prod)}
-                            className="w-full py-2 bg-medical-green hover:bg-emerald-600 active:scale-95 text-white font-black text-[9px] rounded-lg tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 shadow-lg shadow-medical-green/30"
-                          >
-                            <span>Book Now</span>
+                            <span>Book</span>
                           </button>
                         </div>
                       </div>

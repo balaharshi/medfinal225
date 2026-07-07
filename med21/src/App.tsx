@@ -124,7 +124,22 @@ const LAB_TESTS_ROUTE_BY_SECTION_ID: Record<string, string> = LAB_TESTS_AT_HOME_
 const LAB_TESTS_PAGE_COPY: Record<string, { title: string; description: string }> = LAB_TESTS_AT_HOME_CATEGORIES.reduce((acc, category) => {
   acc[category.slug] = {
     title: category.title,
-    description: '12 hours prior booking slots.',
+    description:
+      category.slug === 'routine-blood-tests'
+        ? 'Convenient home-based blood sample collection for routine health checks, diagnostic testing, and regular monitoring with reliable laboratory support.'
+        : category.slug === 'preventive-health-packages'
+        ? 'Comprehensive health screening packages designed for early detection, wellness monitoring, and proactive management of your overall health.'
+        : category.slug === 'mens-health-packages'
+        ? "Specialized health screening packages designed to support men’s wellness, including preventive care, early detection, and monitoring of key health conditions."
+        : category.slug === 'womens-health-packages'
+        ? "Comprehensive health screening packages designed to support women’s wellness, preventive care, early detection, and monitoring of key health needs."
+        : category.slug === 'std-sexual-health'
+        ? 'Confidential testing and screening services for sexually transmitted infections, supporting early detection, prevention, and informed health management.'
+        : category.slug === 'specialized-diagnostic-tests'
+        ? 'Advanced diagnostic testing services for accurate detection, specialized health assessments, and personalized care planning.'
+        : category.slug === 'genetic-testing'
+        ? 'Advanced genetic testing services to assess inherited conditions, health risks, and personalized insights for informed healthcare decisions.'
+        : '12 hours prior booking slots.',
   };
   return acc;
 }, {} as Record<string, { title: string; description: string }>);
@@ -1311,13 +1326,13 @@ function MainApp() {
   const seoData = useMemo(() => {
     if (activeTab === 'services' && currentServiceRoute) {
       const routeLabels: Record<string, { title: string; desc: string }> = {
-        'nursing-care-at-home': { title: 'Nursing Care at Home', desc: 'Professional nursing care at home in Dubai. DHA compliant nurses for wound dressing, catheter care, IV antibiotics, and general medical support.' },
-        'long-term-specialized-care': { title: 'Long-Term Specialized Care', desc: 'Long-term nursing, caregiver, and companion care at home in Dubai. Live-in and daily care options.' },
-        'physiotherapy-at-home': { title: 'Physiotherapy at Home', desc: 'At-home physiotherapy sessions in Dubai. Recovery, rehab, and chronic pain management by certified physiotherapists.' },
-        'doctor-on-call': { title: 'Doctor on Call', desc: 'Doctor visits at your home or hotel in Dubai. General physicians and specialists available with advance booking.' },
-        'speech-and-language-therapy': { title: 'Speech and Language Therapy', desc: 'Speech language therapy sessions at home in Dubai. For children and adults with communication difficulties.' },
-        'occupational-therapy': { title: 'Occupational Therapy', desc: 'Occupational therapy sessions at home in Dubai. Daily living skill rehabilitation and sensory integration.' },
-        'iv-therapy': { title: 'IV Therapy at Home', desc: 'Nurse-administered IV nutrient drips, energy infusions, and premium NAD+ therapy at home in Dubai.' },
+        'nursing-care-at-home': { title: 'Nursing Care at Home', desc: 'Professional nursing support delivered at the comfort of your home, including routine nurse visits, wound dressing, catheterisation, and prescription-based IV antibiotic administration.' },
+        'long-term-specialized-care': { title: 'Long-Term / Specialized Care', desc: 'Dedicated nursing support at home for long-term and specialized care needs, including ongoing monitoring, chronic condition management, and personalized patient assistance.' },
+        'physiotherapy-at-home': { title: 'Physiotherapy at Home', desc: 'Professional physiotherapy sessions delivered at the comfort of your home, including rehabilitation support, mobility improvement, pain management, and recovery-focused exercises.' },
+        'doctor-on-call': { title: 'Doctor on Call', desc: 'Convenient medical consultations at your home with qualified doctors providing assessment, advice, treatment guidance, and follow-up care.' },
+        'speech-and-language-therapy': { title: 'Speech and Language Therapy', desc: 'Specialized therapy at home to support speech, communication, language development, and swallowing difficulties through personalized care plans.' },
+        'occupational-therapy': { title: 'Occupational Therapy', desc: 'Personalized therapy at home to improve daily living skills, independence, mobility, and functional abilities through tailored rehabilitation programs.' },
+        'iv-therapy': { title: 'IV Therapy', desc: 'Professional IV therapy administered at home under medical guidance, offering convenient access to prescribed treatments, hydration support, and wellness infusions.' },
       };
       const data = routeLabels[currentServiceRoute] || { title: 'Healthcare Services', desc: SITE_DEFAULT_DESCRIPTION };
       return { title: data.title, description: data.desc, canonicalPath: `/services/${currentServiceRoute}` };
@@ -1428,6 +1443,39 @@ function MainApp() {
                   <button
                     key={cat.sectionId}
                     onClick={() => handleTabChange('services', cat.sectionId)}
+                    className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                      isActive
+                        ? 'bg-medical-green text-white shadow-sm'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'lab-tests' && (
+        <div className="bg-white border-b border-slate-100 sticky top-[52px] z-[29]">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar py-2.5">
+              {[
+                { label: 'Routine Blood Tests', sectionId: 'routine-blood-tests-section' },
+                { label: 'Preventive Health Packages', sectionId: 'preventive-health-packages-section' },
+                { label: "Men's Health Packages", sectionId: 'mens-health-packages-section' },
+                { label: "Women's Health Packages", sectionId: 'womens-health-packages-section' },
+                { label: 'STD / Sexual Health', sectionId: 'std-sexual-health-section' },
+                { label: 'Specialized Diagnostic Tests', sectionId: 'specialized-diagnostic-tests-section' },
+                { label: 'Genetic Testing', sectionId: 'genetic-testing-section' },
+              ].map((cat) => {
+                const isActive = activeSectionId === cat.sectionId || (!activeSectionId && cat.sectionId === 'routine-blood-tests-section');
+                return (
+                  <button
+                    key={cat.sectionId}
+                    onClick={() => handleTabChange('lab-tests', cat.sectionId)}
                     className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer shrink-0 ${
                       isActive
                         ? 'bg-medical-green text-white shadow-sm'
@@ -1896,7 +1944,7 @@ function MainApp() {
                 'home-healthcare-section',
                 'Nursing Care at Home',
                 'Nursing Care at Home',
-                'Generic nurse visits, wound dressing, catheterisation, and prescription-based IV antibiotics available with AED pricing as listed.',
+                'Professional nursing support delivered at the comfort of your home, including routine nurse visits, wound dressing, catheterisation, and prescription-based IV antibiotic administration.',
                 nursingServices,
               )}
 
@@ -1905,7 +1953,7 @@ function MainApp() {
                 'long-term-care-section',
                 'Long-Term / Specialized Care',
                 'Long-Term / Specialized Care',
-                'Long-term nurse and caregiver deployment options for 30-day, live-in, and daily care requirements.',
+                'Dedicated nursing support at home for long-term and specialized care needs, including ongoing monitoring, chronic condition management, and personalized patient assistance.',
                 longTermServices,
               )}
 
@@ -1914,7 +1962,7 @@ function MainApp() {
                 'physiotherapy-section',
                 'Physiotherapy at Home',
                 'Physiotherapy at Home',
-                'At-home physio sessions and weekly treatment plans for recovery and rehab support.',
+                'Professional physiotherapy sessions delivered at the comfort of your home, including rehabilitation support, mobility improvement, pain management, and recovery-focused exercises.',
                 physioServices,
               )}
 
@@ -1923,7 +1971,7 @@ function MainApp() {
                 'doctor-on-call-section',
                 'Doctor on Call',
                 'Doctor on Call',
-                'Doctor visits at home or hotel with advance booking windows as shown.',
+                'Convenient medical consultations at your home with qualified doctors providing assessment, advice, treatment guidance, and follow-up care.',
                 doctorServices,
               )}
 
@@ -1932,7 +1980,7 @@ function MainApp() {
                 'speech-therapy-section',
                 'Speech and Language Therapy',
                 'Speech and Language Therapy',
-                'Speech language therapy sessions arranged at home with advance booking.',
+                'Specialized therapy at home to support speech, communication, language development, and swallowing difficulties through personalized care plans.',
                 speechServices,
               )}
 
@@ -1941,7 +1989,7 @@ function MainApp() {
                 'occupational-therapy-section',
                 'Occupational Therapy',
                 'Occupational Therapy',
-                'Occupational therapy sessions arranged at home with advance booking.',
+                'Personalized therapy at home to improve daily living skills, independence, mobility, and functional abilities through tailored rehabilitation programs.',
                 occupationalServices,
               )}
 
@@ -1950,7 +1998,7 @@ function MainApp() {
                 'iv-therapy-section',
                 'IV Therapy',
                 'IV Therapy',
-                'IV therapy and drip packages as listed in the home healthcare pricing.',
+                'Professional IV therapy administered at home under medical guidance, offering convenient access to prescribed treatments, hydration support, and wellness infusions.',
                 ivServices,
               )}
           </div>

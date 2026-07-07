@@ -293,6 +293,7 @@ const BASE_PRODUCTS: Product[] = [
       { label: 'MRP per week', value: 'AED 480' },
       { label: 'MRP per month', value: 'AED 1344' },
       { label: 'Security deposit', value: 'AED 2500' },
+      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -312,6 +313,7 @@ const BASE_PRODUCTS: Product[] = [
       { label: 'MRP per week', value: 'AED 660' },
       { label: 'MRP per month', value: 'AED 1848' },
       { label: 'Security deposit', value: 'AED 3000' },
+      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -331,6 +333,7 @@ const BASE_PRODUCTS: Product[] = [
       { label: 'MRP per week', value: 'AED 120' },
       { label: 'MRP per month', value: 'AED 336' },
       { label: 'Security deposit', value: 'AED 900' },
+      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -350,6 +353,7 @@ const BASE_PRODUCTS: Product[] = [
       { label: 'MRP per week', value: 'AED 300' },
       { label: 'MRP per month', value: 'AED 840' },
       { label: 'Security deposit', value: 'AED 2000' },
+      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -369,6 +373,7 @@ const BASE_PRODUCTS: Product[] = [
       { label: 'MRP per week', value: 'AED 360' },
       { label: 'MRP per month', value: 'AED 1008' },
       { label: 'Security deposit', value: 'AED 1500' },
+      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -388,6 +393,7 @@ const BASE_PRODUCTS: Product[] = [
       { label: 'MRP per week', value: 'AED 960' },
       { label: 'MRP per month', value: 'AED 2688' },
       { label: 'Security deposit', value: 'AED 3000' },
+      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -407,6 +413,7 @@ const BASE_PRODUCTS: Product[] = [
       { label: 'MRP per week', value: 'AED 780' },
       { label: 'MRP per month', value: 'AED 2184' },
       { label: 'Security deposit', value: 'AED 2500' },
+      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -426,6 +433,7 @@ const BASE_PRODUCTS: Product[] = [
       { label: 'MRP per week', value: 'AED 120' },
       { label: 'MRP per month', value: 'AED 336' },
       { label: 'Security deposit', value: 'AED 500' },
+      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -445,6 +453,7 @@ const BASE_PRODUCTS: Product[] = [
       { label: 'MRP per week', value: 'AED 180' },
       { label: 'MRP per month', value: 'AED 504' },
       { label: 'Security deposit', value: 'AED 1800' },
+      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -464,6 +473,7 @@ const BASE_PRODUCTS: Product[] = [
       { label: 'MRP per week', value: 'AED 240' },
       { label: 'MRP per month', value: 'AED 672' },
       { label: 'Security deposit', value: 'AED 1800' },
+      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -483,6 +493,7 @@ const BASE_PRODUCTS: Product[] = [
       { label: 'MRP per week', value: 'AED 420' },
       { label: 'MRP per month', value: 'AED 1176' },
       { label: 'Security deposit', value: 'AED 3000' },
+      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
   {
@@ -502,6 +513,7 @@ const BASE_PRODUCTS: Product[] = [
       { label: 'MRP per week', value: 'AED 90' },
       { label: 'MRP per month', value: 'AED 252' },
       { label: 'Security deposit', value: 'AED 250' },
+      { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
 ];

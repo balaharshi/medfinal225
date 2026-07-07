@@ -82,6 +82,7 @@ const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 const VendorDashboard = lazy(() => import('./components/VendorDashboard'));
 import EnquiryModal from './components/EnquiryModal';
 import ErrorBoundary from './components/ErrorBoundary';
+import SocialProofPopup from './components/SocialProofPopup';
 import { subscribeToNotifications } from './services/pusherClient';
 import { checkEnbdpayStatus } from './services/enbdpay';
 import { FAQ_SECTIONS, PRIVACY_SECTIONS, TERMS_SECTIONS } from './content/legalContent';
@@ -1290,7 +1291,7 @@ function MainApp() {
       return { title: 'Lab Tests at Home', description: 'Book lab tests at home in Dubai. Routine blood tests, preventive health packages, STD screening, and genetic testing with home sample collection.', canonicalPath: '/services/lab-tests-at-home' };
     }
     if (activeTab === 'products') {
-      return { title: 'Medical Equipment', description: 'Rent or buy certified medical equipment in Dubai. Hospital beds, oxygen concentrators, wheelchairs, BP monitors, and more.', canonicalPath: '/products' };
+      return { title: 'Medical Equipment', description: 'Rent certified medical equipment in Dubai. Hospital beds, oxygen concentrators, wheelchairs, BP monitors, and more.', canonicalPath: '/products' };
     }
     if (activeTab === 'wellness') {
       return { title: 'Other Services', description: 'Medical tourism facilitation and medical support for shipping crew members in Dubai and Sharjah.' };
@@ -1685,7 +1686,7 @@ function MainApp() {
             />
 
             {/* Popular Products section */}
-            <section className="bg-white py-6 px-4 border-b border-slate-100">
+            <section className="bg-slate-50 py-6 px-4 border-b border-slate-100">
               <div className="max-w-7xl mx-auto">
                 <div className="flex items-center justify-between mb-4">
                   <div className="text-left">
@@ -1702,14 +1703,14 @@ function MainApp() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                  {db.products.slice(0, 4).map((prod) => (
+                <div className="flex gap-4 overflow-x-auto no-scrollbar snap-x pb-2">
+                  {db.products.filter(p => p.category === 'devices-for-rent').slice(0, 8).map((prod) => (
                     <div
                       key={prod.id}
-                      className="bg-white rounded-2xl border border-slate-150/60 p-0 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between overflow-hidden"
+                      className="snap-start bg-white rounded-2xl border border-slate-150/60 p-0 min-w-[200px] sm:min-w-[220px] max-w-[220px] flex-shrink-0 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between overflow-hidden"
                     >
                       <div>
-                        <div className="relative h-36 w-full overflow-hidden">
+                        <div className="relative h-28 w-full overflow-hidden">
                           <img
                             src={prod.image}
                             alt={prod.name}
@@ -2751,7 +2752,7 @@ function MainApp() {
                     { icon: <Activity className="w-4 h-4" />, title: 'Physiotherapy', desc: 'At-home physiotherapy sessions for recovery, rehab, and chronic pain management.' },
                     { icon: <HeartPulse className="w-4 h-4" />, title: 'IV Therapy', desc: 'Nurse-administered IV nutrient drips, energy infusions, and premium NAD+ therapy.' },
                     { icon: <UserCircle className="w-4 h-4" />, title: 'Speech & Occupational Therapy', desc: 'Specialized therapy sessions for children and adults at home.' },
-                    { icon: <ShoppingCart className="w-4 h-4" />, title: 'Medical Equipment', desc: 'Rent or buy certified medical equipment including hospital beds, oxygen concentrators, and monitoring devices.' },
+                    { icon: <ShoppingCart className="w-4 h-4" />, title: 'Medical Equipment', desc: 'Rent certified medical equipment including hospital beds, oxygen concentrators, and monitoring devices.' },
                   ].map((item) => (
                     <div key={item.title} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
                       <div className="w-8 h-8 bg-medical-green/10 rounded-lg flex items-center justify-center text-medical-green shrink-0 mt-0.5">
@@ -2773,8 +2774,8 @@ function MainApp() {
                 </h2>
                 <div className="space-y-3">
                   {[
-                    { label: 'DHA Compliance', desc: 'All providers on our platform are licensed and regulated by the Dubai Health Authority.' },
-                    { label: 'Data Privacy', desc: 'We follow strict HIPAA-aligned data protection standards to safeguard your personal and health information.' },
+                    { label: 'Licensed Providers', desc: 'Healthcare providers on our platform hold valid DHA and relevant authority licenses where applicable.' },
+                    { label: 'Data Privacy', desc: 'We implement strict data protection standards to safeguard your personal and health information.' },
                     { label: 'Transparent Pricing', desc: 'All service prices are displayed upfront. No hidden charges or surprise fees.' },
                     { label: 'Quality Assurance', desc: 'We vet all providers through a rigorous onboarding process to ensure consistent care quality.' },
                   ].map((item) => (
@@ -3087,6 +3088,11 @@ function MainApp() {
           setLoggedInUserAddress(updatedAddress);
         }}
         onSuccessToast={triggerToast}
+      />
+
+      <SocialProofPopup 
+        services={homeHealthcareServices.filter(s => s.subcategory !== 'customize-lab-package')} 
+        products={db.products} 
       />
 
     </div>

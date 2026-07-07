@@ -31,11 +31,6 @@ const rentalEquipmentImages = import.meta.glob('./assets/images/rentalimg/*.jpg'
   query: '?url',
   import: 'default',
 }) as Record<string, string>;
-const buyMedicalEquipmentImages = import.meta.glob('./assets/images/buyrentalimg/*.jpg', {
-  eager: true,
-  query: '?url',
-  import: 'default',
-}) as Record<string, string>;
 
 export const DEFAULT_HEALTHCARE_SERVICE_IMAGE =
   homeHealthcareImages['./assets/images/home_healthcare/Generic Nurse Visit.jpg'] ||
@@ -119,18 +114,6 @@ const withRentalEquipmentImages = (products: Product[]) =>
     if (product.subcategory !== 'rent-medical-equipments') return product;
     const imageName = rentalEquipmentImageNames[product.name] || product.name;
     const localImage = rentalEquipmentImages[`./assets/images/rentalimg/${imageName}.jpg`];
-    return localImage ? { ...product, image: localImage } : product;
-  });
-
-const buyMedicalEquipmentImageNames: Record<string, string> = {
-  'Back Support Belt': 'back support belt',
-};
-
-const withBuyMedicalEquipmentImages = (products: Product[]) =>
-  products.map((product) => {
-    if (product.subcategory !== 'buy-medical-equipments') return product;
-    const imageName = buyMedicalEquipmentImageNames[product.name] || product.name;
-    const localImage = buyMedicalEquipmentImages[`./assets/images/buyrentalimg/${imageName}.jpg`];
     return localImage ? { ...product, image: localImage } : product;
   });
 
@@ -469,113 +452,9 @@ const BASE_PRODUCTS: Product[] = [
       { label: 'Booking notice', value: '12 hours prior booking' },
     ],
   },
-  {
-    id: 'prod-omron-bp',
-    name: 'Omron BP Monitor',
-    subtitle: 'HEM-7120 Electronic Upper Arm Blood Pressure Monitor',
-    price: 139,
-    originalPrice: 199,
-    image: 'https://images.unsplash.com/photo-1603398938378-e54eab446dde?auto=format&fit=crop&q=80&w=400',
-    category: 'buy-medical-equipments',
-    subcategory: 'buy-medical-equipments',
-    brand: 'Omron',
-    rating: 4.8,
-    inStock: true
-  },
-  {
-    id: 'prod-pulse-ox',
-    name: 'Pulse Oximeter',
-    subtitle: 'Finger Pulse Blood Oxygen Saturation (SpO2) Monitor',
-    price: 59,
-    originalPrice: 99,
-    image: 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&q=80&w=400',
-    category: 'buy-medical-equipments',
-    subcategory: 'buy-medical-equipments',
-    brand: 'MedTech',
-    rating: 4.7,
-    inStock: true
-  },
-  {
-    id: 'prod-neb',
-    name: 'Nebulizer',
-    subtitle: 'Compressor Medical Aerosol Steam Inhaler System',
-    price: 149,
-    originalPrice: 199,
-    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400',
-    category: 'buy-medical-equipments',
-    subcategory: 'buy-medical-equipments',
-    brand: 'Nebulyfe',
-    rating: 4.9,
-    inStock: true
-  },
-  {
-    id: 'prod-therm',
-    name: 'Digital Thermometer',
-    subtitle: 'Highly Accurate Professional Electronic Fever Thermometer',
-    price: 49,
-    originalPrice: 79,
-    image: 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&q=80&w=400',
-    category: 'buy-medical-equipments',
-    subcategory: 'buy-medical-equipments',
-    brand: 'Omron',
-    rating: 4.6,
-    inStock: true
-  },
-  {
-    id: 'prod-gluco',
-    name: 'Glucometer',
-    subtitle: 'Blood Sugar Monitor Kit with 25 Sterile Test Strips',
-    price: 89,
-    originalPrice: 129,
-    image: 'https://images.unsplash.com/photo-1628115502411-ca48001146c5?auto=format&fit=crop&q=80&w=400',
-    category: 'buy-medical-equipments',
-    subcategory: 'buy-medical-equipments',
-    brand: 'AccuCheck',
-    rating: 4.8,
-    inStock: true
-  },
-  {
-    id: 'prod-back-belt',
-    name: 'Back Support Belt',
-    subtitle: 'Adjustable Posture Corrector and Lumbar Relief Belt',
-    price: 89,
-    originalPrice: 129,
-    image: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?auto=format&fit=crop&q=80&w=400',
-    category: 'buy-medical-equipments',
-    subcategory: 'buy-medical-equipments',
-    brand: 'FlexiBack',
-    rating: 4.5,
-    inStock: true
-  },
-  {
-    id: 'prod-knee-supp',
-    name: 'Knee Support',
-    subtitle: 'Adjustable Neoprene Double Compression Patella Stabilizer Brace',
-    price: 69,
-    originalPrice: 99,
-    image: 'https://images.unsplash.com/photo-1576091159399-a37f8d40a8ed?auto=format&fit=crop&q=80&w=400',
-    category: 'buy-medical-equipments',
-    subcategory: 'buy-medical-equipments',
-    brand: 'JointCare',
-    rating: 4.7,
-    inStock: true
-  },
-  {
-    id: 'prod-whey',
-    name: 'Whey Protein',
-    subtitle: 'Chocolate flavor Premium Isolate Protein Supplement (1kg)',
-    price: 149,
-    originalPrice: 199,
-    image: 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?auto=format&fit=crop&q=80&w=400',
-    category: 'supplements',
-    subcategory: 'supplements',
-    brand: 'Optimum Gold',
-    rating: 4.9,
-    inStock: true
-  }
 ];
 
-export const PRODUCTS: Product[] = withBuyMedicalEquipmentImages(withRentalEquipmentImages(BASE_PRODUCTS));
+export const PRODUCTS: Product[] = withRentalEquipmentImages(BASE_PRODUCTS);
 
 const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
@@ -607,7 +486,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     duration: "1 Session",
     image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
     description: "Precise, hygienic care for minor wounds and small surgical sites — cleaned, dressed, and monitored by a trained nurse to support faster healing and prevent infection.",
-    popular: false,
+    popular: true,
     bookingNotice: "12 hours prior booking",
     vendorPrices: [
       {
@@ -691,7 +570,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     duration: "1 Session",
     image: "https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&q=80&w=400",
     description: "Complete your antibiotic course from the comfort of home — a qualified nurse administers your prescribed IV treatment safely and efficiently, so you recover without the hospital stay.",
-    popular: false,
+    popular: true,
     bookingNotice: "12 hours prior booking",
     vendorPrices: [
       {
@@ -1605,7 +1484,7 @@ const OTHER_SERVICES: HealthcareService[] = [
     image: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&q=80&w=400',
     description: '24/7 emergency medical assistance for crew members including evacuation coordination and urgent care referrals.',
     shortDescription: 'Round-the-clock emergency medical support for crew members.',
-    popular: true,
+    popular: false,
     enquiryOnly: true,
     bookingNotice: '24 hours prior booking',
   },

@@ -138,7 +138,17 @@ export default function BookingModal({
     }
   }, [date, availableSlots, time]);
 
-  const servicesList = HEALTHCARE_SERVICES.map(s => ({ id: s.id, title: s.title, price: s.price }));
+  const servicesList = HEALTHCARE_SERVICES.map(s => ({ id: s.id, title: s.title, price: s.price, category: s.category || '' }));
+
+  const groupedServices = React.useMemo(() => {
+    const groups: Record<string, typeof servicesList> = {};
+    servicesList.forEach(s => {
+      const cat = s.category || 'Other';
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(s);
+    });
+    return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
+  }, [servicesList]);
 
   const handlePhoneChange = (fullNumber: string) => {
     setPhone(fullNumber);
@@ -333,10 +343,14 @@ export default function BookingModal({
                   onChange={(e) => setService(e.target.value)}
                   className="w-full text-xs border border-slate-200 rounded-xl p-3 bg-white focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
                 >
-                  {servicesList.map((s, idx) => (
-                    <option key={idx} value={s.title}>
-                      {s.title} (AED {formatAedWhole(s.price)})
-                    </option>
+                  {groupedServices.map(([cat, items]) => (
+                    <optgroup key={cat} label={cat.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}>
+                      {items.map((s) => (
+                        <option key={s.id} value={s.title}>
+                          {s.title} (AED {formatAedWhole(s.price)})
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
               </div>

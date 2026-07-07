@@ -1044,8 +1044,8 @@ function MainApp() {
         <div className="flex items-baseline gap-2 justify-start">
           {srv.price > 0 ? (
             <>
-              <span className="text-xs text-slate-400 font-extrabold uppercase leading-none">AED</span>
-              <span className="text-xl font-black text-medical-green">{formatAedWhole(srv.price)}</span>
+              <span className="text-[7px] text-slate-400 font-extrabold uppercase leading-none mr-0.5">FROM</span>
+              <span className="text-xs font-black text-medical-green">AED {formatAedWhole(srv.price)}</span>
             </>
           ) : (
             <span className="text-sm font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">Enquiry Only</span>
@@ -2198,6 +2198,7 @@ function MainApp() {
                     <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                       <div className="flex flex-col">
                         <div className="flex items-center gap-1.5">
+                          <span className="text-[8px] text-slate-400 font-extrabold uppercase leading-none">FROM</span>
                           <span className="text-sm font-black text-medical-green">AED {formatAedWhole(prod.price)}</span>
                         </div>
                       </div>
@@ -2980,9 +2981,9 @@ function MainApp() {
 
                   <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50 to-blue-50 p-4">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Price</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Starting Price</p>
                       <p className="text-2xl font-black text-medical-green">
-                        {serviceDetails.price > 0 ? `AED ${formatAedWhole(serviceDetails.price)}` : 'Enquiry Only'}
+                        {serviceDetails.price > 0 ? `FROM AED ${formatAedWhole(serviceDetails.price)}` : 'Enquiry Only'}
                       </p>
                     </div>
                     {serviceDetails.bookingNotice && (

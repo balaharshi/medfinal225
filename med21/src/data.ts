@@ -16,6 +16,11 @@ const mergeById = <T extends { id: string }>(base: T[], overrides: T[]) => {
 };
 
 const LAB_TEST_IMAGE = 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&q=80&w=400';
+const labTestsAtHomeImages = import.meta.glob('./assets/images/lab-tests-at-home/*.jpg', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>;
 const homeHealthcareImages = import.meta.glob('./assets/images/home_healthcare/*.jpg', {
   eager: true,
   query: '?url',
@@ -40,7 +45,10 @@ const homeHealthcareImageAliases: Record<string, string> = {
   'SURGERY RECOVERY IV THERAPY': 'IV antibiotics at home (with Dr Prescription)',
 };
 
-const LAB_TESTS_AT_HOME_SERVICES_WITH_LOCAL_IMAGES = LAB_TESTS_AT_HOME_SERVICES as HealthcareService[];
+const LAB_TESTS_AT_HOME_SERVICES_WITH_LOCAL_IMAGES = (LAB_TESTS_AT_HOME_SERVICES as HealthcareService[]).map((service) => ({
+  ...service,
+  image: labTestsAtHomeImages[`./assets/images/lab-tests-at-home/${service.id}.jpg`] || service.image,
+}));
 
 const getHomeHealthcareImageKey = (title: string) => {
   const normalizedTitle = title.replace(/&amp;/gi, '&').replace(/\s+/g, ' ').trim().toUpperCase();

@@ -21,13 +21,13 @@ LAST_DEPLOY_DIR="$SCRIPT_DIR/.deploy-state"
 # --- Configuration ---
 if [ "$ENV" = "staging" ]; then
     REMOTE_HOST="staging.medzivahealthcare.com"
-    REMOTE_USER="YOUR_GODADDY_SSH_USER"
-    FRONTEND_REMOTE_DIR="/home/$REMOTE_USER/staging"
-    BACKEND_REMOTE_DIR="/home/$REMOTE_USER/staging/api"
+    REMOTE_USER="rvdkqh1z30zk"
+    FRONTEND_REMOTE_DIR="/home/$REMOTE_USER/public_html/staging.medzivahealthcare.com"
+    BACKEND_REMOTE_DIR="/home/$REMOTE_USER/public_html/staging.medzivahealthcare.com/api"
     BRANCH="develop"
 elif [ "$ENV" = "production" ]; then
     REMOTE_HOST="medzivahealthcare.com"
-    REMOTE_USER="YOUR_GODADDY_SSH_USER"
+    REMOTE_USER="rvdkqh1z30zk"
     FRONTEND_REMOTE_DIR="/home/$REMOTE_USER/public_html"
     BACKEND_REMOTE_DIR="/home/$REMOTE_USER/public_html/api"
     BRANCH="main"
@@ -103,7 +103,8 @@ rsync -avz --delete \
     "$SCRIPT_DIR/med21/dist/" \
     "$REMOTE_USER@$REMOTE_HOST:$FRONTEND_REMOTE_DIR/" \
     --exclude '.env' \
-    --exclude 'node_modules'
+    --exclude 'node_modules' \
+    --exclude 'api'
 
 # Deploy backend (Laravel)
 echo "  -> Uploading backend (med21-laravel/)..."

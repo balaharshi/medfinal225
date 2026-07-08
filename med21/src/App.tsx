@@ -532,7 +532,6 @@ function MainApp() {
   });
   const [customLabSearch, setCustomLabSearch] = useState('');
   const [labTestsAtHomeSearch, setLabTestsAtHomeSearch] = useState('');
-  const [, setDetectedLocation] = useState(DUBAI_LOCATIONS[0]);
 
   useEffect(() => {
     if (searchQuery) {
@@ -592,17 +591,6 @@ function MainApp() {
     });
   }, [loggedInUserEmail]);
 
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        setDetectedLocation(`Detected location (${coords.latitude.toFixed(3)}, ${coords.longitude.toFixed(3)})`);
-      },
-      () => undefined,
-      { enableHighAccuracy: false, maximumAge: 30 * 60 * 1000, timeout: 6000 },
-    );
-  }, []);
 
   useEffect(() => {
     localStorage.removeItem('medziva_user_name');
@@ -2014,13 +2002,6 @@ function MainApp() {
                       className="w-full h-14 rounded-xl border border-slate-300 bg-white pl-11 pr-4 text-sm text-slate-700 focus:outline-hidden focus:border-medical-green"
                     />
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => console.log('Filter clicked for:', customLabSearch)}
-                    className="h-14 px-8 rounded-xl bg-medical-green hover:bg-emerald-600 text-white text-sm font-black transition-colors cursor-pointer"
-                  >
-                    Filter
-                  </button>
                 </div>
 
                 {displayedLabServices.length > 0 ? (
@@ -2042,7 +2023,6 @@ function MainApp() {
                             <h3 className="text-sm font-extrabold text-blue-950 leading-snug line-clamp-2 min-h-[36px]">{srv.title}</h3>
                             <div className="flex flex-wrap items-center gap-1.5 mt-1 text-xs">
                               <span className="text-medical-green font-black">AED {formatAedWhole(srv.price)}</span>
-                              <span className="text-slate-400 font-semibold">1 Biomarkers</span>
                             </div>
                             {testCode && (
                               <p className="text-[11px] text-slate-500 mt-1 line-clamp-1">{testCode}</p>
@@ -2309,7 +2289,6 @@ function MainApp() {
                       <span className="bg-purple-50 text-purple-700 text-[9px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider border border-purple-100">
                         {pack.tag}
                       </span>
-                      <span className="text-amber-500 text-xs font-black">★ 4.9 Rating</span>
                     </div>
 
                     <h3 className="text-sm sm:text-base font-extrabold text-blue-950 leading-snug mb-2">{pack.title}</h3>

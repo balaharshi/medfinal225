@@ -122,6 +122,7 @@ export default function EnquiryModal({
     } catch {
 
       toast.error('Could not connect to enquiry service. Please try again.');
+      return;
     }
 
     setEnquiryId(generatedId);

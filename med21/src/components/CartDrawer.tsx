@@ -257,8 +257,6 @@ export default function CartDrawer({
     setPendingDelete(null);
   };
 
-  if (!isOpen) return null;
-
   return createPortal(
     <>
       <AnimatePresence>

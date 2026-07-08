@@ -4,6 +4,8 @@
 @theme {
   --color-medical-blue: #1769b3;
   --color-medical-green: #82c342;
+  --color-slate-150: #e9eef5;
+  --color-slate-350: #b4c0cf;
 }
 
 /* Custom/Fallback Utility Classes for Sleek Interface Theme */

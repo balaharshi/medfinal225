@@ -80,7 +80,7 @@ export default function NavigationMenu({ activeTab, activeSectionId, onTabChange
               onMouseLeave={() => setShowServicesDropdown(false)}
             >
               <button
-                onClick={() => setShowServicesDropdown((current) => !current)}
+                onClick={() => { setShowServicesDropdown((current) => !current); onTabChange('services'); }}
                 className={`relative px-3 py-3 text-xs sm:text-[13px] font-bold tracking-wide transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 ${
                   activeTab === 'services' || ((activeTab === 'lab-tests' || activeTab === 'health-packages') && activeSectionId !== 'customize-lab-package-section')
                     ? 'text-medical-blue border-b-2 border-medical-green font-extrabold pb-3'

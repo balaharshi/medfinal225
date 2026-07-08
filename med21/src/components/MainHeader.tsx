@@ -121,7 +121,7 @@ export default function MainHeader({
           <img
             src={newlogo}
             alt="MedZiva Logo"
-            className="h-24 w-auto object-contain"
+            className="h-16 w-auto object-contain"
             referrerPolicy="no-referrer"
           />
         </a>
@@ -231,14 +231,6 @@ export default function MainHeader({
 
       <div className="max-w-7xl mx-auto hidden md:flex items-stretch justify-between gap-4">
         
-        {/* Mobile Hamburger Menu Button - Left side */}
-        <button
-          className="md:hidden p-2 text-slate-700 hover:text-medical-blue"
-          onClick={() => setShowMobileMenu(!showMobileMenu)}
-        >
-          {showMobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
-
         {/* Left Side: Brand Logo */}
         <div className="flex items-center shrink-0">
           <a href="/" className="flex items-center h-full group" aria-label="Go to homepage">

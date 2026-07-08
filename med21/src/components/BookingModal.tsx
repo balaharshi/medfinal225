@@ -50,8 +50,6 @@ export default function BookingModal({
   const [time, setTime] = useState(TIME_SLOTS[0].label);
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
-  const [refId, setRefId] = useState('');
-  const [assignedClinician, setAssignedClinician] = useState('');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isPaymentStarting, setIsPaymentStarting] = useState(false);
   const [promoCode, setPromoCode] = useState('');
@@ -297,7 +295,7 @@ export default function BookingModal({
 
         {/* Scrollable Form Body */}
         <div className="p-5 overflow-y-auto flex-grow text-left">
-          {!success ? (
+          {!success && (
             <form id="booking-wizard-form" onSubmit={handleSubmit} noValidate className="space-y-4">
               
               {/* Alert Badge */}
@@ -562,91 +560,6 @@ export default function BookingModal({
               </div>
 
             </form>
-          ) : (
-            /* Successful confirmation ticket layout */
-            <div className="space-y-5 text-center py-4">
-              <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto border border-emerald-100 shadow-xs">
-                <CheckCircle2 className="w-8 h-8" />
-              </div>
-
-              <div className="space-y-1">
-                <h4 className="text-lg font-black text-medical-blue">Home Visit Registered!</h4>
-                <p className="text-xs text-slate-400">Booking Reference ID: <span className="font-bold text-slate-700">{refId}</span></p>
-              </div>
-
-              {/* Printable Ticket Shape block */}
-              <div className="bg-slate-50 border border-slate-200 rounded-3xl p-5 text-left text-xs divide-y divide-slate-150 relative overflow-hidden font-medium text-slate-700">
-                
-                {/* Visual Medical cross watermark effect */}
-                <div className="absolute right-0 top-0 bg-emerald-600 text-white text-[8px] font-extrabold px-3 py-1.5 rounded-bl-xl uppercase tracking-widest">
-                  CONFIRMED
-                </div>
-
-                {/* Customer data */}
-                <div className="pb-3.5 space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400 text-[10.5px]">Customer Name</span>
-                    <span className="font-extrabold text-slate-900">{patientName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400 text-[10.5px]">Contact Mobile</span>
-                    <span className="font-extrabold text-medical-blue">{phone}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400 text-[10.5px]">Dispatch Email</span>
-                    <span className="font-extrabold text-slate-900">{email}</span>
-                  </div>
-                </div>
-
-                {/* Service in ticket detail */}
-                <div className="py-3.5 space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400 text-[10.5px]">Care Service</span>
-                    <span className="font-extrabold text-slate-900">{service}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400 text-[10.5px]">Schedule Time</span>
-                    <span className="font-bold text-slate-900">{date} at {time.split(' ')[0]} {time.split(' ')[1]}</span>
-                  </div>
-                  <div className="flex justify-between items-start">
-                    <span className="text-slate-400 text-[10.5px]">Healthcare Officer</span>
-                    <span className="font-extrabold text-emerald-700 text-right max-w-[180px]">{assignedClinician}</span>
-                  </div>
-                  {notes && (
-                    <div className="bg-white/75 border border-slate-150 p-2 rounded-lg text-[11px] text-slate-500 font-normal">
-                      <span className="font-bold text-slate-700 block text-[10px] uppercase tracking-wider mb-0.5">Customer History Notes:</span>
-                      &ldquo;{notes}&rdquo;
-                    </div>
-                  )}
-                </div>
-
-                {/* Cost segment */}
-                <div className="pt-3.5 space-y-2">
-                  {collectionFee > 0 && (
-                    <div className="flex justify-between text-[11px] text-amber-600">
-                      <span>Home Collection Fee</span>
-                      <span>AED {formatAedWhole(collectionFee)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between items-baseline text-sm">
-                    <span className="font-bold text-slate-500">Total Paid</span>
-                    <span className="text-base font-black text-emerald-600">AED {formatAedWhole(activePrice)}</span>
-                  </div>
-                </div>
-
-              </div>
-
-              <div className="bg-sky-50 text-blue-900 border border-sky-100 p-3 rounded-2xl text-[11px]">
-                ⚕️ <span className="font-bold">Customer Instruction:</span> Please make sure your home address fits selected GPS coordinates. The care team will call 15 minutes prior to confirmation.
-              </div>
-
-              <button
-                onClick={handleReset}
-                className="w-full bg-medical-blue hover:bg-blue-900 text-white font-bold py-3.5 rounded-xl text-xs tracking-wider transition-all cursor-pointer shadow-xs"
-              >
-                DISMISS TICKET
-              </button>
-            </div>
           )}
         </div>
 

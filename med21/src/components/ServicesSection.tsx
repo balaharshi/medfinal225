@@ -174,7 +174,7 @@ export default function ServicesSection({
                 >
                   <div>
                     {/* Category Image (Rectangular, high-quality, as per mockup) */}
-                    <div className="w-full aspect-[4/3] rounded-xl overflow-hidden mb-2.5 border border-slate-100/50 bg-[#EBF3FE] shrink-0">
+                    <div className="w-full aspect-[3/2] rounded-xl overflow-hidden mb-2.5 border border-slate-100/50 bg-[#EBF3FE] shrink-0">
                       <img 
                         src={cat.image} 
                         alt={cat.title} 

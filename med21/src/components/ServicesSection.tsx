@@ -138,7 +138,7 @@ export default function ServicesSection({
           {/* Slider controls - Left side */}
           <button 
             onClick={scrollLeft}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -ml-3 sm:-ml-4 bg-white shadow-lg hover:bg-slate-50 text-slate-700 w-9 h-9 rounded-full z-10 flex items-center justify-center border border-slate-150 hover:scale-105 transition-all cursor-pointer opacity-0 group-hover/slider:opacity-100"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -ml-3 sm:-ml-4 bg-white shadow-lg hover:bg-slate-50 text-slate-700 w-9 h-9 rounded-full z-10 flex items-center justify-center border border-slate-150 hover:scale-105 transition-all cursor-pointer sm:opacity-0 sm:group-hover/slider:opacity-100"
             title="Scroll Left"
           >
             <ChevronLeft className="w-5 h-5 text-slate-800" />
@@ -147,7 +147,7 @@ export default function ServicesSection({
           {/* Slider controls - Right side */}
           <button 
             onClick={scrollRight}
-            className="absolute right-0 top-1/2 -translate-y-1/2 -mr-3 sm:-mr-4 bg-white shadow-lg hover:bg-slate-50 text-slate-700 w-9 h-9 rounded-full z-10 flex items-center justify-center border border-slate-150 hover:scale-105 transition-all cursor-pointer opacity-0 group-hover/slider:opacity-100"
+            className="absolute right-0 top-1/2 -translate-y-1/2 -mr-3 sm:-mr-4 bg-white shadow-lg hover:bg-slate-50 text-slate-700 w-9 h-9 rounded-full z-10 flex items-center justify-center border border-slate-150 hover:scale-105 transition-all cursor-pointer sm:opacity-0 sm:group-hover/slider:opacity-100"
             title="Scroll Right"
           >
             <ChevronRight className="w-5 h-5 text-slate-800" />
@@ -322,7 +322,7 @@ export default function ServicesSection({
                         <div className="flex items-baseline gap-0.5 mb-1.5 sm:mb-2 justify-start">
                           {srv.price > 0 ? (
                             <>
-                              <span className="text-[6px] sm:text-[7px] text-slate-400 font-extrabold uppercase leading-none mr-0.5">FROM</span>
+                              <span className="text-[8px] sm:text-[7px] text-slate-400 font-extrabold uppercase leading-none mr-0.5">FROM</span>
                               <span className="text-[10px] sm:text-xs font-black text-medical-green">
                                 AED {formatAedWhole(srv.price)}
                               </span>

@@ -165,7 +165,7 @@ export default function SocialProofPopup({ services, products, cartOpen }: Socia
 
   return (
     <div
-      className={`fixed bottom-16 left-4 z-[9999] transition-all duration-[400ms] ease-in-out ${
+      className={`fixed bottom-20 left-4 z-[9999] transition-all duration-[400ms] ease-in-out ${
         visible && !cartOpen
           ? 'translate-y-0 opacity-100 pointer-events-auto'
           : 'translate-y-4 opacity-0 pointer-events-none'

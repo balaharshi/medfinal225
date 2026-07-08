@@ -9,6 +9,7 @@ import { HEALTHCARE_SERVICES, SERVICE_CATEGORIES } from '../data';
 import toast from 'react-hot-toast';
 import { createEnbdpayCheckout } from '../services/enbdpay';
 import PhoneInput from './PhoneInput';
+import LocationPicker, { SelectedLocation } from './LocationPicker';
 import { createBooking } from '../services/bookings';
 import { api } from '../lib/api';
 import { formatAedWhole } from '../utils/money';
@@ -57,6 +58,7 @@ export default function BookingModal({
   const [promoError, setPromoError] = useState('');
   const [isPromoLoading, setIsPromoLoading] = useState(false);
   const [region, setRegion] = useState('Dubai');
+  const [location, setLocation] = useState<SelectedLocation | null>(null);
 
   // Prefill details for logged in users
   useEffect(() => {
@@ -225,7 +227,9 @@ export default function BookingModal({
         region,
         status: 'Pending',
         paymentStatus: 'Unpaid',
-        notes: notes ? `Address: ${address}\n${notes}` : `Address: ${address}`,
+        notes: notes
+          ? `Address: ${address}\n${notes}${location ? `\nLocation: ${location.address || 'pinned'} (${location.lat.toFixed(6)}, ${location.lng.toFixed(6)})` : ''}`
+          : `Address: ${address}${location ? `\nLocation: ${location.address || 'pinned'} (${location.lat.toFixed(6)}, ${location.lng.toFixed(6)})` : ''}`,
       });
       const checkout = await createEnbdpayCheckout({
         amount: activePrice,
@@ -266,6 +270,7 @@ export default function BookingModal({
     setPromoDiscount(0);
     setPromoError('');
     setRegion('Dubai');
+    setLocation(null);
     onClose();
   };
 
@@ -480,6 +485,8 @@ export default function BookingModal({
                   <p className="text-[10px] font-semibold text-red-600 mt-1">{formErrors.address}</p>
                 )}
               </div>
+
+              <LocationPicker onLocationChange={setLocation} />
 
               {/* Medical notes description text */}
               <div className="space-y-1">

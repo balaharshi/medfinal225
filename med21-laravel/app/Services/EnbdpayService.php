@@ -348,9 +348,9 @@ class EnbdpayService
         return [...$response, 'responseStatus' => $responseStatus];
     }
 
-    public function recordWebhookPaymentStatus(array $payload, array $headers = []): array
+    public function recordWebhookPaymentStatus(array $payload, array $headers = [], string $rawBody = ''): array
     {
-        $this->verifyWebhookSignature($payload, $headers);
+        $this->verifyWebhookSignature($payload, $headers, $rawBody);
 
         $notes = $this->readField($payload, 'notes');
         $booking = $this->catalogService->updateBookingPaymentStatus([
@@ -364,31 +364,49 @@ class EnbdpayService
         return ['received' => true, 'booking' => $booking];
     }
 
-    private function verifyWebhookSignature(array $payload, array $headers): void
+    private function verifyWebhookSignature(array $payload, array $headers, string $rawBody = ''): void
     {
         $secret = config('services.enbdpay.webhook_secret');
         if (! $secret) {
             Log::error('ENBDpay webhook secret not configured — rejecting webhook');
-            abort(500, 'Webhook secret not configured');
+            abort(503, 'Webhook secret not configured');
         }
 
-        $signature = $headers['x-signature']
-            ?? $headers['x-hmac-sha256']
-            ?? $headers['authorization']
-            ?? '';
-
+        $signature = $this->firstHeader($headers, ['x-signature', 'x-hmac-sha256', 'authorization']);
         if ($signature === '') {
             Log::warning('ENBDpay webhook missing signature header');
             throw new HttpException(401, 'Invalid webhook signature');
         }
 
-        $expected = hash_hmac('sha256', json_encode($payload), $secret);
-        $received = strtolower(trim($signature));
+        // Strip an optional "sha256=" scheme prefix commonly sent by HMAC signers.
+        if (preg_match('/^sha256=/i', $signature)) {
+            $signature = substr($signature, 7);
+        }
 
-        if (! hash_equals($expected, $received)) {
+        // Prefer the raw request body for verification; providers sign the exact
+        // bytes they sent, so re-encoding the decoded payload can break the match.
+        $data = $rawBody !== '' ? $rawBody : json_encode($payload);
+        $expected = hash_hmac('sha256', $data, $secret);
+
+        if (! hash_equals($expected, strtolower(trim($signature)))) {
             Log::error('ENBDpay webhook signature mismatch');
             throw new HttpException(401, 'Invalid webhook signature');
         }
+    }
+
+    private function firstHeader(array $headers, array $names): string
+    {
+        foreach ($names as $name) {
+            $value = $headers[$name] ?? null;
+            if (is_array($value) && isset($value[0])) {
+                return trim((string) $value[0]);
+            }
+            if (is_string($value) && $value !== '') {
+                return trim($value);
+            }
+        }
+
+        return '';
     }
 
     private function getAuthToken(): string

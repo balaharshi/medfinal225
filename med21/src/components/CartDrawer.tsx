@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import toast from 'react-hot-toast';
 import { api } from '../lib/api';
 import PhoneInput from './PhoneInput';
+import LocationPicker, { SelectedLocation } from './LocationPicker';
 import { CartItem } from '../types';
 import ConfirmDialog from './ConfirmDialog';
 import { createEnbdpayCheckout } from '../services/enbdpay';
@@ -67,6 +68,7 @@ export default function CartDrawer({
   const [isPromoLoading, setIsPromoLoading] = useState(false);
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [region, setRegion] = useState('Dubai');
+  const [location, setLocation] = useState<SelectedLocation | null>(null);
   const [dispatchDate, setDispatchDate] = useState('');
   const [preferredTimeSlot, setPreferredTimeSlot] = useState(TIME_SLOTS[0]);
   const [availableTimeSlots, setAvailableTimeSlots] = useState(TIME_SLOTS);
@@ -206,7 +208,7 @@ export default function CartDrawer({
         region,
         status: 'Pending',
         paymentStatus: 'Unpaid',
-        notes: JSON.stringify({ items: cartItems, address: patientAddress }),
+        notes: JSON.stringify({ items: cartItems, address: patientAddress, location }),
       });
       const checkout = await createEnbdpayCheckout({
         amount: totalCost,
@@ -218,7 +220,9 @@ export default function CartDrawer({
           fullName: patientName,
           email: patientEmail,
           phone: patientContact,
-          address: patientAddress,
+          address: location
+            ? `${patientAddress} | Location: ${location.address || 'pinned'} (${location.lat.toFixed(6)}, ${location.lng.toFixed(6)})`
+            : patientAddress,
         },
       });
       setOrderId(booking.id);
@@ -239,6 +243,7 @@ export default function CartDrawer({
     setPendingDelete(null);
     setFormErrors({});
     setRegion('Dubai');
+    setLocation(null);
     setDispatchDate('');
     setPreferredTimeSlot(TIME_SLOTS[0]);
     removePromoCode();
@@ -463,15 +468,17 @@ export default function CartDrawer({
                             <p className="text-[10px] font-semibold text-red-600 mt-1 flex items-center gap-1">
                               <span>⚠️</span> {mobileError || formErrors.mobileNine}
                             </p>
-                          )}
-                        </div>
+                        )}
                       </div>
                     </div>
+                  </div>
 
-                    <div className="space-y-3 pt-2">
-                      <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                        Preferred Dispatch Schedule
-                      </h4>
+                  <LocationPicker onLocationChange={setLocation} />
+
+                  <div className="space-y-3 pt-2">
+                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                      Preferred Dispatch Schedule
+                    </h4>
 
                       <div className="space-y-1">
                         <label className="text-[11px] font-bold text-slate-600">Region / Location <span className="text-red-600">*</span></label>

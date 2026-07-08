@@ -29,7 +29,8 @@ class PaymentController extends Controller
         Log::info('ENBDpay webhook received');
         $result = $this->enbdpayService->recordWebhookPaymentStatus(
             $request->all(),
-            $request->headers->all()
+            $request->headers->all(),
+            $request->getContent()
         );
 
         return response()->json(['success' => true, ...$result]);

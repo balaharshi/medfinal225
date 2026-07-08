@@ -2,7 +2,6 @@ export const HOME_HEALTHCARE_CATEGORIES = [
   {
     id: 'cat-home-health',
     title: 'Nursing Care at Home',
-    image: '',
     slug: 'home-healthcare',
     description: 'Nurses providing premium in-home clinical care, wound antiseptic dressing, and support.',
   },

@@ -11,7 +11,10 @@ import customizeLabItemsRaw from './data/customize_lab_items.txt?raw';
 const mergeById = <T extends { id: string }>(base: T[], overrides: T[]) => {
   const merged = new Map<string, T>();
   base.forEach((item) => merged.set(item.id, item));
-  overrides.forEach((item) => merged.set(item.id, item));
+  overrides.forEach((item) => {
+    const existing = merged.get(item.id);
+    merged.set(item.id, existing ? { ...existing, ...item } : item);
+  });
   return Array.from(merged.values());
 };
 

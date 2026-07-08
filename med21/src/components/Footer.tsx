@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send, MessageCircle, Heart, CheckCircle } from 'lucide-react';
+import { api } from '../lib/api';
 
 const newlogo = '/log.png';
 
@@ -26,22 +27,11 @@ export default function Footer({ onNavigationClick }: FooterProps) {
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (email.trim().length > 3) {
-      let success = false;
       try {
-        const res = await fetch('/api/newsletter/subscribe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email.trim() }),
-        });
-        success = res.ok;
-      } catch {
-        success = false;
-      }
-      if (success) {
+        await api.post('/api/newsletter/subscribe', { body: { email: email.trim() } });
         setSubscribed(true);
-        setTimeout(() => {
-          setEmail('');
-        }, 3000);
+        setTimeout(() => setEmail(''), 3000);
+      } catch {
       }
     }
   };

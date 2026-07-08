@@ -18,7 +18,10 @@ class User extends Authenticatable
     use Notifiable;
     use UsesStringPrimaryKey;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'username', 'email', 'full_name', 'phone', 'address',
+        'password_hash', 'role', 'vendor_id', 'is_active',
+    ];
 
     protected $hidden = [
         'password_hash',

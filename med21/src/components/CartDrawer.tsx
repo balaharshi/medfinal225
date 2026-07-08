@@ -8,12 +8,14 @@ import { createPortal } from 'react-dom';
 import { X, Trash2, Plus, Minus, ShoppingBag, CheckCircle, Calendar, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import toast from 'react-hot-toast';
+import { api } from '../lib/api';
 import PhoneInput from './PhoneInput';
 import { CartItem } from '../types';
 import ConfirmDialog from './ConfirmDialog';
 import { createEnbdpayCheckout } from '../services/enbdpay';
 import { createBooking } from '../services/bookings';
 import { formatAedWhole } from '../utils/money';
+import { TIME_SLOTS } from '../constants';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -28,21 +30,6 @@ interface CartDrawerProps {
   loggedInUserAddress?: string;
   onAuthOpen?: () => void;
 }
-
-const TIME_SLOTS = [
-  { label: '12:00 AM - 02:00 AM', startHour: 0, startMin: 0 },
-  { label: '02:00 AM - 04:00 AM', startHour: 2, startMin: 0 },
-  { label: '04:00 AM - 06:00 AM', startHour: 4, startMin: 0 },
-  { label: '06:00 AM - 08:00 AM', startHour: 6, startMin: 0 },
-  { label: '08:00 AM - 10:00 AM', startHour: 8, startMin: 0 },
-  { label: '10:00 AM - 12:00 PM', startHour: 10, startMin: 0 },
-  { label: '12:00 PM - 02:00 PM', startHour: 12, startMin: 0 },
-  { label: '02:00 PM - 04:00 PM', startHour: 14, startMin: 0 },
-  { label: '04:00 PM - 06:00 PM', startHour: 16, startMin: 0 },
-  { label: '06:00 PM - 08:00 PM', startHour: 18, startMin: 0 },
-  { label: '08:00 PM - 10:00 PM', startHour: 20, startMin: 0 },
-  { label: '10:00 PM - 12:00 AM', startHour: 22, startMin: 0 },
-] as const;
 
 function parseSlotStartTime(slot: { startHour: number; startMin: number }): Date {
   const now = new Date();
@@ -139,21 +126,18 @@ export default function CartDrawer({
     setIsPromoLoading(true);
     setPromoError('');
     try {
-      const res = await fetch('/api/promos/validate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: normalizedCode, orderAmount: Math.round(subtotal) }),
+      const data = await api.post<{ valid?: boolean; discountAmount?: number; message?: string }>('/api/promos/validate', {
+        body: { code: normalizedCode, orderAmount: Math.round(subtotal) },
       });
-      const data = await res.json();
-      if (!res.ok || !data.valid) {
+      if (!data?.valid) {
         setAppliedPromo('');
         setPromoDiscount(0);
-        setPromoError(data.message || 'Invalid promo code');
+        setPromoError(data?.message || 'Invalid promo code');
         return;
       }
       setPromoCode(normalizedCode);
       setAppliedPromo(normalizedCode);
-      setPromoDiscount(data.discountAmount || 0);
+      setPromoDiscount(data?.discountAmount || 0);
       setPromoError('');
       toast.success('Promo code applied.');
     } catch {

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class VendorServiceAssignment extends BaseModel
 {
+    protected $fillable = ['vendor_id', 'service_id', 'enabled'];
+
     protected function casts(): array
     {
         return [

@@ -368,8 +368,8 @@ class EnbdpayService
     {
         $secret = config('services.enbdpay.webhook_secret');
         if (! $secret) {
-            Log::warning('ENBDpay webhook secret not configured — skipping signature verification');
-            return;
+            Log::error('ENBDpay webhook secret not configured — rejecting webhook');
+            abort(500, 'Webhook secret not configured');
         }
 
         $signature = $headers['x-signature']

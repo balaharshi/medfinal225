@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { X, User, Mail, Phone, MapPin, CheckCircle, Shield, Award, Edit3, Save, Calendar, Clock, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PhoneInput from './PhoneInput';
+import { api } from '../lib/api';
 
 interface Booking {
   id: string;
@@ -65,18 +66,9 @@ export default function ProfileModal({
   const fetchBookings = async () => {
     setBookingsLoading(true);
     try {
-      const token = localStorage.getItem('medziva_user_token');
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      const response = await fetch('/api/my-bookings', { headers });
-      if (response.ok) {
-        const data = await response.json();
-        setBookings(data);
-      }
-    } catch (error) {
-
+      const data = await api.get('/api/my-bookings');
+      setBookings(data as any);
+    } catch {
     } finally {
       setBookingsLoading(false);
     }
@@ -84,22 +76,10 @@ export default function ProfileModal({
 
   const handleCancelBooking = async (bookingId: string) => {
     try {
-      const token = localStorage.getItem('medziva_user_token');
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      const response = await fetch(`/api/my-bookings/${bookingId}`, {
-        method: 'DELETE',
-        headers,
-      });
-      if (response.ok) {
-        setBookings((prev) => prev.filter((b) => b.id !== bookingId));
-        toast.success('Booking cancelled');
-      } else {
-        toast.error('Failed to cancel');
-      }
-    } catch (error) {
+      await api.delete(`/api/my-bookings/${bookingId}`);
+      setBookings((prev) => prev.filter((b: any) => b.id !== bookingId));
+      toast.success('Booking cancelled');
+    } catch {
       toast.error('Failed to cancel');
     }
   };

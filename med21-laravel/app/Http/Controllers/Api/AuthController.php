@@ -124,7 +124,7 @@ class AuthController extends Controller
         $user = User::query()->where('email', $email)->first();
 
         if ($user) {
-            $code = Str::random(6);
+            $code = strtoupper(Str::random(8));
             DB::table('password_reset_tokens')->updateOrInsert(
                 ['email' => $email],
                 [
@@ -133,8 +133,7 @@ class AuthController extends Controller
                 ]
             );
 
-            // In a real application, send the $code via email here.
-            // For now we return it in the response for development/debugging.
+            // In production, send the $code via email/SMS here.
         }
 
         return response()->json([
@@ -147,8 +146,8 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'required|email',
-            'code' => 'required|string|size:6',
-            'newPassword' => 'required|string|min:6',
+            'code' => 'required|string|size:8',
+            'newPassword' => 'required|string|min:8|regex:/[A-Z]/|regex:/[0-9]/|regex:/[^A-Za-z0-9]/',
         ]);
 
         $email = strtolower(trim($request->input('email')));

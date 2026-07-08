@@ -52,7 +52,7 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import ConfirmDialog from "./ConfirmDialog";
 import SocialAuthButtons from "./SocialAuthButtons";
 import PhoneInput from "./PhoneInput";
-import { HEALTHCARE_SERVICES } from "../data";
+import { HEALTHCARE_SERVICES, DEFAULT_HEALTHCARE_SERVICE_IMAGE } from "../data";
 import { subscribeToNotifications } from "../services/pusherClient";
 
 interface AdminDashboardProps {
@@ -245,6 +245,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const selectedVendorAvailableRequests = selectedVendorDetails
     ? bookingsList.filter((booking) => {
         const enabledServiceIds = new Set(enabledVendorServices.map((service) => service.id));
+        if (enabledServiceIds.size === 0) return false;
         return !booking.vendorId && (booking.status === "Pending" || !booking.status) && (!booking.serviceId || enabledServiceIds.has(booking.serviceId));
       })
     : [];
@@ -286,15 +287,11 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     count: vendorSyntheticReviews.filter((review) => review.rating === rating).length,
   }));
   const vendorDocuments = [
-    "Business Registration",
-    "GST Certificate",
-    "PAN Card",
-    "Bank Verification",
-    "Medical Licenses",
-    "Accreditation Documents",
-  ].map((name, index) => ({
+    "Business License",
+    "Bank Account Details",
+  ].map((name) => ({
     name,
-    status: index < 3 ? "Approved" : index === 3 ? "Pending" : "Rejected",
+    status: "Pending",
     updatedAt: selectedVendorDetails?.updatedAt || selectedVendorDetails?.createdAt,
   }));
   const vendorPaymentRows = selectedVendorBookings.slice(0, 12).map((booking) => {
@@ -388,6 +385,8 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const [vendorLogo, setVendorLogo] = useState("");
   const [vendorCommission, setVendorCommission] = useState("10");
   const [vendorActive, setVendorActive] = useState(true);
+  const [vendorEmail, setVendorEmail] = useState("");
+  const [vendorPassword, setVendorPassword] = useState("");
   const [editingVendorId, setEditingVendorId] = useState<string | null>(null);
   const [isVendorEditModalOpen, setIsVendorEditModalOpen] = useState(false);
   const [isServiceEditModalOpen, setIsServiceEditModalOpen] = useState(false);
@@ -1122,7 +1121,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
             homeVisitFeeIncluded: srvVisitFeeIncluded,
             duration: srvDuration,
             estimatedVisitTime: srvEstimatedVisitTime,
-            image: srvImage || "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+            image: srvImage || DEFAULT_HEALTHCARE_SERVICE_IMAGE,
             shortDescription: srvShortDesc || srvDesc,
             description: srvDesc || "No description provided.",
             fullDescription: srvFullDesc || srvDesc || "No description provided.",
@@ -1225,7 +1224,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             title: catName,
-            image: catImage || "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400",
+            image: catImage || DEFAULT_HEALTHCARE_SERVICE_IMAGE,
             description: catDesc,
             type: "service"
           })
@@ -1345,6 +1344,8 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     setVendorLogo(vendor.logo || "");
     setVendorCommission(vendor.commission?.toString() || "10");
     setVendorActive(vendor.active !== false);
+    setVendorEmail(vendor.email || "");
+    setVendorPassword("");
     setIsVendorEditModalOpen(true);
   };
 
@@ -1356,6 +1357,8 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     setVendorLogo("");
     setVendorCommission("10");
     setVendorActive(true);
+    setVendorEmail("");
+    setVendorPassword("");
     setIsVendorEditModalOpen(false);
   };
 
@@ -1389,7 +1392,9 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
             address: vendorAddress,
             logo: vendorLogo || null,
             commission: Number(vendorCommission),
-            active: vendorActive
+            active: vendorActive,
+            email: vendorEmail || null,
+            password: vendorPassword || null
           })
         })
       );
@@ -2870,6 +2875,30 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                   placeholder="e.g. https://example.com/logo.png" 
                   value={vendorLogo} 
                   onChange={e => setVendorLogo(e.target.value)} 
+                  className="w-full text-xs p-2.5 border border-slate-200 rounded-lg"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-500 uppercase">Email ID <span className="text-red-600">*</span></label>
+                <input 
+                  required
+                  type="email" 
+                  placeholder="e.g. vendor@company.com" 
+                  value={vendorEmail} 
+                  onChange={e => setVendorEmail(e.target.value)} 
+                  className="w-full text-xs p-2.5 border border-slate-200 rounded-lg"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-500 uppercase">Password <span className="text-red-600">*</span></label>
+                <input 
+                  required
+                  type="password" 
+                  placeholder="Minimum 6 characters" 
+                  value={vendorPassword} 
+                  onChange={e => setVendorPassword(e.target.value)} 
                   className="w-full text-xs p-2.5 border border-slate-200 rounded-lg"
                 />
               </div>
@@ -4504,6 +4533,30 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                   placeholder="e.g. https://example.com/logo.png" 
                   value={vendorLogo} 
                   onChange={e => setVendorLogo(e.target.value)} 
+                  className="w-full text-xs border border-slate-200 rounded-xl p-3 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-600">Email ID <span className="text-red-600">*</span></label>
+                <input 
+                  required
+                  type="email" 
+                  placeholder="e.g. vendor@company.com" 
+                  value={vendorEmail} 
+                  onChange={e => setVendorEmail(e.target.value)} 
+                  className="w-full text-xs border border-slate-200 rounded-xl p-3 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-600">Password <span className="text-red-600">*</span></label>
+                <input 
+                  required
+                  type="password" 
+                  placeholder="Minimum 6 characters" 
+                  value={vendorPassword} 
+                  onChange={e => setVendorPassword(e.target.value)} 
                   className="w-full text-xs border border-slate-200 rounded-xl p-3 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
                 />
               </div>

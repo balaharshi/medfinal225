@@ -1,3 +1,5 @@
+import { api } from '../lib/api';
+
 type EnbdpayCustomer = {
   fullName: string;
   email?: string;
@@ -15,27 +17,12 @@ type CreateEnbdpayCheckoutInput = {
 };
 
 export async function createEnbdpayCheckout(input: CreateEnbdpayCheckoutInput) {
-  const response = await fetch('/api/payments/enbd/create', {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  });
-
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok || !data?.success || !data?.checkout?.redirectUri) {
+  const data = await api.post<{ success?: boolean; checkout?: { redirectUri: string; appUtr: string; orderId: string; transactionUtr?: string; bookingId?: string; responseStatus: string; mock?: boolean }; error?: string }>('/api/payments/enbd/create', { body: input });
+  if (!data?.success || !data?.checkout?.redirectUri) {
     throw new Error(data?.error || 'Payment checkout could not be created.');
   }
 
-  return data.checkout as {
-    redirectUri: string;
-    appUtr: string;
-    orderId: string;
-    transactionUtr?: string;
-    bookingId?: string;
-    responseStatus: string;
-    mock?: boolean;
-  };
+  return data.checkout;
 }
 
 export async function checkEnbdpayStatus(input: { appUtr?: string; transactionUtr?: string; responseStatus?: string; bookingId?: string }) {
@@ -45,24 +32,10 @@ export async function checkEnbdpayStatus(input: { appUtr?: string; transactionUt
   if (input.responseStatus) params.set('responseStatus', input.responseStatus);
   if (input.bookingId) params.set('bookingId', input.bookingId);
 
-  const response = await fetch(`/api/payments/enbd/status?${params.toString()}`, {
-    credentials: 'include',
-  });
-
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok || !data?.success) {
+  const data = await api.get<{ success?: boolean; status?: { responseStatus?: string; status?: string; appUtr?: string; transactionUtr?: string; booking?: { id: string; paymentStatus?: string; paymentResponseStatus?: string } | null }; error?: string }>(`/api/payments/enbd/status?${params.toString()}`);
+  if (!data?.success) {
     throw new Error(data?.error || 'Payment status could not be checked.');
   }
 
-  return data.status as {
-    responseStatus?: string;
-    status?: string;
-    appUtr?: string;
-    transactionUtr?: string;
-    booking?: {
-      id: string;
-      paymentStatus?: string;
-      paymentResponseStatus?: string;
-    } | null;
-  };
+  return data.status!;
 }

@@ -35,7 +35,7 @@ const TIME_OPTIONS = [
   { label: '10 mins ago', weight: 2 },
 ];
 
-const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400';
+const FALLBACK_IMAGE = '/src/assets/images/services/generic-nurse.jpg';
 
 function weightedRandom<T>(items: T[], weightFn: (item: T) => number): T {
   const totalWeight = items.reduce((sum, item) => sum + weightFn(item), 0);

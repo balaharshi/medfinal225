@@ -10,6 +10,4 @@ abstract class BaseModel extends Model
 {
     use HasFactory;
     use UsesStringPrimaryKey;
-
-    protected $guarded = [];
 }

@@ -8,6 +8,7 @@ interface SEOData {
 }
 
 const SITE_NAME = 'MedZiva Healthcare';
+const SITE_URL = import.meta.env.VITE_SITE_URL || 'https://medzivahealthcare.com';
 const DEFAULT_DESCRIPTION = 'Premium healthcare marketplace in Dubai — book home healthcare, lab tests, IV therapy, and medical equipment rental from DHA-compliant providers.';
 const DEFAULT_OG_IMAGE = '/b23.png';
 
@@ -42,7 +43,7 @@ export function useSEO({ title, description, canonicalPath, ogImage }: SEOData) 
         link.setAttribute('rel', 'canonical');
         document.head.appendChild(link);
       }
-      link.setAttribute('href', `https://medzivahealthcare.com${canonicalPath}`);
+      link.setAttribute('href', `${SITE_URL}${canonicalPath}`);
     }
   }, [title, description, canonicalPath, ogImage]);
 }

@@ -8,6 +8,7 @@ import { X, Send, CheckCircle2, MessageSquare, Phone, Mail, User, HelpCircle, Sh
 import { HEALTHCARE_SERVICES, SERVICE_CATEGORIES } from '../data';
 import toast from 'react-hot-toast';
 import PhoneInput from './PhoneInput';
+import { api } from '../lib/api';
 
 interface EnquiryModalProps {
   isOpen: boolean;
@@ -101,12 +102,8 @@ export default function EnquiryModal({
     const dateToday = new Date().toISOString().split('T')[0];
 
     try {
-      const response = await fetch('/api/enquiries', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+      await api.post('/api/enquiries', {
+        body: {
           customerName,
           customerEmail: email,
           customerPhone: phone,
@@ -114,19 +111,15 @@ export default function EnquiryModal({
           message: `${message} [Preferred contact: ${contactMethod}]`,
           contactMethod,
           date: dateToday
-        })
+        }
       });
 
-      if (response.ok) {
-        if (onSuccessToast) {
-          onSuccessToast(`Enquiry ${generatedId} submitted successfully!`);
-        } else {
-          toast.success(`Enquiry ${generatedId} submitted successfully!`);
-        }
+      if (onSuccessToast) {
+        onSuccessToast(`Enquiry ${generatedId} submitted successfully!`);
       } else {
-        toast.error('Enquiry could not be saved. Please try again.');
+        toast.success(`Enquiry ${generatedId} submitted successfully!`);
       }
-    } catch (err) {
+    } catch {
 
       toast.error('Could not connect to enquiry service. Please try again.');
     }

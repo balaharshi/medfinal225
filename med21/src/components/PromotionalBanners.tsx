@@ -91,7 +91,7 @@ export default function PromotionalBanners({
               {/* Promo image alignment */}
               <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-white/20">
                 <img 
-                  src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=150" 
+                  src="/src/assets/images/services/long-term-care.jpg" 
                   alt="Smiling Nurses Consultation"
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
@@ -118,7 +118,7 @@ export default function PromotionalBanners({
               {/* Promo image alignment */}
               <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-white/20">
                 <img 
-                  src="https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=80&w=150" 
+                  src="/src/assets/images/services/medical-devices.jpg" 
                   alt="Wheelchair Devices for Rent"
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"

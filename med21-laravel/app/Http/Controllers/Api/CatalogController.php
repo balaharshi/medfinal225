@@ -124,7 +124,7 @@ class CatalogController extends Controller
     public function validatePromo(Request $request): JsonResponse
     {
         $request->validate([
-            'code' => 'required|string',
+            'code' => 'required|string|max:50',
             'orderAmount' => 'required|integer|min:0',
         ]);
 

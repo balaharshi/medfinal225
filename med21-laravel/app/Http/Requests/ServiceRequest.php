@@ -9,21 +9,21 @@ class ServiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string'],
-            'price' => ['required', 'numeric'],
-            'slug' => ['nullable', 'string'],
+            'title' => ['required', 'string', 'max:255'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'slug' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', 'in:draft,active,inactive'],
             'active' => ['nullable', 'boolean'],
-            'originalPrice' => ['nullable', 'numeric'],
-            'salePrice' => ['nullable', 'numeric'],
-            'displayPriority' => ['nullable', 'numeric'],
-            'shortDescription' => ['nullable', 'string'],
-            'fullDescription' => ['nullable', 'string'],
-            'preparationInstructions' => ['nullable', 'string'],
-            'whoIsItFor' => ['nullable', 'string'],
-            'availability' => ['nullable', 'string'],
-            'seoTitle' => ['nullable', 'string'],
-            'seoDescription' => ['nullable', 'string'],
+            'originalPrice' => ['nullable', 'numeric', 'min:0'],
+            'salePrice' => ['nullable', 'numeric', 'min:0'],
+            'displayPriority' => ['nullable', 'numeric', 'min:0'],
+            'shortDescription' => ['nullable', 'string', 'max:1000'],
+            'fullDescription' => ['nullable', 'string', 'max:5000'],
+            'preparationInstructions' => ['nullable', 'string', 'max:2000'],
+            'whoIsItFor' => ['nullable', 'string', 'max:2000'],
+            'availability' => ['nullable', 'string', 'max:500'],
+            'seoTitle' => ['nullable', 'string', 'max:255'],
+            'seoDescription' => ['nullable', 'string', 'max:500'],
         ];
     }
 }

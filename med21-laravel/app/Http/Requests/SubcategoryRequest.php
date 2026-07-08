@@ -9,8 +9,8 @@ class SubcategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string'],
-            'image' => ['nullable', 'string'],
+            'title' => ['required', 'string', 'max:255'],
+            'image' => ['nullable', 'string', 'max:2000'],
         ];
     }
 }

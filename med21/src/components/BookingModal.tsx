@@ -10,33 +10,9 @@ import toast from 'react-hot-toast';
 import { createEnbdpayCheckout } from '../services/enbdpay';
 import PhoneInput from './PhoneInput';
 import { createBooking } from '../services/bookings';
+import { api } from '../lib/api';
 import { formatAedWhole } from '../utils/money';
-
-const TIME_SLOTS = [
-  { label: '12:00 AM - 02:00 AM', startHour: 0, startMin: 0 },
-  { label: '02:00 AM - 04:00 AM', startHour: 2, startMin: 0 },
-  { label: '04:00 AM - 06:00 AM', startHour: 4, startMin: 0 },
-  { label: '06:00 AM - 08:00 AM', startHour: 6, startMin: 0 },
-  { label: '08:00 AM - 10:00 AM', startHour: 8, startMin: 0 },
-  { label: '10:00 AM - 12:00 PM', startHour: 10, startMin: 0 },
-  { label: '12:00 PM - 02:00 PM', startHour: 12, startMin: 0 },
-  { label: '02:00 PM - 04:00 PM', startHour: 14, startMin: 0 },
-  { label: '04:00 PM - 06:00 PM', startHour: 16, startMin: 0 },
-  { label: '06:00 PM - 08:00 PM', startHour: 18, startMin: 0 },
-  { label: '08:00 PM - 10:00 PM', startHour: 20, startMin: 0 },
-  { label: '10:00 PM - 12:00 AM', startHour: 22, startMin: 0 },
-] as const;
-
-const TIME_SLOTS_3HR = [
-  { label: '12:00 AM - 03:00 AM', startHour: 0, startMin: 0 },
-  { label: '03:00 AM - 06:00 AM', startHour: 3, startMin: 0 },
-  { label: '06:00 AM - 09:00 AM', startHour: 6, startMin: 0 },
-  { label: '09:00 AM - 12:00 PM', startHour: 9, startMin: 0 },
-  { label: '12:00 PM - 03:00 PM', startHour: 12, startMin: 0 },
-  { label: '03:00 PM - 06:00 PM', startHour: 15, startMin: 0 },
-  { label: '06:00 PM - 09:00 PM', startHour: 18, startMin: 0 },
-  { label: '09:00 PM - 12:00 AM', startHour: 21, startMin: 0 },
-] as const;
+import { TIME_SLOTS, TIME_SLOTS_3HR } from '../constants';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -168,21 +144,18 @@ export default function BookingModal({
     setIsPromoLoading(true);
     setPromoError('');
     try {
-      const res = await fetch('/api/promos/validate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: normalizedCode, orderAmount: Math.round(basePrice) }),
+      const data = await api.post<{ valid?: boolean; discountAmount?: number; message?: string }>('/api/promos/validate', {
+        body: { code: normalizedCode, orderAmount: Math.round(basePrice) },
       });
-      const data = await res.json();
-      if (!res.ok || !data.valid) {
+      if (!data?.valid) {
         setAppliedPromo('');
         setPromoDiscount(0);
-        setPromoError(data.message || 'Invalid promo code');
+        setPromoError(data?.message || 'Invalid promo code');
         return;
       }
       setPromoCode(normalizedCode);
       setAppliedPromo(normalizedCode);
-      setPromoDiscount(data.discountAmount || 0);
+      setPromoDiscount(data?.discountAmount || 0);
       setPromoError('');
       toast.success('Promo code applied.');
     } catch {

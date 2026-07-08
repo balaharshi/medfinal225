@@ -1,3 +1,5 @@
+import { api } from '../lib/api';
+
 type CreateBookingInput = {
   customerName: string;
   customerEmail: string;
@@ -18,15 +20,8 @@ type CreateBookingInput = {
 };
 
 export async function createBooking(input: CreateBookingInput) {
-  const response = await fetch('/api/bookings', {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  });
-
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok || !data?.id) {
+  const data = await api.post<{ id?: string; error?: string } & Record<string, unknown>>('/api/bookings', { body: input });
+  if (!data?.id) {
     throw new Error(data?.error || 'Booking could not be created.');
   }
 

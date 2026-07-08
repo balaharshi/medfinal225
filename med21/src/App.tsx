@@ -9,9 +9,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocat
 import toast, { Toaster } from 'react-hot-toast';
 import { 
   Search, 
-  User, 
   Phone, 
-  Menu, 
   X, 
   CalendarClock, 
   CheckCircle2, 
@@ -19,36 +17,23 @@ import {
   Activity, 
   Beaker, 
   UserCircle, 
-  Plus, 
-  Minus, 
   ShoppingCart, 
-  Compass, 
-  Flame, 
-  Sparkles, 
-  BadgeCheck, 
-  Lock, 
-  CreditCard, 
   HelpCircle, 
   Check, 
-  PhoneCall, 
   ChevronRight, 
-  Award, 
   Copy,
   Clock,
-  ChevronDown,
   MessageCircle,
   Eye,
   Stethoscope,
-  FileText,
   Shield,
-  Star,
-  Users,
   Globe,
   HeartPulse,
   MapPin,
   Mail
 } from 'lucide-react';
 import { useSEO } from './hooks/useSEO';
+import { api } from './lib/api';
 import NotFoundPage from './components/NotFoundPage';
 
 const SITE_DEFAULT_DESCRIPTION = 'Premium healthcare marketplace in Dubai — book home healthcare, lab tests, IV therapy, and medical equipment rental from DHA compliant providers.';
@@ -68,7 +53,6 @@ import { LAB_TESTS_AT_HOME_CATEGORIES } from '../../shared/labTestsAtHomeCatalog
 // UI Components
 import MainHeader from './components/MainHeader';
 import NavigationMenu from './components/NavigationMenu';
-import HeroSection from './components/HeroSection';
 import ServicesSection from './components/ServicesSection';
 import ProductsSection from './components/ProductsSection';
 import PromotionalBanners from './components/PromotionalBanners';
@@ -83,8 +67,9 @@ const VendorDashboard = lazy(() => import('./components/VendorDashboard'));
 import EnquiryModal from './components/EnquiryModal';
 import RentalBookingModal from './components/RentalBookingModal';
 import PhoneInput from './components/PhoneInput';
+import medicalTourismImg from './assets/images/services/medical-tourism.jpg';
+import shippingCrewImg from './assets/images/services/shipping-crew.jpg';
 import ErrorBoundary from './components/ErrorBoundary';
-import SocialProofPopup from './components/SocialProofPopup';
 import { subscribeToNotifications } from './services/pusherClient';
 import { checkEnbdpayStatus } from './services/enbdpay';
 import { FAQ_SECTIONS, PRIVACY_SECTIONS, TERMS_SECTIONS } from './content/legalContent';
@@ -183,9 +168,7 @@ const HOME_ADDITIONAL_HEALTHCARE_CATEGORIES = [
       : category.slug === 'genetic-testing'
       ? 'Advanced genetic testing services to assess inherited conditions, health risks, and personalised insights for informed healthcare decisions.'
       : 'Lab tests at home with 12 hours prior booking, available in Dubai and Sharjah.',
-    image: category.slug === 'womens-health-packages'
-      ? 'https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=400'
-      : undefined,
+    image: undefined,
   })),
 ];
 
@@ -369,7 +352,7 @@ function AdminDashboardApp() {
         if (servicesWithLocalImages.length > 0) setDb(prev => ({ ...prev, services: servicesWithLocalImages }));
       }
     } catch (error) {
-
+      console.error('Error fetching admin data:', error);
     }
   };
 
@@ -524,7 +507,15 @@ function MainApp() {
   // Core Platform States
   const [activeTab, setActiveTab] = useState<ActiveTab>(currentLabTestsRoute ? 'lab-tests' : currentServiceRoute ? 'services' : currentProductRoute ? 'products' : 'home');
   const [activeSectionId, setActiveSectionId] = useState<string | null>(currentLabTestsSectionId || currentServiceSectionId || currentProductSectionId);
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const saved = localStorage.getItem('medziva_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [searchQuery, setSearchQuery] = useState(() =>
     typeof window !== 'undefined' ? String(localStorage.getItem('medziva_search_query') || '') : ''
   );
@@ -554,6 +545,10 @@ function MainApp() {
   useEffect(() => {
     localStorage.setItem('medziva_search_history', JSON.stringify(searchHistory));
   }, [searchHistory]);
+
+  useEffect(() => {
+    localStorage.setItem('medziva_cart', JSON.stringify(cart));
+  }, [cart]);
 
   // Drawer & Overlay Triggers
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -620,24 +615,15 @@ function MainApp() {
     const restoreCustomerSession = async () => {
       try {
         const token = localStorage.getItem('medziva_user_token');
-        const response = await fetch('/api/auth/session', {
-          credentials: 'include',
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
-        if (!response.ok) {
-          localStorage.removeItem('medziva_user_token');
-          return;
-        }
-
-        const data = await response.json();
+        if (!token) return;
+        const data = await api.get<{ user?: { role?: string; fullName?: string; email?: string; phone?: string; address?: string } }>('/api/auth/session');
         if (data?.user?.role !== 'customer') return;
 
         setLoggedInUser(data.user.fullName || '');
         setLoggedInUserEmail(data.user.email || '');
         setLoggedInUserPhone(data.user.phone || '');
         setLoggedInUserAddress(data.user.address || '');
-      } catch (error) {
-
+      } catch {
         localStorage.removeItem('medziva_user_token');
       }
     };
@@ -707,7 +693,7 @@ function MainApp() {
         }
       }
     } catch (e) {
-      // API unavailable, keep static data
+      console.error('Error fetching service data:', e);
     }
   };
 
@@ -785,14 +771,15 @@ function MainApp() {
         (service) => service.category === category.slug || service.subcategory === category.slug,
       );
 
+      const catImage = (category as any).image;
       categoriesBySlug.set(category.slug, {
         ...existingCategory,
         ...category,
         image:
-          category.image ||
+          catImage ||
           existingCategory?.image ||
           matchingService?.image ||
-          'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&q=80&w=400',
+          '',
       });
     });
 
@@ -2037,6 +2024,7 @@ function MainApp() {
                   </div>
                   <button
                     type="button"
+                    onClick={() => console.log('Filter clicked for:', customLabSearch)}
                     className="h-14 px-8 rounded-xl bg-medical-green hover:bg-emerald-600 text-white text-sm font-black transition-colors cursor-pointer"
                   >
                     Filter
@@ -2407,7 +2395,7 @@ function MainApp() {
               >
                 <div className="relative h-48 rounded-2xl overflow-hidden mb-5 border border-slate-100">
                   <img
-                    src="https://images.unsplash.com/photo-1767216427262-ce74ba565c3c?auto=format&fit=crop&q=80&w=800"
+                    src={medicalTourismImg}
                     alt="Medical Tourism Facilitation"
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -2428,7 +2416,7 @@ function MainApp() {
               >
                 <div className="relative h-48 rounded-2xl overflow-hidden mb-5 border border-slate-100">
                   <img
-                    src="https://images.unsplash.com/photo-1524522173746-f628baad3644?auto=format&fit=crop&q=80&w=800"
+                    src={shippingCrewImg}
                     alt="Medical Facilitation for Shipping Crews"
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -2458,7 +2446,7 @@ function MainApp() {
             <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs mb-8 flex flex-col md:flex-row overflow-hidden">
               <div className="relative h-44 md:h-auto md:w-2/5 shrink-0">
                 <img
-                  src="https://images.unsplash.com/photo-1767216427262-ce74ba565c3c?auto=format&fit=crop&q=80&w=1200"
+                  src={medicalTourismImg}
                   alt="Medical Tourism Facilitation"
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -2510,7 +2498,7 @@ function MainApp() {
             <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs mb-8 flex flex-col md:flex-row overflow-hidden">
               <div className="relative h-44 md:h-auto md:w-2/5 shrink-0">
                 <img
-                  src="https://images.unsplash.com/photo-1524522173746-f628baad3644?auto=format&fit=crop&q=80&w=1200"
+                  src={shippingCrewImg}
                   alt="Medical Facilitation for Shipping Crews"
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -2690,18 +2678,15 @@ function MainApp() {
                         return;
                       }
                       try {
-                        await fetch('/api/enquiries', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
+                        await api.post('/api/enquiries', {
+                          body: {
                             name: providerName.trim(),
                             email: providerEmail.trim(),
                             message: `Provider Registration: ${providerName.trim()} | Phone: ${providerPhone.trim()} | Specializations: ${providerSpecializations.join(', ')}`,
                             serviceTitle: 'Provider Registration',
-                          }),
+                          },
                         });
-                      } catch {
-                        // Proceed with success UX regardless
+                       } catch {
                       }
                       setProviderApplied(true);
                     }}
@@ -2774,18 +2759,15 @@ function MainApp() {
                         return;
                       }
                       try {
-                        await fetch('/api/enquiries', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
+                        await api.post('/api/enquiries', {
+                          body: {
                             name: supportName.trim(),
                             email: supportEmail.trim(),
                             message: supportMessage.trim(),
                             serviceTitle: 'Support Request',
-                          }),
+                          },
                         });
-                      } catch {
-                        // Proceed with success UX regardless
+                       } catch {
                       }
                       setSupportSubmitted(true);
                     }}
@@ -3228,12 +3210,6 @@ function MainApp() {
         loggedInUserEmail={loggedInUserEmail}
         loggedInUserPhone={loggedInUserPhone}
         loggedInUserAddress={loggedInUserAddress}
-      />
-
-      <SocialProofPopup 
-        services={homeHealthcareServices.filter(s => s.subcategory !== 'customize-lab-package')} 
-        products={db.products}
-        cartOpen={isCartOpen}
       />
 
     </div>

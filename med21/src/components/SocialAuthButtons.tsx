@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { api } from '../lib/api';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
@@ -22,15 +23,9 @@ export default function SocialAuthButtons({ disabled = false, googlePath = '/api
   const completeSocialAuth = async (payload: Record<string, unknown>) => {
     setLoadingProvider('google');
     try {
-      const response = await fetch(googlePath, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json();
+      const data = await api.post<{ success?: boolean; error?: string }>(googlePath, { body: payload });
 
-      if (!response.ok || !data?.success) {
+      if (!data?.success) {
         onError(data?.error || 'Google login could not be completed.');
         return;
       }

@@ -1428,7 +1428,7 @@ function MainApp() {
       {activeTab === 'services' && (
         <div className="bg-white border-b border-slate-100 sticky top-[52px] z-[29]">
           <div className="max-w-7xl mx-auto px-4">
-            <div className="flex gap-2 overflow-x-auto no-scrollbar py-2.5">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar py-2.5 justify-center">
               {[
                 { label: 'Nursing Care', sectionId: 'home-healthcare-section' },
                 { label: 'Physiotherapy', sectionId: 'physiotherapy-section' },
@@ -1461,7 +1461,7 @@ function MainApp() {
       {activeTab === 'lab-tests' && (
         <div className="bg-white border-b border-slate-100 sticky top-[52px] z-[29]">
           <div className="max-w-7xl mx-auto px-4">
-            <div className="flex gap-2 overflow-x-auto no-scrollbar py-2.5">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar py-2.5 justify-center">
               {[
                 { label: 'Routine Blood Tests', sectionId: 'routine-blood-tests-section' },
                 { label: 'Preventive Health Packages', sectionId: 'preventive-health-packages-section' },

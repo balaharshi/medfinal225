@@ -1,0 +1,58 @@
+# MedZiva — GoDaddy shared hosting config
+# Place this file in the same folder as index.html (e.g. public_html or the subfolder the app lives in).
+
+# ---------------------------------------------------------------------------
+# 1. GZIP COMPRESSION  (serves ~245KB JS instead of ~918KB raw)
+# ---------------------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+  AddOutputFilterByType DEFLATE application/javascript application/x-javascript application/json
+  AddOutputFilterByType DEFLATE application/xml application/xhtml+xml application/rss+xml
+  AddOutputFilterByType DEFLATE image/svg+xml image/x-icon
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# 2. BROWSER CACHING  (static assets rarely change between deploys)
+# ---------------------------------------------------------------------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/jpg   "access plus 4 weeks"
+  ExpiresByType image/jpeg  "access plus 4 weeks"
+  ExpiresByType image/png   "access plus 4 weeks"
+  ExpiresByType image/webp  "access plus 4 weeks"
+  ExpiresByType image/avif  "access plus 4 weeks"
+  ExpiresByType image/svg+xml "access plus 4 weeks"
+  ExpiresByType font/woff2  "access plus 4 weeks"
+  ExpiresByType application/javascript "access plus 1 week"
+  ExpiresByType text/css    "access plus 1 week"
+  ExpiresByType text/html   "access plus 1 hour"
+</IfModule>
+
+<IfModule mod_headers.c>
+  # Allow cached assets to be reused without revalidation for their lifetime
+  <FilesMatch "\.(jpg|jpeg|png|webp|avif|svg|woff2|js|css)$">
+    Header append Cache-Control "public"
+  </FilesMatch>
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# 3. SPA FALLBACK  (React BrowserRouter deep links like /services, /admin)
+#    Requests for real files (js/css/images) pass through; everything else
+#    falls back to index.html so the client router can handle the route.
+# ---------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Skip rewrite for existing files and directories
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Skip common non-SPA paths if you host the API elsewhere (keep /api to the backend)
+  RewriteCond %{REQUEST_URI} ^/(api|server) [NC]
+  RewriteRule ^ - [L]
+
+  # Everything else -> index.html
+  RewriteRule ^ index.html [L]
+</IfModule>

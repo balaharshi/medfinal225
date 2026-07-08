@@ -968,15 +968,7 @@ function MainApp() {
       !['Excel Row', 'Category', 'Collection', 'Coverage'].includes(item.label) && item.value,
     );
 
-  const fitWithinImageHolderServiceIds = new Set([
-    'srv-lab-home-male-infertility-profile',
-    'srv-lab-home-pregnancy-profile',
-  ]);
-
-  const getServiceImageClassName = (srv: HealthcareService) =>
-    fitWithinImageHolderServiceIds.has(srv.id)
-      ? 'w-full h-full object-contain bg-white p-2'
-      : 'w-full h-full object-cover';
+  const getServiceImageClassName = (_srv: HealthcareService) => 'w-full h-full object-cover';
 
   const getServiceImage = (srv: HealthcareService) =>
     resolveHealthcareServiceImage(srv).image || DEFAULT_HEALTHCARE_SERVICE_IMAGE;

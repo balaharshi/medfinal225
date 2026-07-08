@@ -2020,18 +2020,6 @@ function MainApp() {
                     : LAB_TESTS_PAGE_COPY[currentLabTestsRoute || DEFAULT_LAB_TESTS_ROUTE]?.description || 'Lab tests at home with 12 hours prior booking slots.'}
                 </p>
               </div>
-              {currentLabTestsRoute && (
-                <div className="relative w-full md:max-w-sm">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="text"
-                    value={labTestsAtHomeSearch}
-                    onChange={(event) => setLabTestsAtHomeSearch(event.target.value)}
-                    placeholder="Search this section"
-                    className="w-full h-12 rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-700 shadow-2xs focus:outline-hidden focus:border-medical-green"
-                  />
-                </div>
-              )}
             </div>
 
             {activeSectionId === 'customize-lab-package-section' ? (

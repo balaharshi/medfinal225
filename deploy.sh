@@ -128,6 +128,11 @@ echo ""
 echo "[6/6] Running server commands..."
 ssh "$REMOTE_USER@$REMOTE_HOST" << REMOTE_COMMANDS
     cd $BACKEND_REMOTE_DIR
+    if [ "$ENV" = "staging" ]; then
+        cp .env.staging .env 2>/dev/null || true
+    elif [ "$ENV" = "production" ]; then
+        cp .env.production .env 2>/dev/null || true
+    fi
     composer install --no-dev --optimize-autoloader --no-interaction 2>/dev/null || true
     php artisan migrate --force 2>/dev/null || true
     php artisan config:cache 2>/dev/null || true

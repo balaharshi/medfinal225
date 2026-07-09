@@ -32,7 +32,8 @@ import {
   FileText,
   Bell,
   Plus,
-  ChevronRight
+  ChevronRight,
+  X
 } from "lucide-react";
 import ConfirmDialog from './ConfirmDialog';
 import SocialAuthButtons from './SocialAuthButtons';

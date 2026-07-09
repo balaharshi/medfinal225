@@ -11,6 +11,7 @@ import PhoneInput from './PhoneInput';
 import { createBooking } from '../services/bookings';
 import { formatAedWhole } from '../utils/money';
 import { trackEvent, AnalyticsEvents } from '../services/analytics';
+import { fetchServices, findServiceByTitle, BackendService } from '../services/servicesApi';
 
 interface RentalBookingModalProps {
   isOpen: boolean;
@@ -41,9 +42,11 @@ export default function RentalBookingModal({
   const [notes, setNotes] = useState('');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isPaymentStarting, setIsPaymentStarting] = useState(false);
+  const [backendServices, setBackendServices] = useState<BackendService[]>([]);
 
   useEffect(() => {
     if (isOpen) {
+      fetchServices().then(setBackendServices).catch(() => {});
       trackEvent(AnalyticsEvents.BEGIN_RENTAL_BOOKING, { product: product?.name || 'unknown' });
       setPatientName(loggedInUser || '');
       setEmail(loggedInUserEmail || '');
@@ -92,15 +95,16 @@ export default function RentalBookingModal({
       try {
         setIsPaymentStarting(true);
         toast.loading('Creating rental booking and opening secure payment...', { id: 'enbdpay-rental' });
+        const backendService = findServiceByTitle(product.name, backendServices);
         const booking = await createBooking({
           customerName: patientName,
           customerEmail: email,
           customerPhone: phone,
           serviceTitle: product.name,
           vendorName: 'Unassigned',
-          serviceId: product.id ? String(product.id) : null,
-          category: 'devices-for-rent',
-          subcategory: 'rent-medical-equipments',
+          serviceId: backendService?.id || (product.id ? String(product.id) : null),
+          category: backendService?.category || 'devices-for-rent',
+          subcategory: backendService?.subcategory || 'rent-medical-equipments',
           price: product.price,
           date,
           region: 'Dubai',

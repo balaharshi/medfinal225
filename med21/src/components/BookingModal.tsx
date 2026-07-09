@@ -15,6 +15,7 @@ import { api } from '../lib/api';
 import { formatAedWhole } from '../utils/money';
 import { TIME_SLOTS, TIME_SLOTS_3HR } from '../constants';
 import { trackEvent, AnalyticsEvents } from '../services/analytics';
+import { fetchServices, findServiceByTitle, BackendService } from '../services/servicesApi';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -60,6 +61,13 @@ export default function BookingModal({
   const [isPromoLoading, setIsPromoLoading] = useState(false);
   const [region, setRegion] = useState('Dubai');
   const [location, setLocation] = useState<SelectedLocation | null>(null);
+  const [backendServices, setBackendServices] = useState<BackendService[]>([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchServices().then(setBackendServices).catch(() => {});
+    }
+  }, [isOpen]);
 
   // Prefill details for logged in users
   useEffect(() => {
@@ -213,15 +221,16 @@ export default function BookingModal({
     try {
       setIsPaymentStarting(true);
       toast.loading('Creating booking and opening secure ENBDpay checkout...', { id: 'enbdpay-booking' });
+      const backendService = findServiceByTitle(service, backendServices);
       const booking = await createBooking({
         customerName: patientName,
         customerEmail: email,
         customerPhone: phone,
         serviceTitle: service,
         vendorName: 'Unassigned',
-        serviceId: activeServiceObj?.id ? String(activeServiceObj.id) : null,
-        category: activeServiceObj?.category || null,
-        subcategory: activeServiceObj?.subcategory || null,
+        serviceId: backendService?.id || activeServiceObj?.id ? String(backendService?.id || activeServiceObj?.id) : null,
+        category: backendService?.category || activeServiceObj?.category || null,
+        subcategory: backendService?.subcategory || activeServiceObj?.subcategory || null,
         price: activePrice,
         date,
         timeSlot: time,

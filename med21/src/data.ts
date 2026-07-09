@@ -13,7 +13,12 @@ const mergeById = <T extends { id: string }>(base: T[], overrides: T[]) => {
   base.forEach((item) => merged.set(item.id, item));
   overrides.forEach((item) => {
     const existing = merged.get(item.id);
-    merged.set(item.id, existing ? { ...existing, ...item } : item);
+    const next = { ...existing, ...item } as T & { image?: string };
+    // Preserve a non-empty base image when the override blanks it out
+    if (existing && !(item as { image?: string }).image && (existing as { image?: string }).image) {
+      next.image = (existing as { image?: string }).image;
+    }
+    merged.set(item.id, next as T);
   });
   return Array.from(merged.values());
 };

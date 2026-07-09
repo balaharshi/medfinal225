@@ -106,6 +106,11 @@ rsync -avz --delete \
     --exclude 'node_modules' \
     --exclude 'api'
 
+# Upload SPA .htaccess for frontend routing
+echo "  -> Uploading frontend .htaccess..."
+scp "$SCRIPT_DIR/med21/.htaccess" \
+    "$REMOTE_USER@$REMOTE_HOST:$FRONTEND_REMOTE_DIR/.htaccess"
+
 # Deploy backend (Laravel)
 echo "  -> Uploading backend (med21-laravel/)..."
 rsync -avz \

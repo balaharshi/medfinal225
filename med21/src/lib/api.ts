@@ -95,7 +95,7 @@ async function request<T = unknown>(method: HttpMethod, url: string, options: Re
       }
     }
 
-    throw error;
+    throw new Error(error.message);
   }
 
   // Handle 204 No Content

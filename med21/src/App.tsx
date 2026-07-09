@@ -1438,7 +1438,7 @@ function MainApp() {
         </div>
       )}
 
-      {activeTab === 'lab-tests' && (
+      {activeTab === 'lab-tests' && activeSectionId !== 'customize-lab-package-section' && (
         <div className="bg-white border-b border-slate-100 sticky top-[52px] z-[29]">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex gap-2 overflow-x-auto no-scrollbar py-2.5 sm:justify-center">

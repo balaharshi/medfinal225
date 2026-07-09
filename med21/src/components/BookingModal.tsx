@@ -248,7 +248,7 @@ export default function BookingModal({
       window.location.assign(checkout.redirectUri);
       return;
     } catch (err) {
-
+      console.error('Booking/Payment error:', err);
       toast.error(err instanceof Error ? err.message : 'Could not open payment checkout.', { id: 'enbdpay-booking' });
       setIsPaymentStarting(false);
     }

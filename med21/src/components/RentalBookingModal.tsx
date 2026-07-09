@@ -96,13 +96,14 @@ export default function RentalBookingModal({
         setIsPaymentStarting(true);
         toast.loading('Creating rental booking and opening secure payment...', { id: 'enbdpay-rental' });
         const backendService = findServiceByTitle(product.name, backendServices);
+        // Only use backend service IDs — never frontend product IDs
         const booking = await createBooking({
           customerName: patientName,
           customerEmail: email,
           customerPhone: phone,
-          serviceTitle: product.name,
+          serviceTitle: backendService?.title || product.name,
           vendorName: 'Unassigned',
-          serviceId: backendService?.id || (product.id ? String(product.id) : null),
+          serviceId: backendService?.id || null,
           category: backendService?.category || 'devices-for-rent',
           subcategory: backendService?.subcategory || 'rent-medical-equipments',
           price: product.price,

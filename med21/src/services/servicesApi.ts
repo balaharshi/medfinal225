@@ -23,3 +23,7 @@ export async function fetchServices(): Promise<BackendService[]> {
 export function findServiceByTitle(title: string, services: BackendService[]): BackendService | undefined {
   return services.find(s => s.title.toLowerCase() === title.toLowerCase());
 }
+
+export function findServiceById(id: string, services: BackendService[]): BackendService | undefined {
+  return services.find(s => s.id === id);
+}

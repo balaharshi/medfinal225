@@ -15,7 +15,7 @@ import { api } from '../lib/api';
 import { formatAedWhole } from '../utils/money';
 import { TIME_SLOTS, TIME_SLOTS_3HR } from '../constants';
 import { trackEvent, AnalyticsEvents } from '../services/analytics';
-import { fetchServices, findServiceByTitle, BackendService } from '../services/servicesApi';
+import { fetchServices, findServiceByTitle, findServiceById, BackendService } from '../services/servicesApi';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -62,12 +62,20 @@ export default function BookingModal({
   const [region, setRegion] = useState('Dubai');
   const [location, setLocation] = useState<SelectedLocation | null>(null);
   const [backendServices, setBackendServices] = useState<BackendService[]>([]);
+  const [selectedBackendServiceId, setSelectedBackendServiceId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      fetchServices().then(setBackendServices).catch(() => {});
+      fetchServices().then((services) => {
+        setBackendServices(services);
+        // If a service was preselected by title, find its backend ID
+        if (preselectedServiceTitle) {
+          const match = findServiceByTitle(preselectedServiceTitle, services);
+          if (match) setSelectedBackendServiceId(match.id);
+        }
+      }).catch(() => {});
     }
-  }, [isOpen]);
+  }, [isOpen, preselectedServiceTitle]);
 
   // Prefill details for logged in users
   useEffect(() => {
@@ -100,7 +108,9 @@ export default function BookingModal({
 
   const isToday = date === new Date().toISOString().split('T')[0];
 
-  const activeServiceObj = HEALTHCARE_SERVICES.find(s => s.title === service);
+  // Resolve the active service: prefer backend service by ID, fallback to hardcoded by title
+  const activeBackendService = selectedBackendServiceId ? findServiceById(selectedBackendServiceId, backendServices) : undefined;
+  const activeServiceObj = activeBackendService || HEALTHCARE_SERVICES.find(s => s.title === service);
   const activeTimeSlots = activeServiceObj?.id === 'srv-generic-nurse' ? TIME_SLOTS_3HR : TIME_SLOTS;
 
   const leadTimeHours = activeServiceObj?.leadTimeHours ?? 12;
@@ -123,7 +133,10 @@ export default function BookingModal({
     }
   }, [date, availableSlots, time]);
 
-  const servicesList = HEALTHCARE_SERVICES.map(s => ({ id: s.id, title: s.title, price: s.price, category: s.category || '' }));
+  // Use backend services for dropdown — fallback to hardcoded if API hasn't loaded yet
+  const servicesList = backendServices.length > 0
+    ? backendServices.map(s => ({ id: s.id, title: s.title, price: s.price, category: s.category || 'Other' }))
+    : HEALTHCARE_SERVICES.map(s => ({ id: s.id, title: s.title, price: s.price, category: s.category || 'Other' }));
 
   const groupedServices = React.useMemo(() => {
     const groups: Record<string, typeof servicesList> = {};
@@ -141,8 +154,8 @@ export default function BookingModal({
     setMobileError('');
   };
 
-  // Find price of selected service
-  const basePrice = activeServiceObj ? activeServiceObj.price : preselectedPrice || 250;
+  // Find price of selected service — prefer backend price
+  const basePrice = activeBackendService?.price || (activeServiceObj ? activeServiceObj.price : preselectedPrice || 250);
   const collectionFee = isLabTest && basePrice < 1000 ? 150 : 0;
   const [promoDiscount, setPromoDiscount] = useState(0);
   const roundedDiscount = Math.round(promoDiscount);
@@ -221,16 +234,21 @@ export default function BookingModal({
     try {
       setIsPaymentStarting(true);
       toast.loading('Creating booking and opening secure ENBDpay checkout...', { id: 'enbdpay-booking' });
-      const backendService = findServiceByTitle(service, backendServices);
+      // Use the selected backend service ID directly — never fall back to frontend IDs
+      const bookingServiceId = selectedBackendServiceId || null;
+      const bookingServiceTitle = activeBackendService?.title || service;
+      const bookingCategory = activeBackendService?.category || activeServiceObj?.category || null;
+      const bookingSubcategory = activeBackendService?.subcategory || activeServiceObj?.subcategory || null;
+
       const booking = await createBooking({
         customerName: patientName,
         customerEmail: email,
         customerPhone: phone,
-        serviceTitle: service,
+        serviceTitle: bookingServiceTitle,
         vendorName: 'Unassigned',
-        serviceId: backendService?.id || activeServiceObj?.id ? String(backendService?.id || activeServiceObj?.id) : null,
-        category: backendService?.category || activeServiceObj?.category || null,
-        subcategory: backendService?.subcategory || activeServiceObj?.subcategory || null,
+        serviceId: bookingServiceId,
+        category: bookingCategory,
+        subcategory: bookingSubcategory,
         price: activePrice,
         date,
         timeSlot: time,
@@ -327,14 +345,26 @@ export default function BookingModal({
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-600">Select Desired Healthcare Service <span className="text-red-600">*</span></label>
                 <select
-                  value={service}
-                  onChange={(e) => setService(e.target.value)}
+                  value={selectedBackendServiceId || service}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    // Check if this is a backend service ID
+                    const backendMatch = findServiceById(val, backendServices);
+                    if (backendMatch) {
+                      setSelectedBackendServiceId(backendMatch.id);
+                      setService(backendMatch.title);
+                    } else {
+                      // Fallback to hardcoded
+                      setSelectedBackendServiceId(null);
+                      setService(val);
+                    }
+                  }}
                   className="w-full text-xs border border-slate-200 rounded-xl p-3 bg-white focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
                 >
                   {groupedServices.map(([cat, items]) => (
                     <optgroup key={cat} label={cat.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}>
                       {items.map((s) => (
-                        <option key={s.id} value={s.title}>
+                        <option key={s.id} value={s.id}>
                           {s.title} (AED {formatAedWhole(s.price)})
                         </option>
                       ))}

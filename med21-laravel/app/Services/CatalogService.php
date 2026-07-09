@@ -239,6 +239,15 @@ class CatalogService
             }
         }
 
+        // Auto-assign all active services to the new vendor
+        $activeServices = \App\Models\Service::query()->where('active', true)->where('status', 'active')->pluck('id');
+        foreach ($activeServices as $serviceId) {
+            \App\Models\VendorServiceAssignment::updateOrCreate(
+                ['vendor_id' => $vendor->id, 'service_id' => $serviceId],
+                ['id' => SequentialId::next(\App\Models\VendorServiceAssignment::class, 'vsa'), 'enabled' => true]
+            );
+        }
+
         return CaseKeys::camelize($vendor);
     }
 

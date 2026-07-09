@@ -1976,7 +1976,7 @@ function MainApp() {
         )}
 
         {/* Dedicated view: LAB TESTS page */}
-        {activeTab === 'lab-tests' && (
+      {activeTab === 'lab-tests' && activeSectionId !== 'customize-lab-package-section' && (
           <div id={currentLabTestsSectionId || 'lab-tests-section'} className="max-w-7xl mx-auto py-10 px-4 text-left page-section scroll-mt-32">
             <div id="std-sexual-health-section" className="scroll-mt-32" aria-hidden="true" />
             <div id="specialized-diagnostic-tests-section" className="scroll-mt-32" aria-hidden="true" />

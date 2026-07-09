@@ -122,14 +122,24 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     }
     if (message.includes('validation')) {
       return signingUp
-        ? 'Please enter a valid name, email, and password with at least 6 characters.'
+        ? 'Please enter a valid name, email, and password with at least 8 characters.'
         : 'Please enter a valid email and password.';
     }
     if (message.includes('invalid credentials')) {
       return 'The email or password is incorrect. Please try again.';
     }
-    if (message.includes('backend api') || message.includes('unavailable')) {
+    if (message.includes('backend api') || message.includes('unavailable') || message.includes('server error')) {
       return 'We could not connect to the secure login service. Please try again in a moment.';
+    }
+    if (message.includes('unique constraint') || message.includes('duplicate')) {
+      return signingUp
+        ? 'This email is already registered. Please use Login instead.'
+        : 'An account error occurred. Please try again.';
+    }
+    // Show actual error in development, generic in production
+    const isDev = window.location.hostname === 'localhost';
+    if (isDev && data?.error) {
+      return `Error: ${data.error}`;
     }
     return signingUp
       ? 'Registration could not be completed. Please check your details and try again.'
@@ -465,7 +475,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
               value={resetNewPassword}
               onChange={(e) => setResetNewPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={8}
               className="w-full text-xs border border-slate-200 rounded-xl p-3 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
             />
           </div>
@@ -481,7 +491,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
               value={resetConfirmPassword}
               onChange={(e) => setResetConfirmPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={8}
               className="w-full text-xs border border-slate-200 rounded-xl p-3 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
             />
           </div>
@@ -608,8 +618,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
               {...register('password', {
                 required: 'Password is required',
                 minLength: {
-                  value: 6,
-                  message: 'Password must be at least 6 characters',
+                  value: 8,
+                  message: 'Password must be at least 8 characters',
                 },
               })}
               className="w-full text-xs border border-slate-200 rounded-xl p-3 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"

@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import ConfirmDialog from './ConfirmDialog';
 import SocialAuthButtons from './SocialAuthButtons';
+import { subscribeToVendorChannel } from '../services/pusherClient';
 
 interface VendorDashboardProps {
   triggerToast: (msg: string) => void;
@@ -169,6 +170,16 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
       loadProfileChangeRequests();
     }
   }, [activePane, vendorData?.id]);
+
+  // Subscribe to real-time booking notifications via Pusher
+  useEffect(() => {
+    if (!isAuthenticated || !vendorData?.id) return undefined;
+
+    return subscribeToVendorChannel(vendorData.id, (payload) => {
+      toast.success(payload.message || 'New booking available!');
+      fetchVendorData();
+    });
+  }, [isAuthenticated, vendorData?.id]);
 
   // Handle Login Authentication
   const submitVendorLogin = async (values: VendorLoginFormValues) => {

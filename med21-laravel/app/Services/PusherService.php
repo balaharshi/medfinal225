@@ -56,4 +56,18 @@ class PusherService
     {
         $this->triggerEvent('notification:new', ['message' => $message, ...$payload]);
     }
+
+    public function triggerToChannel(string $channel, string $event, array $payload = []): void
+    {
+        try {
+            $client = $this->client();
+            if ($client) {
+                $client->trigger($channel, $event, $payload);
+            } else {
+                Log::info('Realtime event (Pusher not configured)', ['event' => $event, 'channel' => $channel, 'payload' => $payload]);
+            }
+        } catch (\Throwable $e) {
+            Log::error('Pusher trigger failed: '.$e->getMessage(), ['event' => $event, 'channel' => $channel]);
+        }
+    }
 }

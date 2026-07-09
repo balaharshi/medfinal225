@@ -32,3 +32,28 @@ export const subscribeToNotifications = (
     pusher.disconnect();
   };
 };
+
+export const subscribeToVendorChannel = (
+  vendorId: string,
+  onBooking: (payload: { message?: string; booking?: Record<string, unknown>; [key: string]: unknown }) => void
+) => {
+  if (!PUSHER_KEY || !PUSHER_CLUSTER || !vendorId) return () => undefined;
+
+  const pusher = new Pusher(PUSHER_KEY, {
+    cluster: PUSHER_CLUSTER,
+  });
+  const channelName = `vendor-${vendorId}`;
+  const channel = pusher.subscribe(channelName);
+
+  const handler = (payload: { message?: string; booking?: Record<string, unknown>; [key: string]: unknown }) => {
+    onBooking(payload || {});
+  };
+
+  channel.bind('booking:new', handler);
+
+  return () => {
+    channel.unbind('booking:new', handler);
+    pusher.unsubscribe(channelName);
+    pusher.disconnect();
+  };
+};

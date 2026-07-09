@@ -323,6 +323,9 @@ class CatalogService
 
         $this->sendBookingConfirmationEmail($booking);
 
+        // Notify all eligible vendors with this service enabled
+        $this->notifyEligibleVendors($booking);
+
         return CaseKeys::camelize($booking);
     }
 
@@ -936,6 +939,52 @@ class CatalogService
             \Mail::to($email)->send(new \App\Mail\PaymentConfirmation(CaseKeys::camelize($booking->toArray())));
         } catch (\Throwable $e) {
             \Log::error('Failed to send payment confirmation email: ' . $e->getMessage());
+        }
+    }
+
+    private function notifyEligibleVendors(Booking $booking): void
+    {
+        if (! $booking->service_id) {
+            return;
+        }
+
+        // Find all active vendors who have this service enabled
+        $vendorIds = \App\Models\VendorServiceAssignment::query()
+            ->where('service_id', $booking->service_id)
+            ->where('enabled', true)
+            ->pluck('vendor_id')
+            ->all();
+
+        if ($vendorIds === []) {
+            return;
+        }
+
+        $vendors = Vendor::query()
+            ->whereIn('id', $vendorIds)
+            ->where('active', true)
+            ->get();
+
+        $bookingData = CaseKeys::camelize($booking->toArray());
+
+        foreach ($vendors as $vendor) {
+            // Send email notification
+            if ($vendor->email) {
+                try {
+                    \Mail::to($vendor->email)->send(new \App\Mail\VendorNewBooking(
+                        $bookingData,
+                        $vendor->name
+                    ));
+                } catch (\Throwable $e) {
+                    \Log::error('Failed to send vendor booking email to ' . $vendor->email . ': ' . $e->getMessage());
+                }
+            }
+
+            // Send real-time Pusher notification to vendor-specific channel
+            $this->pusherService->triggerToChannel(
+                "vendor-{$vendor->id}",
+                'booking:new',
+                ['message' => 'New booking available: ' . $booking->service_title, 'booking' => $bookingData]
+            );
         }
     }
 

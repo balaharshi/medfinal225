@@ -148,12 +148,6 @@ const HOME_ADDITIONAL_HEALTHCARE_CATEGORIES = [
     description: 'Dedicated nursing support at home for long-term and specialized care needs, including ongoing monitoring, chronic condition management, and personalised patient assistance.',
   },
   {
-    id: 'cat-rent-medical-equipments',
-    title: 'Rent Medical Equipment',
-    slug: 'devices-for-rent',
-    description: 'Rent certified medical equipment with weekly and monthly options for home healthcare support.',
-  },
-  {
     id: 'cat-iv-therapy',
     title: 'IV Therapy',
     slug: 'iv-therapy',
@@ -714,6 +708,9 @@ function MainApp() {
       const matchingService = db.services.find(
         (service) => service.category === category.slug || service.subcategory === category.slug,
       );
+      const matchingProduct = db.products.find(
+        (product) => product.category === category.slug || product.subcategory === category.slug,
+      );
 
       const catImage = (category as any).image;
       categoriesBySlug.set(category.slug, {
@@ -723,6 +720,7 @@ function MainApp() {
           catImage ||
           existingCategory?.image ||
           matchingService?.image ||
+          matchingProduct?.image ||
           '',
       });
     });

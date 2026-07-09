@@ -391,6 +391,14 @@ export default function CartDrawer({
                   <span className="bg-emerald-50 text-medical-green text-xs font-bold px-2 py-0.5 rounded-full">
                     {cartItems.length}
                   </span>
+                  {checkoutStep === 'cart' && cartItems.length > 0 && (
+                    <button
+                      onClick={onClearCart}
+                      className="text-[10px] font-bold px-2 py-1 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors cursor-pointer border border-red-200"
+                    >
+                      Clear All
+                    </button>
+                  )}
                 </div>
 
                 <button

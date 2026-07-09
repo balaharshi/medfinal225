@@ -674,7 +674,7 @@ function MainApp() {
     }
 
     if (location.pathname === '/') {
-      if (activeTab === 'services' || activeTab === 'products') {
+      if (activeTab === 'services' || activeTab === 'products' || activeTab === 'lab-tests') {
         setActiveTab('home');
         setActiveSectionId(null);
       }
@@ -1263,13 +1263,14 @@ function MainApp() {
         'iv-therapy': { title: 'IV Therapy', desc: 'Professional IV therapy administered at home under medical guidance, offering convenient access to prescribed treatments, hydration support, and wellness infusions.' },
       };
       const data = routeLabels[currentServiceRoute] || { title: 'Healthcare Services', desc: SITE_DEFAULT_DESCRIPTION };
-      return { title: data.title, description: data.desc, canonicalPath: `/services/${currentServiceRoute}` };
+      return { title: data.title, description: data.desc, canonicalPath: `/services/${currentServiceRoute}`, ogImage: `/og-${currentServiceRoute}.jpg` };
     }
     if (activeTab === 'lab-tests') {
-      return { title: 'Lab Tests at Home', description: 'Book lab tests at home in Dubai. Routine blood tests, preventive health packages, STD screening, and genetic testing with home sample collection.', canonicalPath: '/services/lab-tests-at-home' };
+      const labRoute = currentLabTestsRoute || '';
+      return { title: 'Lab Tests at Home', description: 'Book lab tests at home in Dubai. Routine blood tests, preventive health packages, STD screening, and genetic testing with home sample collection.', canonicalPath: labRoute ? `/services/lab-tests-at-home/${labRoute}` : '/services/lab-tests-at-home', ogImage: '/og-lab-tests.jpg' };
     }
     if (activeTab === 'products') {
-      return { title: 'Medical Equipment', description: 'Rent certified medical equipment in Dubai. Hospital beds, oxygen concentrators, wheelchairs, BP monitors, and more.', canonicalPath: '/products' };
+      return { title: 'Medical Equipment Rental', description: 'Rent certified medical equipment in Dubai. Hospital beds, oxygen concentrators, wheelchairs, BP monitors, and more.', canonicalPath: '/products/rent-medical-equipments', ogImage: '/og-rental.jpg' };
     }
     if (activeTab === 'wellness') {
       return { title: 'Other Services', description: 'Medical tourism facilitation and medical support for shipping crew members in Dubai and Sharjah.' };
@@ -1292,18 +1293,8 @@ function MainApp() {
     if (activeTab === 'about') {
       return { title: 'About Us', description: 'MedZiva International Healthcare L.L.C — premium healthcare marketplace in Dubai connecting patients with DHA compliant providers.', canonicalPath: '/about' };
     }
-    const homeResult = { title: 'Home', description: SITE_DEFAULT_DESCRIPTION, canonicalPath: '/' };
-    if (activeTab === 'services' && currentServiceRoute) {
-      return { ...homeResult, ogImage: `/og-${currentServiceRoute}.jpg` };
-    }
-    if (activeTab === 'lab-tests' && currentLabTestsRoute) {
-      return { title: 'Lab Tests at Home', description: 'Book lab tests at home in Dubai.', canonicalPath: `/services/lab-tests-at-home/${currentLabTestsRoute}`, ogImage: '/og-lab-tests.jpg' };
-    }
-    if (activeTab === 'products') {
-      return { title: 'Medical Equipment Rental', description: 'Rent medical equipment in Dubai and Sharjah.', canonicalPath: '/products/rent-medical-equipments', ogImage: '/og-rental.jpg' };
-    }
-    return homeResult;
-  }, [activeTab, currentServiceRoute]);
+    return { title: 'Home', description: SITE_DEFAULT_DESCRIPTION, canonicalPath: '/' };
+  }, [activeTab, currentServiceRoute, currentLabTestsRoute]);
 
   useSEO(seoData);
   useStructuredData();

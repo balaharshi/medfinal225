@@ -75,6 +75,8 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
     Route::post('/vendorProfile/{vendorId}/change-requests', [CatalogController::class, 'createVendorProfileChangeRequest'])->middleware($vendorSelfOrAdmin);
     Route::get('/vendorProfileChangeRequests', [CatalogController::class, 'getAllVendorProfileChangeRequests'])->middleware($admin);
     Route::patch('/vendorProfileChangeRequests/{id}/review', [CatalogController::class, 'reviewVendorProfileChangeRequest'])->middleware($admin);
+
+    Route::get('/admin/vendor-sla', [CatalogController::class, 'getVendorSlaMetrics'])->middleware($admin);
     Route::post('/vendorLogin', [AuthController::class, 'vendorLogin'])->middleware('throttle:10,1');
 
     Route::get('/bookings', [CatalogController::class, 'getBookings'])->middleware($admin);

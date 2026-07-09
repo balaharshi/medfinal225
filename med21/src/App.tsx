@@ -7,6 +7,7 @@ import { useState, useMemo, useEffect, lazy, Suspense, type SyntheticEvent } fro
 import { motion, AnimatePresence } from 'motion/react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
+import { trackPageView, trackEvent, AnalyticsEvents } from './services/analytics';
 import { 
   Search, 
   Phone, 
@@ -397,6 +398,14 @@ function PaymentReturnPage() {
   const isFailure = ['FAILED', 'DECLINED', 'REJECTED', 'ERROR', 'AUTHORIZATION_DECLINED'].includes(normalizedStatus);
 
   useEffect(() => {
+    if (isSuccess) {
+      trackEvent(AnalyticsEvents.PAYMENT_COMPLETED, { bookingId: bookingIdParam, status: normalizedStatus });
+    } else if (isFailure) {
+      trackEvent(AnalyticsEvents.PAYMENT_FAILED, { bookingId: bookingIdParam, status: normalizedStatus });
+    }
+  }, [isSuccess, isFailure, bookingIdParam, normalizedStatus]);
+
+  useEffect(() => {
     if (!appUtrParam && !transactionUtrParam) return;
 
     let cancelled = false;
@@ -491,6 +500,10 @@ function PaymentReturnPage() {
 function MainApp() {
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    trackPageView(location.pathname + location.search, document.title);
+  }, [location.pathname, location.search]);
   const currentLabTestsRoute = location.pathname.startsWith(`${LAB_TESTS_AT_HOME_ROUTE_PREFIX}/`)
     ? location.pathname.split(`${LAB_TESTS_AT_HOME_ROUTE_PREFIX}/`)[1]?.split('/')[0] || null
     : null;

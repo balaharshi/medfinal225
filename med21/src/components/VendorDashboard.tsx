@@ -76,6 +76,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   const [acceptingBookingId, setAcceptingBookingId] = useState<string | null>(null);
   const [updatingBookingStatus, setUpdatingBookingStatus] = useState<string | null>(null);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Profile form states
   const [profileChangeField, setProfileChangeField] = useState("name");
@@ -520,7 +521,32 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
   // --- VENDOR DASHBOARD RENDER ---
   return (
-    <div id="vendor-portal" className="max-w-7xl mx-auto py-8 px-4 text-left">
+    <div id="vendor-portal" className="min-h-screen bg-slate-50 lg:bg-transparent">
+      {/* Mobile Header Bar */}
+      <div className="lg:hidden sticky top-0 bg-white border-b border-slate-200 z-20 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center">
+            <span className="text-xs font-black text-white">{(vendorData?.name || "V").charAt(0)}</span>
+          </div>
+          <span className="text-sm font-black text-blue-950">{vendorData?.name?.split(" ")[0] || "Vendor"}</span>
+        </div>
+        <button
+          onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+          className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
+        >
+          {isMobileSidebarOpen ? <X className="w-5 h-5" /> : <LayoutDashboard className="w-5 h-5" />}
+        </button>
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {isMobileSidebarOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-30"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
+
+      <div className="max-w-7xl mx-auto py-4 sm:py-8 px-4 text-left">
       
       {/* 1. PORTAL HEADER BANNER */}
       <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-2xs mb-8">
@@ -605,10 +631,20 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
       <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
         {/* 2. SIDEBAR NAVIGATION */}
-        <aside className="bg-white border border-slate-200 rounded-3xl p-4 shadow-2xs h-fit lg:sticky lg:top-24">
-          <div className="border-b border-slate-100 pb-3 mb-3">
-            <h3 className="text-xs font-black text-blue-950">Vendor Menu</h3>
-            <p className="text-[10px] text-slate-400 mt-0.5">Portal navigation</p>
+        <aside className={`bg-white border border-slate-200 rounded-3xl p-4 shadow-2xs h-fit lg:sticky lg:top-24 transition-transform duration-300 ${
+          isMobileSidebarOpen ? 'fixed inset-y-0 left-0 w-64 z-40 rounded-none border-r border-y-0 border-y-slate-200 overflow-y-auto' : ''
+        }`}>
+          <div className="border-b border-slate-100 pb-3 mb-3 flex items-center justify-between">
+            <div>
+              <h3 className="text-xs font-black text-blue-950">Vendor Menu</h3>
+              <p className="text-[10px] text-slate-400 mt-0.5">Portal navigation</p>
+            </div>
+            <button
+              onClick={() => setIsMobileSidebarOpen(false)}
+              className="lg:hidden p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
           <div className="space-y-1.5">
             {[
@@ -622,7 +658,10 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
               return (
                 <button
                   key={pane.id}
-                  onClick={() => setActivePane(pane.id as any)}
+                  onClick={() => {
+                    setActivePane(pane.id as any);
+                    setIsMobileSidebarOpen(false);
+                  }}
                   className={`w-full px-3 py-3 flex items-center gap-2 text-xs font-extrabold rounded-xl cursor-pointer transition-all text-left ${
                     isSelected 
                       ? "bg-purple-50 text-blue-950 border border-purple-100" 
@@ -1179,6 +1218,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
         }}
         onCancel={() => setShowLogoutConfirm(false)}
       />
+    </div>
     </div>
   );
 }

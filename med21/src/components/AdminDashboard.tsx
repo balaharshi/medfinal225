@@ -95,7 +95,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   });
 
   // Active Pane Tab inside Admin Console
-  const [activePane, setActivePane] = useState<"dashboard" | "bookings" | "services" | "categories" | "subcategories" | "vendor" | "vendorServices" | "customRequests" | "users" | "reports" | "roles" | "settings" | "enquiries" | "vendorChangeRequests" | "pendingPayments">("dashboard");
+  const [activePane, setActivePane] = useState<"dashboard" | "bookings" | "services" | "categories" | "subcategories" | "vendor" | "vendorServices" | "customRequests" | "users" | "reports" | "roles" | "settings" | "enquiries" | "vendorChangeRequests" | "pendingPayments" | "sla">("dashboard");
   const [reportPane, setReportPane] = useState<"overview" | "revenue" | "services" | "bookings" | "sales" | "vendors" | "customers">("overview");
 
   // Dynamic lists from backend
@@ -125,6 +125,12 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const [bookingSearch, setBookingSearch] = useState("");
   const [customRequestSearch, setCustomRequestSearch] = useState("");
   const [customRequestStatusFilter, setCustomRequestStatusFilter] = useState<"all" | "Pending Response" | "Answered" | "Closed">("all");
+  const [vendorSlaMetrics, setVendorSlaMetrics] = useState<any[]>([]);
+  const [vendorSlaLoading, setVendorSlaLoading] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [reportDateRange, setReportDateRange] = useState<"all" | "today" | "7d" | "30d" | "90d">("all");
+  const [reportStartDate, setReportStartDate] = useState("");
+  const [reportEndDate, setReportEndDate] = useState("");
 
   const getAdminRequestInit = (init: RequestInit = {}) => {
     const token = localStorage.getItem("medziva_admin_token");
@@ -549,6 +555,27 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       onRefresh(); // Ensure db prop is updated with latest categories
     }
   }, [isAuthenticated]);
+
+  const fetchVendorSlaMetrics = async () => {
+    setVendorSlaLoading(true);
+    try {
+      const response = await fetch("/api/admin/vendor-sla", getAdminRequestInit());
+      if (response.ok) {
+        const data = await response.json();
+        setVendorSlaMetrics(Array.isArray(data) ? data : []);
+      }
+    } catch (e) {
+      // silent
+    } finally {
+      setVendorSlaLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated && activePane === "sla") {
+      fetchVendorSlaMetrics();
+    }
+  }, [isAuthenticated, activePane]);
 
   useEffect(() => {
     if (!isAuthenticated) return undefined;
@@ -1763,6 +1790,106 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     };
   }, [bookingsList, vendorsList, usersList, db.services]);
 
+  const dateFilteredBookings = useMemo(() => {
+    if (reportDateRange === "all" && !reportStartDate && !reportEndDate) {
+      return bookingsList;
+    }
+
+    const now = new Date();
+    let startDate: Date | null = null;
+    let endDate: Date | null = null;
+
+    if (reportStartDate) {
+      startDate = new Date(reportStartDate);
+    } else if (reportDateRange !== "all") {
+      const daysMap = { today: 0, "7d": 7, "30d": 30, "90d": 90 };
+      const days = daysMap[reportDateRange as keyof typeof daysMap];
+      if (days !== undefined) {
+        startDate = new Date(now);
+        startDate.setDate(startDate.getDate() - days);
+      }
+    }
+
+    if (reportEndDate) {
+      endDate = new Date(reportEndDate);
+      endDate.setHours(23, 59, 59, 999);
+    }
+
+    return bookingsList.filter((booking) => {
+      const bookingDate = new Date(booking.date || booking.createdAt || "");
+      if (startDate && bookingDate < startDate) return false;
+      if (endDate && bookingDate > endDate) return false;
+      return true;
+    });
+  }, [bookingsList, reportDateRange, reportStartDate, reportEndDate]);
+
+  const exportToCSV = (data: any[], filename: string) => {
+    if (data.length === 0) return;
+
+    const headers = Object.keys(data[0]);
+    const csvContent = [
+      headers.join(","),
+      ...data.map(row =>
+        headers.map(header => {
+          const value = row[header];
+          const escaped = String(value ?? "").replace(/"/g, '""');
+          return `"${escaped}"`;
+        }).join(",")
+      )
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${filename}_${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const handleExportBookings = () => {
+    const exportData = dateFilteredBookings.map((b) => ({
+      "Booking ID": b.id,
+      "Customer Name": b.customerName,
+      "Customer Email": b.customerEmail,
+      "Customer Phone": b.customerPhone,
+      "Service": b.serviceTitle,
+      "Vendor": b.vendorName,
+      "Price": b.price,
+      "Date": b.date,
+      "Time Slot": b.timeSlot,
+      "Region": b.region,
+      "Status": b.status,
+      "Payment Status": b.paymentStatus,
+      "Created At": b.createdAt,
+    }));
+    exportToCSV(exportData, "medziva_bookings");
+  };
+
+  const handleExportVendors = () => {
+    const exportData = reportMetrics.vendorPerformanceData.map((v) => ({
+      "Vendor ID": v.id,
+      "Vendor Name": v.name,
+      "Type": v.type,
+      "Active": v.active ? "Yes" : "No",
+      "Total Bookings": v.bookings,
+      "Completed": v.completed,
+      "Active Bookings": v.activeBookings,
+      "Revenue (AED)": v.revenue,
+      "Completion Rate (%)": v.completionRate,
+    }));
+    exportToCSV(exportData, "medziva_vendors");
+  };
+
+  const handleExportCustomers = () => {
+    const exportData = reportMetrics.customerReportData.map((c) => ({
+      "Customer Name": c.name,
+      "Email": c.email,
+      "Total Bookings": c.bookings,
+      "Total Revenue (AED)": c.revenue,
+    }));
+    exportToCSV(exportData, "medziva_customers");
+  };
+
 
   if (isSessionChecking) {
     return (
@@ -1881,12 +2008,44 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   return (
     <div id="admin-erp-portal" className="min-h-screen bg-slate-50 flex text-left">
       
+      {/* Mobile Header Bar */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 z-20 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <img src="/newlogo.png" alt="Logo" className="h-8 w-auto" />
+          <span className="text-sm font-black text-blue-950">Admin</span>
+        </div>
+        <button
+          onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+          className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
+        >
+          {isMobileSidebarOpen ? <X className="w-5 h-5" /> : <LayoutDashboard className="w-5 h-5" />}
+        </button>
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {isMobileSidebarOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-30"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
+
       {/* LEFT SIDEBAR */}
-      <div className="w-64 bg-white border-r border-slate-200 flex flex-col fixed h-full z-10">
+      <div className={`w-64 bg-white border-r border-slate-200 flex flex-col fixed h-full z-40 transition-transform duration-300 ${
+        isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      }`}>
         {/* Sidebar Header */}
         <div className="p-6 border-b border-slate-200">
-          <div className="flex items-center gap-2 mb-2">
-            <img src="/newlogo.png" alt="Logo" className="h-16 w-auto" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 mb-0">
+              <img src="/newlogo.png" alt="Logo" className="h-16 w-auto" />
+            </div>
+            <button
+              onClick={() => setIsMobileSidebarOpen(false)}
+              className="lg:hidden p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
           <h1 className="text-lg font-black text-blue-950 tracking-tight">Admin Console</h1>
         </div>
@@ -1905,6 +2064,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
               { id: "subcategories", label: "Subcategories", icon: Sliders },
               { id: "vendor", label: "Vendor Partners", icon: Building2 },
               { id: "vendorServices", label: "Vendor Services", icon: Stethoscope },
+              { id: "sla", label: "Vendor Performance", icon: Activity },
               { id: "customRequests", label: "Custom Service Requests", icon: FileText },
               { id: "users", label: "Users", icon: Users },
               { id: "reports", label: "Reports & Analytics", icon: TrendingUp },
@@ -1915,7 +2075,10 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
               return (
                 <button
                   key={pane.id}
-                  onClick={() => setActivePane(pane.id as any)}
+                  onClick={() => {
+                    setActivePane(pane.id as any);
+                    setIsMobileSidebarOpen(false);
+                  }}
                   className={`w-full px-4 py-3 flex items-center gap-3 text-xs sm:text-[13px] font-extrabold rounded-lg cursor-pointer transition-all ${
                     isSelected 
                       ? "bg-emerald-50 text-blue-950 border border-emerald-200" 
@@ -1961,7 +2124,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       </div>
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 ml-64 p-8">
+      <div className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8">
         
         {/* 1. PORTAL HEADER BANNER - Only show on Dashboard */}
         {activePane === "dashboard" && (
@@ -3574,6 +3737,89 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
               ))}
             </div>
 
+            {/* Date Range Filter & Export */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs flex flex-wrap items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase">Date Range:</span>
+                {[
+                  { id: "all", label: "All Time" },
+                  { id: "today", label: "Today" },
+                  { id: "7d", label: "7 Days" },
+                  { id: "30d", label: "30 Days" },
+                  { id: "90d", label: "90 Days" },
+                ].map((range) => (
+                  <button
+                    key={range.id}
+                    onClick={() => {
+                      setReportDateRange(range.id as any);
+                      setReportStartDate("");
+                      setReportEndDate("");
+                    }}
+                    className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
+                      reportDateRange === range.id && !reportStartDate && !reportEndDate
+                        ? "bg-blue-950 text-white"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    {range.label}
+                  </button>
+                ))}
+                <div className="flex items-center gap-1.5 ml-2">
+                  <input
+                    type="date"
+                    value={reportStartDate}
+                    onChange={(e) => {
+                      setReportStartDate(e.target.value);
+                      setReportDateRange("all");
+                    }}
+                    className="text-[10px] border border-slate-200 rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-medical-blue"
+                    placeholder="Start"
+                  />
+                  <span className="text-slate-400 text-[10px]">to</span>
+                  <input
+                    type="date"
+                    value={reportEndDate}
+                    onChange={(e) => {
+                      setReportEndDate(e.target.value);
+                      setReportDateRange("all");
+                    }}
+                    className="text-[10px] border border-slate-200 rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-medical-blue"
+                    placeholder="End"
+                  />
+                </div>
+                <span className="text-[10px] text-slate-400 font-semibold ml-1">
+                  ({dateFilteredBookings.length} bookings)
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleExportBookings}
+                  className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer border border-emerald-200"
+                >
+                  <FileSpreadsheet className="w-3 h-3" />
+                  Export Bookings
+                </button>
+                {reportPane === "vendors" && (
+                  <button
+                    onClick={handleExportVendors}
+                    className="flex items-center gap-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer border border-purple-200"
+                  >
+                    <FileSpreadsheet className="w-3 h-3" />
+                    Export Vendors
+                  </button>
+                )}
+                {reportPane === "customers" && (
+                  <button
+                    onClick={handleExportCustomers}
+                    className="flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer border border-blue-200"
+                  >
+                    <FileSpreadsheet className="w-3 h-3" />
+                    Export Customers
+                  </button>
+                )}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs">
                 <div className="flex items-center justify-between mb-4">
@@ -3640,6 +3886,38 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                 </div>
               </div>
             </div>
+
+            {/* Booking Trend Sparkline */}
+            {reportMetrics.salesTrendData.length > 0 && (
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-extrabold text-blue-950 text-sm">Booking Revenue Trend</h3>
+                    <p className="text-[10.5px] text-slate-400">Monthly revenue over time</p>
+                  </div>
+                  <TrendingUp className="w-4 h-4 text-emerald-600" />
+                </div>
+                <ResponsiveContainer width="100%" height={180}>
+                  <LineChart data={reportMetrics.salesTrendData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis dataKey="month" tick={{ fontSize: 10 }} stroke="#94a3b8" />
+                    <YAxis tick={{ fontSize: 10 }} stroke="#94a3b8" />
+                    <Tooltip
+                      contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '12px' }}
+                      formatter={(value: number) => [`AED ${value}`, 'Revenue']}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#1769b3"
+                      strokeWidth={2}
+                      dot={{ fill: '#1769b3', strokeWidth: 0, r: 4 }}
+                      activeDot={{ r: 6, strokeWidth: 0 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
 
             {reportPane === "revenue" && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -3860,6 +4138,105 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
             </div>}
 
+          </div>
+        )}
+
+        {/* ---- MODULE: VENDOR PERFORMANCE (SLA) ---- */}
+        {activePane === "sla" && (
+          <div className="space-y-6">
+            <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-2xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-5">
+                <div>
+                  <h3 className="font-extrabold text-blue-950 text-sm">Vendor Performance Monitor</h3>
+                  <p className="text-[10.5px] text-slate-400">Track response times, completion rates, and revenue per vendor</p>
+                </div>
+                <button
+                  onClick={fetchVendorSlaMetrics}
+                  disabled={vendorSlaLoading}
+                  className="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 cursor-pointer text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-slate-200 disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${vendorSlaLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
+              </div>
+
+              {vendorSlaLoading && vendorSlaMetrics.length === 0 ? (
+                <div className="flex items-center justify-center py-12 text-slate-400">
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                  <span className="text-xs font-semibold">Loading vendor performance data...</span>
+                </div>
+              ) : vendorSlaMetrics.length === 0 ? (
+                <div className="text-center py-12 text-slate-400">
+                  <Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-xs font-semibold">No vendor data available yet</p>
+                  <p className="text-[10px] mt-1">Performance metrics will appear once vendors accept bookings</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {vendorSlaMetrics.map((vendor: any) => (
+                    <div key={vendor.vendorId} className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-medical-blue/10 rounded-xl flex items-center justify-center">
+                            <Building2 className="w-5 h-5 text-medical-blue" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-extrabold text-blue-950">{vendor.vendorName}</h4>
+                            <p className="text-[10px] text-slate-400 font-semibold">{vendor.totalBookings} total bookings</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-sm font-black text-medical-green">{vendor.totalRevenue} AED</span>
+                          <p className="text-[10px] text-slate-400 font-semibold">Revenue</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="bg-white rounded-xl p-3 border border-slate-100">
+                          <span className="text-[10px] font-extrabold text-slate-400 block uppercase">Acceptance Rate</span>
+                          <span className={`text-lg font-black ${vendor.acceptanceRate >= 80 ? 'text-emerald-600' : vendor.acceptanceRate >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                            {vendor.acceptanceRate}%
+                          </span>
+                        </div>
+                        <div className="bg-white rounded-xl p-3 border border-slate-100">
+                          <span className="text-[10px] font-extrabold text-slate-400 block uppercase">Completion Rate</span>
+                          <span className={`text-lg font-black ${vendor.completionRate >= 80 ? 'text-emerald-600' : vendor.completionRate >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                            {vendor.completionRate}%
+                          </span>
+                        </div>
+                        <div className="bg-white rounded-xl p-3 border border-slate-100">
+                          <span className="text-[10px] font-extrabold text-slate-400 block uppercase">Avg Response</span>
+                          <span className="text-lg font-black text-blue-950">
+                            {vendor.avgResponseTimeMinutes !== null ? `${vendor.avgResponseTimeMinutes}m` : 'N/A'}
+                          </span>
+                        </div>
+                        <div className="bg-white rounded-xl p-3 border border-slate-100">
+                          <span className="text-[10px] font-extrabold text-slate-400 block uppercase">Avg Completion</span>
+                          <span className="text-lg font-black text-blue-950">
+                            {vendor.avgCompletionTimeHours !== null ? `${vendor.avgCompletionTimeHours}h` : 'N/A'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4 mt-3 text-[10px] font-semibold text-slate-500">
+                        <span className="flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                          {vendor.completedBookings} completed
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-blue-500" />
+                          {vendor.activeBookings} active
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <X className="w-3 h-3 text-red-400" />
+                          {vendor.canceledBookings} canceled
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

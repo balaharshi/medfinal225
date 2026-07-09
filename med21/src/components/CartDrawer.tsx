@@ -17,6 +17,7 @@ import { createEnbdpayCheckout } from '../services/enbdpay';
 import { createBooking } from '../services/bookings';
 import { formatAedWhole } from '../utils/money';
 import { TIME_SLOTS } from '../constants';
+import { trackEvent, AnalyticsEvents } from '../services/analytics';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -210,6 +211,7 @@ export default function CartDrawer({
         paymentStatus: 'Unpaid',
         notes: JSON.stringify({ items: cartItems, address: patientAddress, location }),
       });
+      trackEvent(AnalyticsEvents.SUBMIT_CART_CHECKOUT, { items: cartItems.length, total: totalCost });
       const checkout = await createEnbdpayCheckout({
         amount: totalCost,
         description: 'MedZiva product cart',
@@ -226,6 +228,7 @@ export default function CartDrawer({
         },
       });
       setOrderId(booking.id);
+      trackEvent(AnalyticsEvents.PAYMENT_INITIATED, { source: 'cart', amount: totalCost });
       window.location.assign(checkout.redirectUri);
     } catch (error) {
 

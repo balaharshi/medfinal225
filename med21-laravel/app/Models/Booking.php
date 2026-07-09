@@ -11,13 +11,15 @@ class Booking extends BaseModel
         'vendor_name', 'vendor_id', 'service_id', 'price', 'date', 'time_slot',
         'region', 'status', 'payment_status', 'payment_provider', 'payment_app_utr',
         'payment_order_id', 'payment_transaction_utr', 'payment_response_status',
-        'paid_at', 'notes',
+        'paid_at', 'notes', 'accepted_at', 'completed_at',
     ];
 
     protected function casts(): array
     {
         return [
             'paid_at' => 'datetime',
+            'accepted_at' => 'datetime',
+            'completed_at' => 'datetime',
         ];
     }
 

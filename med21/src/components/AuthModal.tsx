@@ -8,6 +8,7 @@ import { X, Mail, Lock, User, Sparkles, Phone } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
 import PhoneInput from './PhoneInput';
 import toast from 'react-hot-toast';
+import { trackEvent, AnalyticsEvents } from '../services/analytics';
 
 const newlogo = '/newlogo.png';
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
@@ -171,6 +172,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
           ? values.fullName.trim()
           : values.email.split('@')[0].replace(/^./, (char) => char.toUpperCase());
 
+        trackEvent(isSignUp ? AnalyticsEvents.SIGNUP : AnalyticsEvents.LOGIN, { method: 'email' });
         onSuccess(user.fullName || fallbackName, user.email || values.email.trim());
         closeModal();
       } else {
@@ -212,6 +214,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
       }
 
       const user = data.user || {};
+      trackEvent(AnalyticsEvents.GOOGLE_LOGIN, { method: 'google' });
       onSuccess(user.fullName || user.email || 'MedZiva Customer', user.email || '');
       closeModal();
     } catch {

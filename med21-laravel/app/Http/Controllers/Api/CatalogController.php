@@ -164,4 +164,9 @@ class CatalogController extends Controller
 
         return response()->json($this->catalogService->reviewVendorProfileChangeRequest($id, $request->input('status'), $request->input('remarks')));
     }
+
+    public function getVendorSlaMetrics(): JsonResponse
+    {
+        return response()->json($this->catalogService->getVendorSlaMetrics());
+    }
 }

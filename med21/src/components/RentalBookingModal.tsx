@@ -10,6 +10,7 @@ import { createEnbdpayCheckout } from '../services/enbdpay';
 import PhoneInput from './PhoneInput';
 import { createBooking } from '../services/bookings';
 import { formatAedWhole } from '../utils/money';
+import { trackEvent, AnalyticsEvents } from '../services/analytics';
 
 interface RentalBookingModalProps {
   isOpen: boolean;
@@ -43,6 +44,7 @@ export default function RentalBookingModal({
 
   useEffect(() => {
     if (isOpen) {
+      trackEvent(AnalyticsEvents.BEGIN_RENTAL_BOOKING, { product: product?.name || 'unknown' });
       setPatientName(loggedInUser || '');
       setEmail(loggedInUserEmail || '');
       setPhone(loggedInUserPhone || '');
@@ -120,6 +122,8 @@ export default function RentalBookingModal({
           },
         });
       toast.dismiss('enbdpay-rental');
+      trackEvent(AnalyticsEvents.SUBMIT_RENTAL_BOOKING, { product: product.name, price: product.price });
+      trackEvent(AnalyticsEvents.PAYMENT_INITIATED, { source: 'rental', amount: product.price });
       onSuccessToast?.(`Rental booking confirmed for ${product.name}!`);
       window.location.assign(checkout.redirectUri);
       return;

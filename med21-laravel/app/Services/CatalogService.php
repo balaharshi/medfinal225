@@ -221,7 +221,23 @@ class CatalogService
             'address' => $payload['address'] ?? 'Dubai',
             'commission' => (float) ($payload['commission'] ?? 10),
             'active' => $payload['active'] ?? true,
+            'password_hash' => isset($payload['password']) ? \Hash::make($payload['password']) : null,
         ]);
+
+        if ($vendor->email && isset($payload['password'])) {
+            $existingUser = User::query()->where('email', $vendor->email)->first();
+            if (! $existingUser) {
+                User::query()->create([
+                    'id' => SequentialId::next(User::class, 'u'),
+                    'full_name' => $vendor->name,
+                    'email' => $vendor->email,
+                    'password_hash' => \Hash::make($payload['password']),
+                    'role' => AppConstants::USER_ROLES['VENDOR'],
+                    'vendor_id' => $vendor->id,
+                    'is_active' => true,
+                ]);
+            }
+        }
 
         return CaseKeys::camelize($vendor);
     }
@@ -305,6 +321,8 @@ class CatalogService
             'notes' => $payload['notes'] ?? '',
         ]);
 
+        $this->sendBookingConfirmationEmail($booking);
+
         return CaseKeys::camelize($booking);
     }
 
@@ -365,6 +383,10 @@ class CatalogService
             'paid_at' => $paymentStatus === AppConstants::PAYMENT_STATUSES['PAID'] ? now() : null,
         ])->save();
 
+        if ($paymentStatus === AppConstants::PAYMENT_STATUSES['PAID']) {
+            $this->sendPaymentConfirmationEmail($booking);
+        }
+
         return CaseKeys::camelize($booking);
     }
 
@@ -390,14 +412,20 @@ class CatalogService
         $enabledServiceIds = collect($this->assignmentService->getEnabledVendorServices($vendorId))->pluck('id')->all();
 
         $bookings = Booking::query()
-            ->where('vendor_id', $vendorId)
-            ->orWhere('vendor_name', $vendor->name)
-            ->when($enabledServiceIds !== [] && $vendor->active !== false, function (Builder $query) use ($enabledServiceIds): void {
-                $query->orWhere(function (Builder $query) use ($enabledServiceIds): void {
-                    $query->whereNull('vendor_id')
-                        ->where('status', AppConstants::BOOKING_STATUSES['PENDING'])
-                        ->whereIn('service_id', $enabledServiceIds);
-                });
+            ->where(function (Builder $query) use ($vendorId, $enabledServiceIds, $vendor): void {
+                $query->where('vendor_id', $vendorId)
+                    ->orWhere(function (Builder $query) use ($vendorId, $vendor): void {
+                        $query->whereNull('vendor_id')
+                            ->where('vendor_name', $vendor->name);
+                    });
+
+                if ($enabledServiceIds !== [] && $vendor->active !== false) {
+                    $query->orWhere(function (Builder $query) use ($enabledServiceIds): void {
+                        $query->whereNull('vendor_id')
+                            ->where('status', AppConstants::BOOKING_STATUSES['PENDING'])
+                            ->whereIn('service_id', $enabledServiceIds);
+                    });
+                }
             })
             ->orderByDesc('created_at')
             ->get();
@@ -432,6 +460,7 @@ class CatalogService
                 'vendor_id' => $vendorId,
                 'vendor_name' => $vendor->name,
                 'status' => AppConstants::BOOKING_STATUSES['ACTIVE'],
+                'accepted_at' => now(),
                 'updated_at' => now(),
             ]);
 
@@ -439,7 +468,10 @@ class CatalogService
             throw new HttpException(409, 'This booking has already been accepted by another vendor');
         }
 
-        return CaseKeys::camelize(Booking::query()->findOrFail($bookingId));
+        $updatedBooking = Booking::query()->findOrFail($bookingId);
+        $this->sendBookingStatusUpdateEmail($updatedBooking, 'Pending');
+
+        return CaseKeys::camelize($updatedBooking);
     }
 
     public function getVendorServices(string $vendorId): array
@@ -524,7 +556,15 @@ class CatalogService
             throw new HttpException(403, 'You can only update bookings assigned to you');
         }
 
-        $booking->forceFill(['status' => $status])->save();
+        $previousStatus = $booking->status;
+        $updateData = ['status' => $status];
+        if ($status === 'Completed') {
+            $updateData['completed_at'] = now();
+        }
+
+        $booking->forceFill($updateData)->save();
+
+        $this->sendBookingStatusUpdateEmail($booking, $previousStatus);
 
         return CaseKeys::camelize($booking);
     }
@@ -808,5 +848,128 @@ class CatalogService
         }
 
         return CaseKeys::camelize($request);
+    }
+
+    public function getVendorSlaMetrics(): array
+    {
+        $vendors = Vendor::query()->where('active', true)->get();
+
+        $metrics = $vendors->map(function (Vendor $vendor) {
+            $bookings = Booking::query()
+                ->where('vendor_id', $vendor->id)
+                ->whereIn('status', ['Active', 'Completed', 'Canceled'])
+                ->get();
+
+            $totalBookings = $bookings->count();
+            $completedBookings = $bookings->where('status', 'Completed')->count();
+            $canceledBookings = $bookings->where('status', 'Canceled')->count();
+            $activeBookings = $bookings->where('status', 'Active')->count();
+
+            $acceptanceRate = $totalBookings > 0
+                ? round(($totalBookings - $canceledBookings) / $totalBookings * 100, 1)
+                : 0;
+
+            $completionRate = $totalBookings > 0
+                ? round($completedBookings / $totalBookings * 100, 1)
+                : 0;
+
+            $avgResponseTimeMinutes = null;
+            $responseTimes = $bookings
+                ->filter(fn ($b) => $b->accepted_at && $b->created_at)
+                ->map(fn ($b) => $b->created_at->diffInMinutes($b->accepted_at));
+
+            if ($responseTimes->isNotEmpty()) {
+                $avgResponseTimeMinutes = round($responseTimes->avg(), 1);
+            }
+
+            $avgCompletionTimeHours = null;
+            $completionTimes = $bookings
+                ->filter(fn ($b) => $b->completed_at && $b->accepted_at)
+                ->map(fn ($b) => $b->accepted_at->diffInHours($b->completed_at));
+
+            if ($completionTimes->isNotEmpty()) {
+                $avgCompletionTimeHours = round($completionTimes->avg(), 1);
+            }
+
+            $totalRevenue = $bookings->where('status', 'Completed')->sum('price');
+
+            return [
+                'vendorId' => $vendor->id,
+                'vendorName' => $vendor->name,
+                'totalBookings' => $totalBookings,
+                'completedBookings' => $completedBookings,
+                'activeBookings' => $activeBookings,
+                'canceledBookings' => $canceledBookings,
+                'acceptanceRate' => $acceptanceRate,
+                'completionRate' => $completionRate,
+                'avgResponseTimeMinutes' => $avgResponseTimeMinutes,
+                'avgCompletionTimeHours' => $avgCompletionTimeHours,
+                'totalRevenue' => $totalRevenue,
+            ];
+        });
+
+        return $metrics->toArray();
+    }
+
+    private function sendBookingConfirmationEmail(Booking $booking): void
+    {
+        try {
+            $email = $booking->customer_email;
+            if (! $email || $email === 'guest@example.com') {
+                return;
+            }
+
+            \Mail::to($email)->send(new \App\Mail\BookingConfirmation(CaseKeys::camelize($booking->toArray())));
+        } catch (\Throwable $e) {
+            \Log::error('Failed to send booking confirmation email: ' . $e->getMessage());
+        }
+    }
+
+    private function sendPaymentConfirmationEmail(Booking $booking): void
+    {
+        try {
+            $email = $booking->customer_email;
+            if (! $email || $email === 'guest@example.com') {
+                return;
+            }
+
+            \Mail::to($email)->send(new \App\Mail\PaymentConfirmation(CaseKeys::camelize($booking->toArray())));
+        } catch (\Throwable $e) {
+            \Log::error('Failed to send payment confirmation email: ' . $e->getMessage());
+        }
+    }
+
+    private function sendVendorNewBookingEmail(Booking $booking): void
+    {
+        try {
+            $vendor = Vendor::query()->find($booking->vendor_id);
+            if (! $vendor || ! $vendor->email) {
+                return;
+            }
+
+            \Mail::to($vendor->email)->send(new \App\Mail\VendorNewBooking(
+                CaseKeys::camelize($booking->toArray()),
+                $vendor->name
+            ));
+        } catch (\Throwable $e) {
+            \Log::error('Failed to send vendor new booking email: ' . $e->getMessage());
+        }
+    }
+
+    private function sendBookingStatusUpdateEmail(Booking $booking, string $previousStatus): void
+    {
+        try {
+            $email = $booking->customer_email;
+            if (! $email || $email === 'guest@example.com') {
+                return;
+            }
+
+            \Mail::to($email)->send(new \App\Mail\BookingStatusUpdate(
+                CaseKeys::camelize($booking->toArray()),
+                $previousStatus
+            ));
+        } catch (\Throwable $e) {
+            \Log::error('Failed to send booking status update email: ' . $e->getMessage());
+        }
     }
 }

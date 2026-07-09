@@ -14,6 +14,7 @@ import { createBooking } from '../services/bookings';
 import { api } from '../lib/api';
 import { formatAedWhole } from '../utils/money';
 import { TIME_SLOTS, TIME_SLOTS_3HR } from '../constants';
+import { trackEvent, AnalyticsEvents } from '../services/analytics';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -82,7 +83,7 @@ export default function BookingModal({
 
   useEffect(() => {
     if (isOpen) {
-      // Sync preselectedServiceTitle when modal is opened on product action
+      trackEvent(AnalyticsEvents.BEGIN_BOOKING, { service: preselectedServiceTitle || service, source: 'modal' });
       if (preselectedServiceTitle) {
         setService(preselectedServiceTitle);
       }
@@ -231,6 +232,7 @@ export default function BookingModal({
           ? `Address: ${address}\n${notes}${location ? `\nLocation: ${location.address || 'pinned'} (${location.lat.toFixed(6)}, ${location.lng.toFixed(6)})` : ''}`
           : `Address: ${address}${location ? `\nLocation: ${location.address || 'pinned'} (${location.lat.toFixed(6)}, ${location.lng.toFixed(6)})` : ''}`,
       });
+      trackEvent(AnalyticsEvents.SUBMIT_BOOKING, { service, price: activePrice, region });
       const checkout = await createEnbdpayCheckout({
         amount: activePrice,
         description: `MedZiva booking ${service}`,
@@ -245,6 +247,7 @@ export default function BookingModal({
         },
       });
       toast.dismiss('enbdpay-booking');
+      trackEvent(AnalyticsEvents.PAYMENT_INITIATED, { service, amount: activePrice });
       window.location.assign(checkout.redirectUri);
       return;
     } catch (err) {

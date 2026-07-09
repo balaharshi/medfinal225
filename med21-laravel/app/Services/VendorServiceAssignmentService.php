@@ -24,26 +24,37 @@ class VendorServiceAssignmentService
                 'enabled' => (bool) ($assignment?->enabled),
                 'status' => $assignment?->enabled ? 'Enabled' : 'Disabled',
                 'assignmentId' => $assignment?->id,
+                'vendorPrice' => $assignment?->vendor_price,
+                'commissionType' => $assignment?->commission_type,
+                'commissionValue' => $assignment?->commission_value,
             ];
         })->values()->all();
     }
 
-    public function setVendorServiceAssignment(string $vendorId, string $serviceId, mixed $enabled = true): array
+    public function setVendorServiceAssignment(string $vendorId, string $serviceId, mixed $enabled = true, ?int $vendorPrice = null, ?string $commissionType = null, ?float $commissionValue = null): array
     {
         $this->ensureVendorExists($vendorId);
         if (! Service::query()->whereKey($serviceId)->exists()) {
             throw new HttpException(404, 'Service not found');
         }
 
+        $data = [
+            'id' => "vsa-{$vendorId}-{$serviceId}",
+            'enabled' => (bool) $enabled,
+        ];
+        if ($vendorPrice !== null) $data['vendor_price'] = $vendorPrice;
+        if ($commissionType !== null) $data['commission_type'] = $commissionType;
+        if ($commissionValue !== null) $data['commission_value'] = $commissionValue;
+
         $assignment = VendorServiceAssignment::query()->updateOrCreate(
             ['vendor_id' => $vendorId, 'service_id' => $serviceId],
-            ['id' => "vsa-{$vendorId}-{$serviceId}", 'enabled' => (bool) $enabled],
+            $data,
         );
 
         return CaseKeys::camelize($assignment);
     }
 
-    public function bulkSetVendorServiceAssignments(string $vendorId, array $serviceIds = [], mixed $enabled = true): array
+    public function bulkSetVendorServiceAssignments(string $vendorId, array $serviceIds = [], mixed $enabled = true, ?int $vendorPrice = null): array
     {
         $this->ensureVendorExists($vendorId);
         if ($serviceIds === []) {
@@ -52,7 +63,7 @@ class VendorServiceAssignmentService
 
         $assignments = [];
         foreach ($serviceIds as $serviceId) {
-            $assignments[] = $this->setVendorServiceAssignment($vendorId, (string) $serviceId, $enabled);
+            $assignments[] = $this->setVendorServiceAssignment($vendorId, (string) $serviceId, $enabled, $vendorPrice);
         }
 
         return ['success' => true, 'count' => count($assignments), 'assignments' => $assignments];

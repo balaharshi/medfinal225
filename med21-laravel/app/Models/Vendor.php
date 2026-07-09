@@ -36,4 +36,9 @@ class Vendor extends BaseModel
     {
         return $this->hasMany(VendorServiceAssignment::class);
     }
+
+    public function workingHours(): HasMany
+    {
+        return $this->hasMany(VendorWorkingHour::class);
+    }
 }

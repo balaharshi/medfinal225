@@ -20,19 +20,19 @@ class TestAccountsSeeder extends Seeder
         $customers = [
             [
                 'fullName' => 'Ahmed Al Rashid',
-                'email' => 'ahmed.test@medziva.ae',
+                'email' => 'ahmed.test@medzivahealthcare.com',
                 'phone' => '+971501112233',
                 'address' => 'Dubai Marina, Dubai',
             ],
             [
                 'fullName' => 'Fatima Khan',
-                'email' => 'fatima.test@medziva.ae',
+                'email' => 'fatima.test@medzivahealthcare.com',
                 'phone' => '+971552223344',
                 'address' => 'Al Nahda, Sharjah',
             ],
             [
                 'fullName' => 'Omar Hassan',
-                'email' => 'omar.test@medziva.ae',
+                'email' => 'omar.test@medzivahealthcare.com',
                 'phone' => '+971563334455',
                 'address' => 'Jumeirah Village Circle, Dubai',
             ],
@@ -57,7 +57,7 @@ class TestAccountsSeeder extends Seeder
         $vendorsData = [
             [
                 'name' => 'Al Noor Nursing Care',
-                'email' => 'alnoor.test@medziva.ae',
+                'email' => 'alnoor.test@medzivahealthcare.com',
                 'type' => 'Nursing Provider',
                 'contact' => '+971504445566',
                 'address' => 'Deira, Dubai',
@@ -66,7 +66,7 @@ class TestAccountsSeeder extends Seeder
             ],
             [
                 'name' => 'City Care Home Healthcare',
-                'email' => 'citycare.test@medziva.ae',
+                'email' => 'citycare.test@medzivahealthcare.com',
                 'type' => 'Healthcare Provider',
                 'contact' => '+971556667788',
                 'address' => 'Al Rigga, Dubai',
@@ -75,7 +75,7 @@ class TestAccountsSeeder extends Seeder
             ],
             [
                 'name' => 'Best Care Medical Center',
-                'email' => 'bestcare.test@medziva.ae',
+                'email' => 'bestcare.test@medzivahealthcare.com',
                 'type' => 'Healthcare Provider',
                 'contact' => '+971568889900',
                 'address' => 'Bur Dubai',

@@ -38,6 +38,7 @@ class CatalogController extends Controller
     public function deleteService(string $id): JsonResponse { return response()->json($this->catalogService->deleteService($id)); }
     public function getVendors(): JsonResponse { return response()->json($this->catalogService->getVendors()); }
     public function getUsers(): JsonResponse { return response()->json($this->catalogService->getUsers()); }
+    public function deleteUser(Request $request, string $id): JsonResponse { return response()->json($this->catalogService->deleteUser($id, $request->user()->role)); }
     public function createVendor(VendorRequest $request): JsonResponse { return response()->json($this->catalogService->createVendor($request->all()), 201); }
     public function updateVendor(VendorRequest $request, string $id): JsonResponse { return response()->json($this->catalogService->updateVendor($id, $request->all())); }
     public function deleteVendor(string $id): JsonResponse { return response()->json($this->catalogService->deleteVendor($id)); }
@@ -96,6 +97,20 @@ class CatalogController extends Controller
         $email = $request->user()->email;
         $booking = $this->catalogService->cancelCustomerBooking($id, $email);
         $this->pusherService->triggerEvent('appointment:update', ['action' => 'cancelled', 'message' => "Booking {$id} was cancelled by customer", 'booking' => $booking]);
+
+        return response()->json(['success' => true, 'booking' => $booking]);
+    }
+
+    public function rescheduleMyBooking(Request $request, string $id): JsonResponse
+    {
+        $email = $request->user()->email;
+        $booking = $this->catalogService->rescheduleCustomerBooking(
+            $id,
+            $email,
+            $request->input('date'),
+            $request->input('timeSlot'),
+        );
+        $this->pusherService->triggerEvent('appointment:update', ['action' => 'rescheduled', 'message' => "Booking {$id} was rescheduled by customer", 'booking' => $booking]);
 
         return response()->json(['success' => true, 'booking' => $booking]);
     }
@@ -168,5 +183,30 @@ class CatalogController extends Controller
     public function getVendorSlaMetrics(): JsonResponse
     {
         return response()->json($this->catalogService->getVendorSlaMetrics());
+    }
+
+    public function getVendorWorkingHours(Request $request, string $vendorId): JsonResponse
+    {
+        return response()->json($this->catalogService->getVendorWorkingHours($vendorId));
+    }
+
+    public function updateVendorWorkingHours(Request $request, string $vendorId): JsonResponse
+    {
+        return response()->json($this->catalogService->updateVendorWorkingHours($vendorId, $request->all()));
+    }
+
+    public function getAvailableSlots(Request $request, string $serviceId): JsonResponse
+    {
+        $date = $request->query('date');
+        $region = $request->query('region');
+        return response()->json($this->catalogService->getAvailableTimeSlots($serviceId, $date, $region));
+    }
+
+    public function getRevenueReport(Request $request): JsonResponse
+    {
+        return response()->json($this->catalogService->getRevenueReport(
+            $request->query('from'),
+            $request->query('to'),
+        ));
     }
 }

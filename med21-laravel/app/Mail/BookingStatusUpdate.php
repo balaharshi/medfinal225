@@ -20,7 +20,7 @@ class BookingStatusUpdate extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "Booking Update - {$this->booking['service_title']}",
+            subject: "Booking Update - {$this->booking['serviceTitle'] ?? $this->booking['service_title'] ?? 'Healthcare Service'}",
         );
     }
 
@@ -34,11 +34,11 @@ class BookingStatusUpdate extends Mailable
     private function buildHtml(): string
     {
         $booking = $this->booking;
-        $serviceName = htmlspecialchars($booking['service_title'] ?? 'Healthcare Service');
-        $customerName = htmlspecialchars($booking['customer_name'] ?? 'Valued Customer');
+        $serviceName = htmlspecialchars($booking['serviceTitle'] ?? $booking['service_title'] ?? 'Healthcare Service');
+        $customerName = htmlspecialchars($booking['customerName'] ?? $booking['customer_name'] ?? 'Valued Customer');
         $bookingId = htmlspecialchars($booking['id'] ?? 'N/A');
         $date = htmlspecialchars($booking['date'] ?? 'N/A');
-        $timeSlot = htmlspecialchars($booking['time_slot'] ?? 'N/A');
+        $timeSlot = htmlspecialchars($booking['timeSlot'] ?? $booking['time_slot'] ?? 'N/A');
         $status = htmlspecialchars($booking['status'] ?? 'Updated');
         $previousStatus = htmlspecialchars($this->previousStatus);
 
@@ -53,7 +53,7 @@ class BookingStatusUpdate extends Mailable
         $statusMessage = match($status) {
             'Active' => 'Your booking has been assigned to a healthcare professional and is now active.',
             'Completed' => 'Your healthcare service has been completed. We hope you had a great experience!',
-            'Canceled' => 'Your booking has been canceled. If you did not request this cancellation, please contact us immediately.',
+            'Canceled' => "Your booking has been cancelled. We're sorry things didn't work out — if this was unexpected or you need help rebooking, we're here for you.",
             'In Progress' => 'Your healthcare professional is on the way or has started the service.',
             default => 'Your booking status has been updated.',
         };
@@ -126,6 +126,7 @@ class BookingStatusUpdate extends Mailable
 
         <!-- Footer -->
         <div style='background-color:#f1f5f9;padding:20px;text-align:center;'>
+            <p style='color:#475569;font-size:13px;font-weight:700;margin:0 0 4px;'>— MedZiva Team</p>
             <p style='color:#94a3b8;font-size:11px;margin:0 0 5px;'>MedZiva International Healthcare L.L.C.</p>
             <p style='color:#94a3b8;font-size:11px;margin:0;'>Dubai, United Arab Emirates | medzivahealthcare.com</p>
         </div>

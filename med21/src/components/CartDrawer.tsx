@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Trash2, Plus, Minus, ShoppingBag, CheckCircle, Calendar, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -70,26 +70,72 @@ export default function CartDrawer({
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [region, setRegion] = useState('Dubai');
   const [location, setLocation] = useState<SelectedLocation | null>(null);
+  type TimeSlot = { label: string; startHour: number; startMin: number; endHour?: number; endMin?: number };
+
   const [dispatchDate, setDispatchDate] = useState('');
-  const [preferredTimeSlot, setPreferredTimeSlot] = useState(TIME_SLOTS[0]);
-  const [availableTimeSlots, setAvailableTimeSlots] = useState(TIME_SLOTS);
+  const [itemTimeSlots, setItemTimeSlots] = useState<Record<string, TimeSlot>>({});
+  const [itemAvailableSlots, setItemAvailableSlots] = useState<Record<string, TimeSlot[]>>({});
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
+  // Fetch available time slots for each cart item when date or items change
   useEffect(() => {
+    if (!dispatchDate || cartItems.length === 0) {
+      setItemAvailableSlots({});
+      setItemTimeSlots({});
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingSlots(true);
+
+    Promise.all(cartItems.map(async (item) => {
+      const product = item.product as any;
+      const serviceId = product.id;
+      // Only fetch for services (skip products with no serviceId pattern)
+      if (!serviceId || (!String(serviceId).startsWith('srv-') && !product.category)) {
+        return { serviceId, slots: null };
+      }
+      try {
+        const res = await fetch(`/api/services/${encodeURIComponent(serviceId)}/available-slots?date=${encodeURIComponent(dispatchDate)}`);
+        if (!res.ok) return { serviceId, slots: null };
+        const data = await res.json();
+        return { serviceId, slots: Array.isArray(data) && data.length > 0 ? data : null };
+      } catch {
+        return { serviceId, slots: null };
+      }
+    })).then(results => {
+      if (cancelled) return;
+      const slotsMap: Record<string, TimeSlot[]> = {};
+      const timeMap: Record<string, TimeSlot> = {};
+
+      results.forEach(({ serviceId, slots }) => {
+        if (slots) {
+          slotsMap[serviceId] = slots;
+          timeMap[serviceId] = slots[0];
+        } else {
+          // Fallback to default slots filtered for today
+          const defaults = filterDefaultSlots(dispatchDate);
+          slotsMap[serviceId] = defaults;
+          timeMap[serviceId] = defaults[0];
+        }
+      });
+
+      setItemAvailableSlots(slotsMap);
+      setItemTimeSlots(timeMap);
+      setLoadingSlots(false);
+    });
+
+    return () => { cancelled = true; };
+  }, [dispatchDate, cartItems]);
+
+  // Filter default TIME_SLOTS for today (past slots removed)
+  const filterDefaultSlots = useCallback((date: string): TimeSlot[] => {
     const todayStr = new Date().toISOString().split('T')[0];
-    if (dispatchDate === todayStr) {
-      const now = new Date();
-      const filtered = TIME_SLOTS.filter(slot => parseSlotStartTime(slot) > now);
-      setAvailableTimeSlots(filtered.length > 0 ? filtered : TIME_SLOTS);
-    } else {
-      setAvailableTimeSlots(TIME_SLOTS);
-    }
-  }, [dispatchDate]);
-
-  useEffect(() => {
-    if (availableTimeSlots.length > 0 && !availableTimeSlots.includes(preferredTimeSlot)) {
-      setPreferredTimeSlot(availableTimeSlots[0]);
-    }
-  }, [availableTimeSlots, preferredTimeSlot]);
+    if (date !== todayStr) return [...TIME_SLOTS];
+    const now = new Date();
+    const filtered = TIME_SLOTS.filter(slot => parseSlotStartTime(slot) > now);
+    return filtered.length > 0 ? [...filtered] : [...TIME_SLOTS];
+  }, []);
 
   useEffect(() => {
     if (isOpen && loggedInUser) {
@@ -186,6 +232,14 @@ export default function CartDrawer({
       newErrors.dispatchDate = 'Preferred dispatch date is required';
     }
 
+    // Validate each item has an available time slot
+    cartItems.forEach((item) => {
+      const serviceId = (item.product as any).id;
+      if (!itemTimeSlots[serviceId]) {
+        newErrors.timeSlots = 'Please select a time for all services';
+      }
+    });
+
     if (Object.keys(newErrors).length > 0) {
       setFormErrors(newErrors);
       toast.error(Object.values(newErrors)[0]);
@@ -195,29 +249,72 @@ export default function CartDrawer({
     setFormErrors({});
     setIsCheckingOut(true);
     try {
-      const itemList = cartItems
-        .map((it) => ('name' in it.product ? it.product.name : it.product.title))
-        .join(', ');
-      const booking = await createBooking({
-        customerName: patientName,
-        customerEmail: patientEmail,
-        customerPhone: patientContact,
-        serviceTitle: `Cart: ${itemList.slice(0, 100)}`,
-        price: totalCost,
-        date: dispatchDate,
-        timeSlot: preferredTimeSlot.label,
-        region,
-        status: 'Pending',
-        paymentStatus: 'Unpaid',
-        notes: JSON.stringify({ items: cartItems, address: patientAddress, location }),
-      });
-      trackEvent(AnalyticsEvents.SUBMIT_CART_CHECKOUT, { items: cartItems.length, total: totalCost });
+      // Validate cart prices against current API data
+      const [srvRes, prodRes] = await Promise.all([
+        fetch('/api/services').then(r => r.ok ? r.json() : []),
+        fetch('/api/products').then(r => r.ok ? r.json() : []),
+      ]);
+      const currentPrices: Record<string, number> = {};
+      (Array.isArray(srvRes) ? srvRes : []).forEach((s: any) => { currentPrices[s.id] = s.price; });
+      (Array.isArray(prodRes) ? prodRes : []).forEach((p: any) => { currentPrices[p.id] = p.price; });
+
+      let priceChanged = false;
+
+      // Create one booking per cart item
+      const bookings: any[] = [];
+      let effectiveTotal = 0;
+      for (const item of cartItems) {
+        const product = item.product as any;
+        const serviceId = product.id;
+        const currentPrice = currentPrices[serviceId];
+        const effectivePrice = currentPrice || product.price;
+        if (currentPrice && currentPrice !== product.price) {
+          priceChanged = true;
+        }
+        effectiveTotal += effectivePrice * item.quantity;
+        const slot = itemTimeSlots[serviceId] || TIME_SLOTS[0];
+        const title = 'name' in product ? product.name : product.title;
+        const category = product.category || '';
+        const subcategory = product.subcategory || '';
+
+        const booking = await createBooking({
+          customerName: patientName,
+          customerEmail: patientEmail,
+          customerPhone: patientContact,
+          serviceTitle: title,
+          serviceId: String(serviceId).startsWith('srv-') ? serviceId : undefined,
+          category,
+          subcategory,
+          price: effectivePrice * item.quantity,
+          date: dispatchDate,
+          timeSlot: slot.label,
+          region,
+          status: 'Pending',
+          paymentStatus: 'Unpaid',
+          notes: JSON.stringify({ address: patientAddress, location }),
+        });
+        bookings.push(booking);
+      }
+
+      // Apply promo discount to total
+      if (promoDiscount > 0) {
+        effectiveTotal = Math.max(0, effectiveTotal - promoDiscount);
+      }
+
+      if (priceChanged) {
+        toast.success('Some service prices have been updated to reflect current rates.');
+      }
+
+      trackEvent(AnalyticsEvents.SUBMIT_CART_CHECKOUT, { items: cartItems.length, total: effectiveTotal });
+
+      // One payment for the total, linked to first booking
+      const primaryBooking = bookings[0];
       const checkout = await createEnbdpayCheckout({
-        amount: totalCost,
-        description: 'MedZiva product cart',
+        amount: effectiveTotal,
+        description: `MedZiva order (${bookings.length} items)`,
         source: 'cart',
         category: 'Products',
-        bookingId: booking.id,
+        bookingId: primaryBooking.id,
         customer: {
           fullName: patientName,
           email: patientEmail,
@@ -227,11 +324,10 @@ export default function CartDrawer({
             : patientAddress,
         },
       });
-      setOrderId(booking.id);
-      trackEvent(AnalyticsEvents.PAYMENT_INITIATED, { source: 'cart', amount: totalCost });
+      setOrderId(primaryBooking.id);
+      trackEvent(AnalyticsEvents.PAYMENT_INITIATED, { source: 'cart', amount: effectiveTotal });
       window.location.assign(checkout.redirectUri);
     } catch (error) {
-
       toast.error(error instanceof Error ? error.message : 'Could not open payment checkout.', { id: 'enbdpay-cart' });
       setIsCheckingOut(false);
     }
@@ -248,7 +344,8 @@ export default function CartDrawer({
     setRegion('Dubai');
     setLocation(null);
     setDispatchDate('');
-    setPreferredTimeSlot(TIME_SLOTS[0]);
+    setItemTimeSlots({});
+    setItemAvailableSlots({});
     removePromoCode();
     onClearCart();
     onClose();
@@ -298,8 +395,8 @@ export default function CartDrawer({
 
                 <button
                   onClick={onClose}
-                  className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full cursor-pointer transition-colors"
-                  title="Close"
+                  aria-label="Close cart"
+                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full cursor-pointer transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -351,8 +448,8 @@ export default function CartDrawer({
                                     'name' in item.product ? item.product.name : item.product.title
                                   )
                                 }
-                                className="text-red-400 hover:text-red-500 hover:bg-red-50 p-1 rounded transition-colors cursor-pointer"
-                                title="Delete Item"
+                                aria-label="Remove item"
+                                className="text-red-400 hover:text-red-500 hover:bg-red-50 p-2 rounded transition-colors cursor-pointer"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -360,16 +457,18 @@ export default function CartDrawer({
                               <div className="flex items-center gap-2 border border-slate-200 rounded-lg p-0.5 bg-slate-50">
                                 <button
                                   onClick={() => onUpdateQty(item.product.id, Math.max(1, item.quantity - 1))}
-                                  className="p-1 hover:bg-white rounded text-slate-600 hover:text-slate-900 cursor-pointer"
+                                  aria-label="Decrease quantity"
+                                  className="p-2 hover:bg-white rounded text-slate-600 hover:text-slate-900 cursor-pointer"
                                 >
-                                  <Minus className="w-3 h-3" />
+                                  <Minus className="w-3.5 h-3.5" />
                                 </button>
                                 <span className="text-xs font-bold px-1.5">{item.quantity}</span>
                                 <button
                                   onClick={() => onUpdateQty(item.product.id, item.quantity + 1)}
-                                  className="p-1 hover:bg-white rounded text-slate-600 hover:text-slate-900 cursor-pointer"
+                                  aria-label="Increase quantity"
+                                  className="p-2 hover:bg-white rounded text-slate-600 hover:text-slate-900 cursor-pointer"
                                 >
-                                  <Plus className="w-3 h-3" />
+                                  <Plus className="w-3.5 h-3.5" />
                                 </button>
                               </div>
                             </div>
@@ -478,7 +577,7 @@ export default function CartDrawer({
 
                   <LocationPicker onLocationChange={setLocation} />
 
-                  <div className="space-y-3 pt-2">
+                  <div className="space-y-4 pt-2">
                     <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">
                       Preferred Dispatch Schedule
                     </h4>
@@ -520,23 +619,46 @@ export default function CartDrawer({
                         )}
                       </div>
 
-                      <div className="space-y-1">
+                      {/* Per-service time slot selectors */}
+                      <div className="space-y-3">
                         <label className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5 text-slate-400" />
-                          Preferred Time Slot <span className="text-red-600">*</span>
+                          Time Slots (per service) <span className="text-red-600">*</span>
                         </label>
-                        <select
-                          value={preferredTimeSlot.label}
-                          onChange={(e) => {
-                            const found = availableTimeSlots.find(s => s.label === e.target.value);
-                            if (found) setPreferredTimeSlot(found);
-                          }}
-                          className="w-full text-xs border border-slate-200 rounded-xl p-3 bg-white focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
-                        >
-                          {availableTimeSlots.map((slot) => (
-                            <option key={slot.label} value={slot.label}>{slot.label}</option>
-                          ))}
-                        </select>
+                        {loadingSlots && (
+                          <p className="text-[10px] text-slate-400">Loading available slots...</p>
+                        )}
+                        {cartItems.map((item) => {
+                          const product = item.product as any;
+                          const serviceId = product.id;
+                          const title = 'name' in product ? product.name : product.title;
+                          const slots = itemAvailableSlots[serviceId];
+                          const selected = itemTimeSlots[serviceId];
+
+                          return (
+                            <div key={serviceId} className="p-3 rounded-xl border border-slate-100 bg-slate-50/50">
+                              <p className="text-[10px] font-bold text-slate-500 mb-1.5 truncate">{title}</p>
+                              {slots && slots.length > 0 ? (
+                                <select
+                                  value={selected?.label || ''}
+                                  onChange={(e) => {
+                                    const found = slots.find(s => s.label === e.target.value);
+                                    if (found) {
+                                      setItemTimeSlots(prev => ({ ...prev, [serviceId]: found }));
+                                    }
+                                  }}
+                                  className="w-full text-xs border border-slate-200 rounded-lg p-2 bg-white focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                                >
+                                  {slots.map((slot) => (
+                                    <option key={slot.label} value={slot.label}>{slot.label}</option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <p className="text-[10px] text-red-500">No slots available for this date</p>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 

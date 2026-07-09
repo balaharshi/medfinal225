@@ -62,4 +62,12 @@ return [
         'channel' => env('PUSHER_CHANNEL', 'medziva-notifications'),
     ],
 
+    'whatsapp' => [
+        'token' => env('WHATSAPP_TOKEN'),
+        'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),
+        'base_url' => env('WHATSAPP_BASE_URL', 'https://graph.facebook.com/v21.0'),
+        'webhook_verify_token' => env('WHATSAPP_WEBHOOK_VERIFY_TOKEN', 'medziva_verify'),
+        'business_phone' => env('WHATSAPP_BUSINESS_PHONE', '971559510794'),
+    ],
+
 ];

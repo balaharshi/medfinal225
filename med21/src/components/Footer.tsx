@@ -32,6 +32,7 @@ export default function Footer({ onNavigationClick }: FooterProps) {
         setSubscribed(true);
         setTimeout(() => setEmail(''), 3000);
       } catch {
+        // Newsletter subscription is best-effort; don't block UI
       }
     }
   };

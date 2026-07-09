@@ -19,7 +19,7 @@ class BookingConfirmation extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "Booking Confirmed - {$this->booking['service_title']}",
+            subject: "Booking Received — {$this->booking['service_title'] ?? $this->booking['serviceTitle'] ?? 'Healthcare Service'}",
         );
     }
 
@@ -33,11 +33,11 @@ class BookingConfirmation extends Mailable
     private function buildHtml(): string
     {
         $booking = $this->booking;
-        $serviceName = htmlspecialchars($booking['service_title'] ?? 'Healthcare Service');
-        $customerName = htmlspecialchars($booking['customer_name'] ?? 'Valued Customer');
+        $serviceName = htmlspecialchars($booking['serviceTitle'] ?? $booking['service_title'] ?? 'Healthcare Service');
+        $customerName = htmlspecialchars($booking['customerName'] ?? $booking['customer_name'] ?? 'Valued Customer');
         $bookingId = htmlspecialchars($booking['id'] ?? 'N/A');
         $date = htmlspecialchars($booking['date'] ?? 'N/A');
-        $timeSlot = htmlspecialchars($booking['time_slot'] ?? 'N/A');
+        $timeSlot = htmlspecialchars($booking['timeSlot'] ?? $booking['time_slot'] ?? 'N/A');
         $region = htmlspecialchars($booking['region'] ?? 'N/A');
         $price = number_format($booking['price'] ?? 0);
         $status = htmlspecialchars($booking['status'] ?? 'Pending');
@@ -54,14 +54,14 @@ class BookingConfirmation extends Mailable
         <!-- Header -->
         <div style='background:linear-gradient(135deg,#1769b3,#0f5a94);padding:30px;text-align:center;'>
             <h1 style='color:#ffffff;margin:0;font-size:24px;font-weight:800;'>MedZiva Healthcare</h1>
-            <p style='color:#ffffff;margin:8px 0 0;font-size:12px;opacity:0.9;'>Booking Confirmation</p>
+            <p style='color:#ffffff;margin:8px 0 0;font-size:12px;opacity:0.9;'>Booking Received — Pending Vendor Assignment</p>
         </div>
 
         <!-- Body -->
         <div style='padding:30px;'>
             <h2 style='color:#0f172a;font-size:18px;margin:0 0 20px;'>Hello {$customerName},</h2>
             <p style='color:#475569;font-size:14px;line-height:1.6;margin:0 0 20px;'>
-                Your healthcare booking has been confirmed. Here are your booking details:
+                Thank you for choosing MedZiva. We've received your booking request and are matching you with a qualified healthcare professional. Here are your details:
             </p>
 
             <!-- Booking Details Card -->
@@ -99,7 +99,7 @@ class BookingConfirmation extends Mailable
             </div>
 
             <p style='color:#475569;font-size:13px;line-height:1.6;margin:0 0 15px;'>
-                A healthcare professional will be assigned to your booking shortly. You will receive another email once your payment is confirmed.
+                A healthcare professional will be assigned to your booking shortly. You'll receive an update as soon as someone accepts.
             </p>
 
             <p style='color:#475569;font-size:13px;line-height:1.6;margin:0 0 20px;'>
@@ -109,6 +109,7 @@ class BookingConfirmation extends Mailable
 
         <!-- Footer -->
         <div style='background-color:#f1f5f9;padding:20px;text-align:center;'>
+            <p style='color:#475569;font-size:13px;font-weight:700;margin:0 0 4px;'>— MedZiva Team</p>
             <p style='color:#94a3b8;font-size:11px;margin:0 0 5px;'>MedZiva International Healthcare L.L.C.</p>
             <p style='color:#94a3b8;font-size:11px;margin:0;'>Dubai, United Arab Emirates | medzivahealthcare.com</p>
         </div>

@@ -9,8 +9,6 @@ import { ChevronRight, ChevronLeft, CalendarClock, Eye, X, ShieldCheck, Heart, C
 import { motion, AnimatePresence } from 'motion/react';
 import {
   DEFAULT_HEALTHCARE_SERVICE_IMAGE,
-  SERVICE_CATEGORIES as STATIC_CATEGORIES,
-  HEALTHCARE_SERVICES as STATIC_SERVICES,
   resolveHealthcareServiceImage,
 } from '../data';
 import { ServiceCategory, HealthcareService } from '../types';
@@ -59,8 +57,8 @@ export default function ServicesSection({
   onServiceEnquire,
   onAddToCart,
   onExploreMore,
-  categoriesList = STATIC_CATEGORIES,
-  servicesList = STATIC_SERVICES,
+  categoriesList = [] as ServiceCategory[],
+  servicesList = [] as HealthcareService[],
   overlapHero = true
 }: ServicesSectionProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('cat-home-health');
@@ -69,7 +67,7 @@ export default function ServicesSection({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Filter actual services based on the clicked category
-  const activeCategoryObject = categoriesList.find(c => c.id === selectedCategory) || categoriesList[0];
+  const activeCategoryObject = categoriesList.find(c => c.id === selectedCategory) || categoriesList[0] || null;
   const activeServices = servicesList.filter(
     (s) => s.category === activeCategoryObject?.slug || s.subcategory === activeCategoryObject?.slug
   );

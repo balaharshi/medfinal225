@@ -4,8 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { X, Send, CheckCircle2, MessageSquare, Phone, Mail, User, HelpCircle, ShieldCheck } from 'lucide-react';
-import { HEALTHCARE_SERVICES, SERVICE_CATEGORIES } from '../data';
+import { X, User, Phone, Mail, HelpCircle, ShieldCheck, Send, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PhoneInput from './PhoneInput';
 import { api } from '../lib/api';
@@ -34,7 +33,7 @@ export default function EnquiryModal({
   const [phone, setPhone] = useState('');
   const [mobileError, setMobileError] = useState('');
   const [email, setEmail] = useState('');
-  const [service, setService] = useState(preselectedServiceTitle || HEALTHCARE_SERVICES[0].title);
+  const [service, setService] = useState(preselectedServiceTitle || '');
   const [message, setMessage] = useState('');
   const [contactMethod, setContactMethod] = useState<'Email' | 'Phone' | 'WhatsApp'>('Email');
   const [enquiryId, setEnquiryId] = useState('');
@@ -65,7 +64,7 @@ export default function EnquiryModal({
     }
   }, [isOpen, preselectedServiceTitle]);
 
-  const servicesList = HEALTHCARE_SERVICES.map(s => s.title);
+  const servicesList: string[] = [];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,6 +160,7 @@ export default function EnquiryModal({
           </div>
           <button
             onClick={success ? handleReset : onClose}
+            aria-label="Close enquiry dialog"
             className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-150 rounded-full cursor-pointer transition-colors"
           >
             <X className="w-4 h-4" />
@@ -191,9 +191,12 @@ export default function EnquiryModal({
                 >
                   <option value="General Corporate Screening">General Corporate &amp; Wellness Screening</option>
                   <option value="Custom Long-Term Care Quote">Custom Long-Term Care Package</option>
-                  {SERVICE_CATEGORIES.filter((cat) => !cat.slug?.includes('devices') && !cat.slug?.includes('rent')).map((cat) => (
-                    <option key={cat.id} value={cat.title}>
-                      {cat.title}
+                  {[
+                    'Nursing Care', 'Physiotherapy', 'Doctor on Call', 'Long-Term Care',
+                    'Speech Therapy', 'Occupational Therapy', 'IV Therapy',
+                  ].map((name) => (
+                    <option key={name} value={name}>
+                      {name}
                     </option>
                   ))}
                 </select>
@@ -334,7 +337,7 @@ export default function EnquiryModal({
                 
                 <button
                   type="submit"
-                  className="bg-medical-green hover:bg-[#0fd08f] hover:shadow-md text-white font-black text-xs uppercase tracking-wider py-3.5 px-6 rounded-xl transition-all cursor-pointer flex items-center gap-2 shrink-0"
+                  className="bg-medical-green hover:bg-emerald-600 hover:shadow-md text-white font-black text-xs uppercase tracking-wider py-3.5 px-6 rounded-xl transition-all cursor-pointer flex items-center gap-2 shrink-0"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>Submit Inquiry</span>

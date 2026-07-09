@@ -4,9 +4,10 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { X, User, Mail, Phone, MapPin, CheckCircle, Shield, Award, Edit3, Save, Calendar, Clock, Package } from 'lucide-react';
+import { X, User, Mail, Phone, MapPin, CheckCircle, Shield, Award, Edit3, Save, Calendar, Clock, Package, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PhoneInput from './PhoneInput';
+import ConfirmDialog from './ConfirmDialog';
 import { api } from '../lib/api';
 
 interface Booking {
@@ -22,6 +23,8 @@ interface Booking {
   status: string;
   notes: string;
   createdAt: string;
+  rescheduleCount: number;
+  serviceId?: string;
 }
 
 interface ProfileModalProps {
@@ -55,6 +58,14 @@ export default function ProfileModal({
   const [activeTab, setActiveTab] = useState<'profile' | 'bookings'>('profile');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
+
+  // Reschedule state
+  const [rescheduleBookingId, setRescheduleBookingId] = useState<string | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState('');
+  const [rescheduleSlots, setRescheduleSlots] = useState<{ label: string }[]>([]);
+  const [rescheduleTimeSlot, setRescheduleTimeSlot] = useState('');
+  const [rescheduling, setRescheduling] = useState(false);
+  const [cancelBookingId, setCancelBookingId] = useState<string | null>(null);
 
   // Fetch user bookings when bookings tab is opened
   useEffect(() => {
@@ -141,9 +152,10 @@ export default function ProfileModal({
         <div className="bg-gradient-to-r from-medical-blue to-teal-950 text-white p-6 relative">
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 p-1.5 bg-white/10 hover:bg-white/20 text-white rounded-full cursor-pointer transition-colors"
+            aria-label="Close profile"
+            className="absolute right-4 top-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full cursor-pointer transition-colors"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
 
           <div className="flex items-center gap-3">
@@ -382,23 +394,122 @@ export default function ProfileModal({
                       </div>
                     )}
 
-                    <div className="flex justify-between items-center pt-2 border-t border-slate-100">
+                      <div className="flex justify-between items-center pt-2 border-t border-slate-100">
                       <div>
                         <span className="text-[10px] text-slate-400 block">Total Cost</span>
                         <span className="text-xs font-bold text-medical-green">AED {booking.price}</span>
+                        {booking.rescheduleCount > 0 && (
+                          <span className="text-[9px] text-amber-600 block">Rescheduled {booking.rescheduleCount} time(s)</span>
+                        )}
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <div className="text-right">
                           <span className="text-[10px] text-slate-400 block">Region</span>
                           <span className="text-xs font-medium text-slate-600">{booking.region}</span>
                         </div>
-                        {(booking.status === 'Pending' || booking.status === 'Active') && (
-                          <button
-                            onClick={() => handleCancelBooking(booking.id)}
-                            className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors cursor-pointer border border-red-200"
-                          >
-                            Cancel
-                          </button>
+
+                        {rescheduleBookingId === booking.id ? (
+                          <div className="flex flex-col gap-2 p-3 bg-blue-50 rounded-xl border border-blue-200">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="date"
+                                value={rescheduleDate}
+                                min={new Date().toISOString().split('T')[0]}
+                                onChange={async (e) => {
+                                  setRescheduleDate(e.target.value);
+                                  setRescheduleSlots([]);
+                                  setRescheduleTimeSlot('');
+                                  if (e.target.value && booking.serviceId) {
+                                    try {
+                                      const res = await fetch(`/api/services/${booking.serviceId}/available-slots?date=${e.target.value}`);
+                                      if (res.ok) {
+                                        const data = await res.json();
+                                        if (Array.isArray(data)) setRescheduleSlots(data);
+                                      }
+                                    } catch {}
+                                  }
+                                }}
+                                className="w-full text-[10px] border border-blue-200 rounded-lg p-2 bg-white"
+                              />
+                              {rescheduleSlots.length > 0 && (
+                                <select
+                                  value={rescheduleTimeSlot}
+                                  onChange={(e) => setRescheduleTimeSlot(e.target.value)}
+                                  className="w-full text-[10px] border border-blue-200 rounded-lg p-2 bg-white"
+                                >
+                                  <option value="">Select slot</option>
+                                  {rescheduleSlots.map(s => (
+                                    <option key={s.label} value={s.label}>{s.label}</option>
+                                  ))}
+                                </select>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  setRescheduleBookingId(null);
+                                  setRescheduleDate('');
+                                  setRescheduleSlots([]);
+                                  setRescheduleTimeSlot('');
+                                }}
+                                className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer border border-slate-200"
+                              >
+                                Back
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  if (!rescheduleDate || !rescheduleTimeSlot) {
+                                    toast.error('Please select a date and time slot');
+                                    return;
+                                  }
+                                  setRescheduling(true);
+                                  try {
+                                    await api.post(`/api/my-bookings/${booking.id}/reschedule`, {
+                                      body: { date: rescheduleDate, timeSlot: rescheduleTimeSlot },
+                                    });
+                                    toast.success('Booking rescheduled successfully');
+                                    setRescheduleBookingId(null);
+                                    setRescheduleDate('');
+                                    setRescheduleSlots([]);
+                                    setRescheduleTimeSlot('');
+                                    fetchBookings();
+                                  } catch (e: any) {
+                                    toast.error(e.message || 'Failed to reschedule');
+                                  } finally {
+                                    setRescheduling(false);
+                                  }
+                                }}
+                                disabled={rescheduling}
+                                className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-medical-green text-white hover:bg-emerald-600 cursor-pointer border border-emerald-500 disabled:opacity-50"
+                              >
+                                {rescheduling ? 'Saving...' : 'Save'}
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            {(booking.status === 'Pending' || booking.status === 'Active') && booking.rescheduleCount < 1 && (
+                              <button
+                                onClick={() => {
+                                  setRescheduleBookingId(booking.id);
+                                  setRescheduleDate('');
+                                  setRescheduleSlots([]);
+                                  setRescheduleTimeSlot('');
+                                }}
+                                className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors cursor-pointer border border-blue-200"
+                              >
+                                Reschedule
+                              </button>
+                            )}
+                            {(booking.status === 'Pending' || booking.status === 'Active') && (
+                              <button
+                                onClick={() => setCancelBookingId(booking.id)}
+                                className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors cursor-pointer border border-red-200"
+                              >
+                                Cancel
+                              </button>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
@@ -409,6 +520,17 @@ export default function ProfileModal({
           </div>
         )}
       </div>
+      <ConfirmDialog
+        isOpen={Boolean(cancelBookingId)}
+        title="Cancel Booking"
+        message="Are you sure you want to cancel this booking? This action cannot be undone."
+        confirmLabel="Cancel Booking"
+        onConfirm={() => {
+          if (cancelBookingId) handleCancelBooking(cancelBookingId);
+          setCancelBookingId(null);
+        }}
+        onCancel={() => setCancelBookingId(null)}
+      />
     </div>
   );
 }

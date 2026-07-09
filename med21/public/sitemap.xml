@@ -38,7 +38,7 @@
   <url>
     <loc>https://medzivahealthcare.com/services/iv-therapy</loc>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://medzivahealthcare.com/services/lab-tests-at-home/routine-blood-tests</loc>
@@ -51,12 +51,32 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://medzivahealthcare.com/products/rent-medical-equipments</loc>
+    <loc>https://medzivahealthcare.com/services/lab-tests-at-home/mens-health-packages</loc>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://medzivahealthcare.com/products/buy-medical-equipments</loc>
+    <loc>https://medzivahealthcare.com/services/lab-tests-at-home/womens-health-packages</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://medzivahealthcare.com/services/lab-tests-at-home/std-sexual-health</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://medzivahealthcare.com/services/lab-tests-at-home/specialized-diagnostic-tests</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://medzivahealthcare.com/services/lab-tests-at-home/genetic-testing</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://medzivahealthcare.com/products/rent-medical-equipments</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>

@@ -357,9 +357,10 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
         <div className="relative min-h-0 overflow-y-auto">
           <button
             onClick={closeModal}
-            className="absolute right-4 top-4 z-20 p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full cursor-pointer transition-colors"
+            aria-label="Close login dialog"
+            className="absolute right-4 top-4 z-20 p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full cursor-pointer transition-colors"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
 
           <div className="bg-white px-5 pt-6 pb-3 sm:px-8 sm:pt-8 relative flex flex-col gap-3">
@@ -402,7 +403,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             </label>
             <input
               type="email"
-              placeholder="e.g. customer@medziva.com"
+              placeholder="e.g. customer@medzivahealthcare.com"
               value={forgotEmail}
               onChange={(e) => setForgotEmail(e.target.value)}
               required
@@ -413,7 +414,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
           <button
             type="submit"
             disabled={forgotLoading}
-            className="w-full bg-[#10B981] hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl text-xs tracking-wider transition-all mt-2 cursor-pointer shadow-md text-center"
+            className="w-full bg-medical-green hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl text-xs tracking-wider transition-all mt-2 cursor-pointer shadow-md text-center"
           >
             {forgotLoading ? 'SENDING...' : 'SEND RESET CODE'}
           </button>
@@ -499,7 +500,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
           <button
             type="submit"
             disabled={resetLoading}
-            className="w-full bg-[#10B981] hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl text-xs tracking-wider transition-all mt-2 cursor-pointer shadow-md text-center"
+            className="w-full bg-medical-green hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl text-xs tracking-wider transition-all mt-2 cursor-pointer shadow-md text-center"
           >
             {resetLoading ? 'RESETTING...' : 'RESET PASSWORD'}
           </button>
@@ -594,7 +595,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             </label>
             <input
               type="email"
-              placeholder="e.g. customer@medziva.com"
+              placeholder="e.g. customer@medzivahealthcare.com"
               {...register('email', {
                 required: 'Customer email is required',
                 pattern: {
@@ -644,13 +645,13 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
           <button
             type="submit"
             disabled={authLoading}
-            className="w-full bg-[#10B981] hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl text-xs tracking-wider transition-all mt-2 cursor-pointer shadow-md text-center"
+            className="w-full bg-medical-green hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl text-xs tracking-wider transition-all mt-2 cursor-pointer shadow-md text-center"
           >
             {authLoading ? 'Processing...' : isSignUp ? 'Create Account' : 'Login'}
           </button>
 
           <p className="text-[10px] text-slate-400 text-center leading-snug mt-2">
-            By clicking {isSignUp ? 'Create Account' : 'Login'}, I certify that all details submitted are accurate and I consent to MedZiva's <span className="text-emerald-600 font-semibold cursor-pointer hover:underline">Terms &amp; Conditions</span>.
+            By clicking {isSignUp ? 'Create Account' : 'Login'}, I certify that all details submitted are accurate and I consent to MedZiva's <a href="https://medzivahealthcare.com" target="_blank" rel="noopener noreferrer" className="text-emerald-600 font-semibold cursor-pointer hover:underline">Terms &amp; Conditions</a>.
           </p>
 
           <div className="flex items-center gap-3">

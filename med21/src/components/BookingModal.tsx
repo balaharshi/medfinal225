@@ -111,9 +111,11 @@ export default function BookingModal({
   // Resolve the active service: prefer backend service by ID, fallback to hardcoded by title
   const activeBackendService = selectedBackendServiceId ? findServiceById(selectedBackendServiceId, backendServices) : undefined;
   const activeServiceObj = activeBackendService || HEALTHCARE_SERVICES.find(s => s.title === service);
+  // Look up leadTimeHours from hardcoded data by title (backend services don't have this field)
+  const hardcodedService = HEALTHCARE_SERVICES.find(s => s.title.toLowerCase() === (activeBackendService?.title || service).toLowerCase());
   const activeTimeSlots = activeServiceObj?.id === 'srv-generic-nurse' ? TIME_SLOTS_3HR : TIME_SLOTS;
 
-  const leadTimeHours = activeServiceObj?.leadTimeHours ?? 12;
+  const leadTimeHours = hardcodedService?.leadTimeHours ?? activeServiceObj?.leadTimeHours ?? 12;
 
   const availableSlots = isToday
     ? activeTimeSlots.filter(slot => {

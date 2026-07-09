@@ -1402,7 +1402,7 @@ function MainApp() {
         </div>
       )}
 
-      {activeTab === 'lab-tests' && activeSectionId !== 'customize-lab-package-section' && (
+      {activeTab === 'lab-tests' && (
         <div className="bg-white border-b border-slate-100 sticky top-[52px] z-[29]">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex gap-2 overflow-x-auto no-scrollbar py-2.5 sm:justify-center">
@@ -1940,7 +1940,7 @@ function MainApp() {
         )}
 
         {/* Dedicated view: LAB TESTS page */}
-      {activeTab === 'lab-tests' && activeSectionId !== 'customize-lab-package-section' && (
+      {activeTab === 'lab-tests' && (
           <div id={currentLabTestsSectionId || 'lab-tests-section'} className="max-w-7xl mx-auto py-10 px-4 text-left page-section scroll-mt-32">
             <div id="std-sexual-health-section" className="scroll-mt-32" aria-hidden="true" />
             <div id="specialized-diagnostic-tests-section" className="scroll-mt-32" aria-hidden="true" />

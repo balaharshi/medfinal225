@@ -82,6 +82,19 @@ class LabTestSeeder extends Seeder
             ['sub' => 'genetic-testing', 'name' => 'DNA Talent & Personality Test', 'mrp' => 1500, 'who' => 'Genetic talent assessment', 'prep' => 'No fasting required', 'results' => '10-15 working days', 'includes' => ''],
         ];
 
+        // Remove any duplicate records by title+subcategory before seeding
+        $duplicates = Service::selectRaw('title, subcategory, MIN(id) as keep_id')
+            ->whereIn('subcategory', array_unique(array_column($services, 'sub')))
+            ->groupBy('title', 'subcategory')
+            ->havingRaw('COUNT(*) > 1')
+            ->get();
+        foreach ($duplicates as $dup) {
+            Service::where('title', $dup->title)
+                ->where('subcategory', $dup->subcategory)
+                ->where('id', '!=', $dup->keep_id)
+                ->delete();
+        }
+
         $usedSlugs = [];
         foreach ($services as $index => $data) {
             $baseSlug = Str::slug($data['name']);

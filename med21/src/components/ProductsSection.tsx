@@ -28,7 +28,8 @@ const hasExtraDetails = (srv: HealthcareService) =>
   Boolean(srv.inclusions?.length) ||
   Boolean(srv.preparationInstructions) ||
   Boolean(srv.whoIsItFor) ||
-  Boolean(srv.availability);
+  Boolean(srv.availability) ||
+  Boolean(Array.isArray(srv.attributes) && srv.attributes.length > 0);
 
 interface ProductsSectionProps {
   onServiceSelect: (title: string, price: number) => void;

@@ -1753,7 +1753,7 @@ function MainApp() {
               onAddToCart={handleAddToCart}
               onViewDetails={setServiceDetails}
               onExploreMore={() => handleTabChange('services')}
-              servicesList={(() => { const pop = db.services.filter(s => s.popular); if (pop.length >= 8) return pop.slice(0, 8); const nonPop = db.services.filter(s => !s.popular && s.subcategory !== 'customize-lab-package'); return [...pop, ...nonPop.slice(0, 8 - pop.length)]; })()}
+              servicesList={(() => { const pop = db.services.filter(s => s.popular); if (pop.length >= 8) return pop.slice(0, 8); const nonPop = db.services.filter(s => !s.popular && s.category !== 'lab-tests-at-home' && s.category !== 'lab-tests'); return [...pop, ...nonPop.slice(0, 8 - pop.length)]; })()}
             />
 
             {/* Home Healthcare Services slide container */}

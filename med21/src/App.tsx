@@ -21,7 +21,7 @@ import {
   ShoppingCart, 
   HelpCircle, 
   Check, 
-  ChevronRight, 
+  ChevronLeft, ChevronRight, 
   Copy,
   Clock,
   MessageCircle,
@@ -1783,7 +1783,23 @@ function MainApp() {
                   </button>
                 </div>
 
-                <div className="flex gap-4 overflow-x-auto no-scrollbar snap-x pb-2">
+                <div className="relative group/carousel">
+                  <button
+                    onClick={() => { const el = document.getElementById('popular-products-scroll'); if (el) el.scrollBy({ left: -300, behavior: 'smooth' }); }}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -ml-3 sm:-ml-5 bg-white shadow-xl hover:bg-slate-50 text-slate-700 w-11 h-11 rounded-full z-10 flex items-center justify-center border border-slate-100/50 hover:scale-110 transition-all cursor-pointer"
+                    title="Slide Left"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={() => { const el = document.getElementById('popular-products-scroll'); if (el) el.scrollBy({ left: 300, behavior: 'smooth' }); }}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 -mr-3 sm:-mr-5 bg-white shadow-xl hover:bg-slate-50 text-slate-700 w-11 h-11 rounded-full z-10 flex items-center justify-center border border-slate-100/50 hover:scale-110 transition-all cursor-pointer"
+                    title="Slide Right"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+
+                <div id="popular-products-scroll" className="flex gap-4 overflow-x-auto no-scrollbar snap-x pb-2">
                   {db.products.filter(p => p.category === 'devices-for-rent').slice(0, 8).map((prod) => (
                     <div
                       key={prod.id}
@@ -1836,6 +1852,7 @@ function MainApp() {
                       </div>
                     </div>
                   ))}
+                </div>
                 </div>
               </div>
             </section>

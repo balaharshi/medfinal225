@@ -90,7 +90,7 @@ export default function ProductsSection({
           {/* Slider Left Arrow */}
           <button
             onClick={() => scroll('left')}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -ml-3 sm:-ml-5 bg-white shadow-xl hover:bg-slate-50 text-slate-700 w-11 h-11 rounded-full z-10 flex items-center justify-center border border-slate-100/50 hover:scale-115 transition-all cursor-pointer sm:opacity-0 sm:group-hover/carousel:opacity-100"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -ml-3 sm:-ml-5 bg-white shadow-xl hover:bg-slate-50 text-slate-700 w-11 h-11 rounded-full z-10 flex items-center justify-center border border-slate-100/50 hover:scale-110 transition-all cursor-pointer"
             title="Slide Left"
           >
             <ChevronLeft className="w-6 h-6" />
@@ -99,7 +99,7 @@ export default function ProductsSection({
           {/* Slider Right Arrow */}
           <button
             onClick={() => scroll('right')}
-            className="absolute right-0 top-1/2 -translate-y-1/2 -mr-3 sm:-mr-5 bg-white shadow-xl hover:bg-slate-50 text-slate-700 w-11 h-11 rounded-full z-10 flex items-center justify-center border border-slate-100/50 hover:scale-115 transition-all cursor-pointer sm:opacity-0 sm:group-hover/carousel:opacity-100"
+            className="absolute right-0 top-1/2 -translate-y-1/2 -mr-3 sm:-mr-5 bg-white shadow-xl hover:bg-slate-50 text-slate-700 w-11 h-11 rounded-full z-10 flex items-center justify-center border border-slate-100/50 hover:scale-110 transition-all cursor-pointer"
             title="Slide Right"
           >
             <ChevronRight className="w-6 h-6" />

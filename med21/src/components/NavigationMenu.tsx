@@ -237,6 +237,17 @@ export default function NavigationMenu({ activeTab, activeSectionId, onTabChange
               )}
             </div>
 
+            <button
+              onClick={() => onTabChange('lab-tests', 'customize-lab-package-section')}
+              className={`relative px-3 py-3 text-xs sm:text-[13px] font-bold tracking-wide transition-all whitespace-nowrap cursor-pointer ${
+                activeSectionId === 'customize-lab-package-section'
+                  ? 'text-medical-blue border-b-2 border-medical-green font-extrabold pb-3'
+                  : 'text-slate-600 hover:text-medical-blue'
+              }`}
+            >
+              Create your own Package
+            </button>
+
             {menuItems.filter(item => item.value !== 'wellness').map((item) => {
               const isActive = activeTab === item.value;
               return (

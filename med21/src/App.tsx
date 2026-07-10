@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useMemo, useEffect, lazy, Suspense } from 'react';
+import { useState, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
@@ -660,6 +660,7 @@ function MainApp() {
   const [supportEmail, setSupportEmail] = useState('');
   const [supportMessage, setSupportMessage] = useState('');
   const [serviceDetails, setServiceDetails] = useState<HealthcareService | null>(null);
+  const skipRouteReset = useRef(false);
 
   const triggerToast = (msg: string) => {
     toast.success(msg);
@@ -698,7 +699,9 @@ function MainApp() {
     }
 
     if (location.pathname === '/') {
-      if (activeTab === 'services' || activeTab === 'products' || activeTab === 'lab-tests') {
+      if (skipRouteReset.current) {
+        skipRouteReset.current = false;
+      } else if (activeTab === 'services' || activeTab === 'products' || activeTab === 'lab-tests') {
         setActiveTab('home');
         setActiveSectionId(null);
       }
@@ -1158,6 +1161,7 @@ function MainApp() {
       if (sectionId === 'customize-lab-package-section') {
         setActiveTab('lab-tests');
         setActiveSectionId(sectionId);
+        skipRouteReset.current = true;
         navigate('/');
         window.setTimeout(() => {
           const section = document.getElementById(sectionId);

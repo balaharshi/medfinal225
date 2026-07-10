@@ -219,3 +219,35 @@ APP_KEY={generated key}
 8. **Mobile touch targets must be ≥44px** — Buttons with `p-1` are too small. Use `p-2` minimum.
 9. **One source of truth for emails** — Always pass `CaseKeys::camelize()` data to mail classes. Mail classes should check both key formats.
 10. **All unsplash URLs must be verified** — Check they return 200 before using. Use `?w=400&h=300&fit=crop&q=80` for consistent sizing and small file size.
+
+---
+
+## Part 5: Pending Work (To Be Done in a Separate Branch After Staging)
+
+These are high-priority architectural changes that were too risky to do right before deployment. They should be done in a separate `refactor/` branch, tested thoroughly, then merged.
+
+### P0 — Must Do
+
+| # | Task | Why | Effort |
+|---|------|-----|--------|
+| **P0-1** | **Split CatalogService (1549 lines)** | God object handles categories, products, services, vendors, bookings, enquiries, promos, settings, working hours, revenue reports, SLA, change requests, and all notifications. Split into `BookingService`, `CatalogManagementService`, `VendorService`, `EnquiryService`, `ReportService`. Each should be < 500 lines. | 4 hours |
+| **P0-2** | **Raw fetch → api.ts consolidation** | 57+ raw `fetch()` calls bypass the centralized API client. Token injection, 401 handling, and JSON parsing are duplicated ad-hoc. Replace ALL raw fetch with `api.get/post/patch/delete`. | 4 hours |
+| **P0-3** | **Auth tokens → httpOnly cookies** | `localStorage` tokens are vulnerable to XSS. Move to httpOnly cookies with `SESSION_HTTP_ONLY=true`. Requires updating all frontend auth calls to stop reading/writing localStorage for tokens. | 3 hours |
+
+### P1 — Should Do
+
+| # | Task | Why | Effort |
+|---|------|-----|--------|
+| **P1-1** | **API versioning** | Routes are `/api/...` with no version. Add `/api/v1/` prefix now before third-party integrations depend on the current paths. | 1 hour |
+| **P1-2** | **App.tsx → page components** | 3032-line monolith. Extract `HomePage`, `ServicesPage`, `LabTestsPage`, `ProductsPage`, `WellnessPage`, `OffersPage`, `SupportPage`, `SearchResultsPage` into separate files. Each should be < 300 lines. | 4 hours |
+| **P1-3** | **Route-based code splitting** | Only AdminDashboard and VendorDashboard use `lazy()`. Apply `lazy()` to all page-level components so the initial bundle is smaller. | 1 hour |
+| **P1-4** | **Add proper tests** | Only 3 trivial tests exist. Add integration tests for: booking flow (create → pay → vendor accept → complete), cancellation + refund, rescheduling, duplicate prevention, working hours, promo codes. | 4 hours |
+
+### P2 — Nice to Have
+
+| # | Task | Why | Effort |
+|---|------|-----|--------|
+| **P2-1** | Add composite index on bookings `(customer_email, date, time_slot, service_id)` | Duplicate booking check queries without composite index. | 30 min |
+| **P2-2** | Move `booking_notice` from text to integer column | Currently stored as "12 hours prior booking" string, parsed at runtime. Store as integer minutes: `720` for 12h, `1440` for 24h. | 1 hour |
+| **P2-3** | Add `lead_time_minutes` column to services | Derived from booking_notice. Parsing a string every time `getAvailableSlots` is called is wasteful. | 30 min |
+| **P2-4** | S3 storage for vendor logos and uploads | Currently uses local disk. Move to S3-compatible storage for production. | 1 hour |

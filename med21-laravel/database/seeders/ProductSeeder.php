@@ -31,8 +31,6 @@ class ProductSeeder extends Seeder
                 $imageName = 'Oxygen Cylinder Set 48cft';
             } elseif ($imageName === 'Patient Monitor 5 Parameter with trolley and accessories') {
                 $imageName = 'Patient Monitor 5 Parameter with';
-            } elseif ($imageName === 'Patient Hoist') {
-                $imageName = 'hospital patient hoist';
             }
             Product::updateOrCreate(
                 ['name' => $data['name']],

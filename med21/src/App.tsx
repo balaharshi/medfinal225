@@ -31,7 +31,9 @@ import {
   Globe,
   HeartPulse,
   MapPin,
-  Mail
+  Mail,
+  Heart,
+  Gift
 } from 'lucide-react';
 import { useSEO } from './hooks/useSEO';
 import { useStructuredData } from './hooks/useStructuredData';
@@ -78,6 +80,7 @@ import RentalBookingModal from './components/RentalBookingModal';
 import PhoneInput from './components/PhoneInput';
 import medicalTourismImg from './assets/images/services/medical-tourism.jpg';
 import shippingCrewImg from './assets/images/services/shipping-crew.jpg';
+import SocialProofPopup from './components/SocialProofPopup';
 import { subscribeToNotifications } from './services/pusherClient';
 import { checkEnbdpayStatus } from './services/enbdpay';
 import { FAQ_SECTIONS, PRIVACY_SECTIONS, TERMS_SECTIONS } from './content/legalContent';
@@ -2858,7 +2861,7 @@ function MainApp() {
             }`}
           >
             {activeTab === 'home' && <motion.span layoutId="mobile-active-tab" className="absolute inset-0 rounded-xl bg-emerald-50" />}
-            <span className="relative z-10 text-[22px] leading-none" aria-hidden="true">🏠</span>
+            <span className="relative z-10" aria-hidden="true"><Home className="w-5 h-5" /></span>
             <span className="relative z-10 text-[10px] font-bold">Home</span>
           </button>
           <button
@@ -2873,7 +2876,7 @@ function MainApp() {
             }`}
           >
             {(activeTab === 'services' || activeTab === 'lab-tests') && <motion.span layoutId="mobile-active-tab" className="absolute inset-0 rounded-xl bg-emerald-50" />}
-            <span className="relative z-10 text-[22px] leading-none" aria-hidden="true">🩺</span>
+            <span className="relative z-10" aria-hidden="true"><Stethoscope className="w-5 h-5" /></span>
             <span className="relative z-10 text-[10px] font-bold">Services</span>
           </button>
           <button
@@ -2888,7 +2891,7 @@ function MainApp() {
             }`}
           >
             {activeTab === 'products' && <motion.span layoutId="mobile-active-tab" className="absolute inset-0 rounded-xl bg-emerald-50" />}
-            <span className="relative z-10 text-[22px] leading-none" aria-hidden="true">🛒</span>
+            <span className="relative z-10" aria-hidden="true"><ShoppingCart className="w-5 h-5" /></span>
             <span className="relative z-10 text-[10px] font-bold">Shop</span>
           </button>
           <button
@@ -2898,7 +2901,7 @@ function MainApp() {
             }`}
           >
             {activeTab === 'wellness' && <motion.span layoutId="mobile-active-tab" className="absolute inset-0 rounded-xl bg-emerald-50" />}
-            <span className="relative z-10 text-[22px] leading-none" aria-hidden="true">❤️</span>
+            <span className="relative z-10" aria-hidden="true"><Heart className="w-5 h-5" /></span>
             <span className="relative z-10 text-[10px] font-bold">Other Services</span>
           </button>
           <button
@@ -2908,7 +2911,7 @@ function MainApp() {
             }`}
           >
             {activeTab === 'offers' && <motion.span layoutId="mobile-active-tab" className="absolute inset-0 rounded-xl bg-emerald-50" />}
-            <span className="relative z-10 text-[22px] leading-none" aria-hidden="true">🎁</span>
+            <span className="relative z-10" aria-hidden="true"><Gift className="w-5 h-5" /></span>
             <span className="relative z-10 text-[10px] font-bold">Offers</span>
           </button>
         </div>
@@ -2928,6 +2931,9 @@ function MainApp() {
 
       {/* 5. Deep Blue Healthcare Footer */}
       <Footer onNavigationClick={handleTabChange} />
+
+      {/* Social proof popup */}
+      <SocialProofPopup services={db.services.filter((s: any) => s.category !== 'lab-tests')} products={db.products} cartOpen={isCartOpen} />
 
       {/* 6. Sliding Side Cart Drawer */}
       <CartDrawer 

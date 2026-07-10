@@ -31,7 +31,7 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
         Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1');
     });
 
-    Route::post('/payments/enbd/create', [PaymentController::class, 'createEnbdpayCheckout'])->middleware('throttle:5,1');
+    Route::post('/payments/enbd/create', [PaymentController::class, 'createEnbdpayCheckout'])->middleware('api.auth', 'throttle:5,1');
     Route::get('/payments/enbd/status', [PaymentController::class, 'getEnbdpayStatus'])->middleware('throttle:30,1');
     Route::post('/payments/enbd/webhook', [PaymentController::class, 'enbdpayWebhook'])->middleware('throttle:60,1');
     Route::post('/payments/enbd/capture', [PaymentController::class, 'captureTransaction'])->middleware($admin, 'throttle:10,1');

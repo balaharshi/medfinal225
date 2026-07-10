@@ -1803,7 +1803,7 @@ function MainApp() {
                     <ChevronRight className="w-6 h-6" />
                   </button>
 
-                <div id="popular-products-scroll" className="flex gap-4 overflow-x-auto no-scrollbar snap-x pb-2">
+                <div id="popular-products-scroll" className="flex gap-4 overflow-x-auto no-scrollbar snap-x pb-2 px-8 sm:px-10">
                   {db.products.filter(p => p.category === 'devices-for-rent').slice(0, 8).map((prod) => (
                     <div
                       key={prod.id}

@@ -108,7 +108,7 @@ export default function ProductsSection({
           {/* Core Horizontal Scroll container */}
           <div
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto no-scrollbar snap-x pb-2"
+            className="flex gap-4 overflow-x-auto no-scrollbar snap-x pb-2 px-8 sm:px-10"
           >
             {servicesList.length > 0 ? (
               servicesList.map((srv) => {

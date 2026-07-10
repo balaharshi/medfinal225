@@ -135,9 +135,11 @@ export default function ProductsSection({
                           ⭐ POPULAR
                         </span>
                       )}
-                      <span className="bg-slate-900/95 backdrop-blur-md text-white text-[7px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider shadow-lg">
-                        ⏱️ {srv.duration}
-                      </span>
+                      {srv.duration && (
+                        <span className="bg-slate-900/95 backdrop-blur-md text-white text-[7px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider shadow-lg">
+                          ⏱️ {srv.duration}
+                        </span>
+                      )}
                     </div>
 
                     {/* Service Image Stage */}

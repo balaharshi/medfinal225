@@ -213,9 +213,11 @@ export default function ServicesSection({
                             POPULAR
                           </span>
                         )}
-                        <span className="bg-slate-900/90 text-white text-[6px] sm:text-[7px] font-bold px-0.5 sm:px-1 py-0.5 rounded-sm uppercase tracking-wider backdrop-blur-xs">
-                          ⏱️ {srv.duration}
-                        </span>
+                        {srv.duration && (
+                          <span className="bg-slate-900/90 text-white text-[6px] sm:text-[7px] font-bold px-0.5 sm:px-1 py-0.5 rounded-sm uppercase tracking-wider backdrop-blur-xs">
+                            ⏱️ {srv.duration}
+                          </span>
+                        )}
                       </div>
 
                       {/* Service Image Stage */}

@@ -5,7 +5,7 @@
 
 import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronRight, ChevronLeft, CalendarClock, Eye, X, ShieldCheck, Heart, Clock, Star, MessageCircle, CheckCircle } from 'lucide-react';
+import { ChevronRight, ChevronLeft, CalendarClock, Eye, X, ShieldCheck, Clock, Star, MessageCircle, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ServiceCategory, HealthcareService } from '../types';
 import { formatAedWhole } from '../utils/money';
@@ -60,7 +60,6 @@ export default function ServicesSection({
 }: ServicesSectionProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('cat-home-health');
   const [quickViewService, setQuickViewService] = useState<HealthcareService | null>(null);
-  const [favorites, setFavorites] = useState<string[]>([]);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Filter actual services based on the clicked category
@@ -68,15 +67,6 @@ export default function ServicesSection({
   const activeServices = servicesList.filter(
     (s) => s.category === activeCategoryObject?.slug || s.subcategory === activeCategoryObject?.slug
   );
-
-  const toggleFavorite = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (favorites.includes(id)) {
-      setFavorites(favorites.filter(fav => fav !== id));
-    } else {
-      setFavorites([...favorites, id]);
-    }
-  };
 
   const scrollRight = () => {
     if (scrollContainerRef.current) {
@@ -202,7 +192,6 @@ export default function ServicesSection({
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
               {activeServices.length > 0 ? (
                 activeServices.map((srv) => {
-                  const isFav = favorites.includes(srv.id);
                   return (
                     <div 
                       key={srv.id} 
@@ -227,19 +216,6 @@ export default function ServicesSection({
                         <span className="bg-slate-900/90 text-white text-[6px] sm:text-[7px] font-bold px-0.5 sm:px-1 py-0.5 rounded-sm uppercase tracking-wider backdrop-blur-xs">
                           ⏱️ {srv.duration}
                         </span>
-                      </div>
-
-                      {/* Favorite Button */}
-                      <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10">
-                        <button
-                          onClick={(e) => toggleFavorite(srv.id, e)}
-                          className={`p-1 rounded-full shadow-xs hover:scale-110 active:scale-95 transition-all cursor-pointer bg-white border border-slate-100 ${
-                            isFav ? 'text-rose-500' : 'text-slate-400 hover:text-slate-600'
-                          }`}
-                          title={isFav ? 'Remove from Wishlist' : 'Add to Wishlist'}
-                        >
-                          <Heart className={`w-2 h-2 sm:w-2.5 sm:h-2.5 ${isFav ? 'fill-current' : ''}`} />
-                        </button>
                       </div>
 
                       {/* Service Image Stage */}

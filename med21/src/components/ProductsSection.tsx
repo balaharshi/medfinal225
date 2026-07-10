@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useRef } from 'react';
-import { ChevronRight, ChevronLeft, CalendarClock, Heart, Send, Eye } from 'lucide-react';
+import React, { useRef } from 'react';
+import { ChevronRight, ChevronLeft, CalendarClock, Send, Eye } from 'lucide-react';
 import { HealthcareService } from '../types';
 import { formatAedWhole } from '../utils/money';
 import SafeImage from './SafeImage';
@@ -47,17 +47,7 @@ export default function ProductsSection({
   onExploreMore, 
   servicesList = [] 
 }: ProductsSectionProps) {
-  const [favorites, setFavorites] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  const toggleFavorite = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (favorites.includes(id)) {
-      setFavorites(favorites.filter(fav => fav !== id));
-    } else {
-      setFavorites([...favorites, id]);
-    }
-  };
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -121,7 +111,6 @@ export default function ProductsSection({
           >
             {servicesList.length > 0 ? (
               servicesList.map((srv) => {
-                const isFav = favorites.includes(srv.id);
                 const hasPrice = srv.price > 0 && !srv.enquiryOnly;
 
                 // Capitalize and format category titles for subtitle badge
@@ -148,18 +137,6 @@ export default function ProductsSection({
                       <span className="bg-slate-900/95 backdrop-blur-md text-white text-[7px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider shadow-lg">
                         ⏱️ {srv.duration}
                       </span>
-                    </div>
-
-                    <div className="absolute top-2 right-2 z-20">
-                      <button
-                        onClick={(e) => toggleFavorite(srv.id, e)}
-                        className={`p-1.5 rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all cursor-pointer bg-white/95 backdrop-blur-sm border border-slate-200 ${
-                          isFav ? 'text-rose-500 border-rose-200' : 'text-slate-400 hover:text-slate-600'
-                        }`}
-                        title={isFav ? 'Remove from Wishlist' : 'Add to Wishlist'}
-                      >
-                        <Heart className={`w-3 h-3 ${isFav ? 'fill-current' : ''}`} />
-                      </button>
                     </div>
 
                     {/* Service Image Stage */}

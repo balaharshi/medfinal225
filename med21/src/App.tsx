@@ -911,21 +911,19 @@ function MainApp() {
     return `AED ${formatAedWhole(value)}`;
   };
 
-  const getVisibleServiceDetailAttributes = (srv: HealthcareService) =>
-    (isIvTherapyService(srv)
-      ? [
-          [
-            'Doctor Plus Home Healthcare',
-            formatVendorPriceValue(getVendorPriceValue(srv, 'Doctor Plus Home Healthcare')),
-          ],
-          ['Pegasus', formatVendorPriceValue(getVendorPriceValue(srv, 'Pegasus'))],
-        ]
-      : []
-    ).concat([
-      ['Key Ingredients', getServiceAttributeValue(srv, 'Key Ingredients')],
-      ['Clinical Benefits', getServiceAttributeValue(srv, 'Clinical Benefits')],
-      ['Disclaimer', getServiceAttributeValue(srv, 'Disclaimer')],
-    ]).filter(([, value]) => value);
+  const getVisibleServiceDetailAttributes = (srv: HealthcareService) => {
+    const detailLabels = ['Key Ingredients', 'Clinical Benefits', 'Disclaimer', 'Who is it for?', 'Preparation', 'Results Time', 'Inclusions'];
+    const result: [string, string][] = [];
+    if (isIvTherapyService(srv)) {
+      result.push(['Doctor Plus Home Healthcare', formatVendorPriceValue(getVendorPriceValue(srv, 'Doctor Plus Home Healthcare'))]);
+      result.push(['Pegasus', formatVendorPriceValue(getVendorPriceValue(srv, 'Pegasus'))]);
+    }
+    for (const label of detailLabels) {
+      const value = getServiceAttributeValue(srv, label);
+      if (value) result.push([label, value]);
+    }
+    return result;
+  };
 
   const hasExtraDetails = (srv: HealthcareService) =>
     getVisibleServiceDetailAttributes(srv).length > 0 ||

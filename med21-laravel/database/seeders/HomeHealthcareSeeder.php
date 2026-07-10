@@ -61,6 +61,14 @@ class HomeHealthcareSeeder extends Seeder
         return '/images/services/Generic Nurse Visit.jpg';
     }
 
+    // Helper: normalizes dash/slash spacing in titles (e.g., "A-B" -> "A - B", "A/B" -> "A / B")
+    private function formatTitle(string $title): string
+    {
+        $title = preg_replace('/(?<=[^\s])-(?=[^\s])/', ' - ', $title);
+        $title = preg_replace('/(?<=[^\s])\/(?=[^\s])/', ' / ', $title);
+        return $title;
+    }
+
     public function run(): void
     {
         $demoVendor = Vendor::firstOrCreate(
@@ -111,14 +119,14 @@ class HomeHealthcareSeeder extends Seeder
 
         foreach ($services as $index => $data) {
             $subcatSlug = self::SUBCATEGORY_MAP[$data['sub']];
-            $slug = Str::slug($data['name']) . '-' . ($index + 1);
+            $slug = Str::slug($this->formatTitle($data['name'])) . '-' . ($index + 1);
             $service = Service::firstOrNew(['slug' => $slug]);
             if (! $service->exists) {
                 $service->id = SequentialId::next(Service::class, 'srv');
             }
 
             $service->fill([
-                'title' => $data['name'],
+                'title' => $this->formatTitle($data['name']),
                 'slug' => $slug,
                 'category' => self::CATEGORY_MAP[$data['sub']],
                 'subcategory' => $subcatSlug,

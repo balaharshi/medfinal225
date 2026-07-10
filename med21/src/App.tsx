@@ -78,7 +78,6 @@ import RentalBookingModal from './components/RentalBookingModal';
 import PhoneInput from './components/PhoneInput';
 import medicalTourismImg from './assets/images/services/medical-tourism.jpg';
 import shippingCrewImg from './assets/images/services/shipping-crew.jpg';
-import ErrorBoundary from './components/ErrorBoundary';
 import { subscribeToNotifications } from './services/pusherClient';
 import { checkEnbdpayStatus } from './services/enbdpay';
 import { FAQ_SECTIONS, PRIVACY_SECTIONS, TERMS_SECTIONS } from './content/legalContent';
@@ -1419,7 +1418,6 @@ function MainApp() {
 
       {/* 4. Display Core layouts based on dynamic state ActiveTab */}
       <main className="flex-grow">
-        <ErrorBoundary>
         
         {activeTab === 'search-results' && (
           <div className="max-w-7xl mx-auto py-10 px-4 page-section">
@@ -2848,7 +2846,6 @@ function MainApp() {
             </div>
           )}
         </AnimatePresence>
-        </ErrorBoundary>
       </main>
 
       {/* Mobile Bottom Tab Bar - Only visible on mobile */}

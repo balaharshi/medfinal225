@@ -83,7 +83,7 @@ export default function SocialProofPopup({ services, products, cartOpen }: Socia
       };
     }
 
-    const item = pickRandom(activeList);
+    const item = pickRandom(activeList as any[]);
     const time = weightedRandom(TIME_OPTIONS, (t) => t.weight);
     notifIdRef.current += 1;
 

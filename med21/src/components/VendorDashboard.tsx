@@ -32,7 +32,8 @@ import {
   FileText,
   Bell,
   Plus,
-  ChevronRight
+  ChevronRight,
+  X
 } from "lucide-react";
 import ConfirmDialog from './ConfirmDialog';
 import SocialAuthButtons from './SocialAuthButtons';
@@ -209,7 +210,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     setSavingHours(true);
     setHoursSaved(false);
     try {
-      const hours = Object.entries(workingHours)
+      const hours = (Object.entries(workingHours) as [string, { startTime: string; endTime: string; isActive: boolean }][])
         .filter(([, v]) => v.isActive)
         .map(([day, v]) => ({
           dayOfWeek: parseInt(day),

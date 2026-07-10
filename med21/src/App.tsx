@@ -143,10 +143,40 @@ const DEFAULT_LAB_TESTS_ROUTE = 'routine-blood-tests';
 
 const HOME_ADDITIONAL_HEALTHCARE_CATEGORIES = [
   {
+    id: 'cat-nursing-care',
+    title: 'Nursing Care at Home',
+    slug: 'nursing-care-at-home',
+    description: 'Professional nursing support delivered at the comfort of your home, including routine nurse visits, wound dressing, catheterisation, and prescription-based IV antibiotic administration.',
+  },
+  {
+    id: 'cat-physiotherapy',
+    title: 'Physiotherapy at Home',
+    slug: 'physiotherapy-at-home',
+    description: 'Professional physiotherapy sessions delivered at the comfort of your home, including rehabilitation support, mobility improvement, pain management, and recovery-focused exercises.',
+  },
+  {
+    id: 'cat-doctor-on-call',
+    title: 'Doctor on Call',
+    slug: 'doctor-on-call',
+    description: 'Convenient medical consultations at your home with qualified doctors providing assessment, advice, treatment guidance, and follow-up care.',
+  },
+  {
     id: 'cat-long-term-care',
     title: 'Long-Term / Specialized Care',
     slug: 'long-term-care',
     description: 'Dedicated nursing support at home for long-term and specialized care needs, including ongoing monitoring, chronic condition management, and personalised patient assistance.',
+  },
+  {
+    id: 'cat-speech-therapy',
+    title: 'Speech and Language Therapy',
+    slug: 'speech-and-language-therapy',
+    description: 'Specialized therapy at home to support speech, communication, language development, and swallowing difficulties through personalized care plans.',
+  },
+  {
+    id: 'cat-occupational-therapy',
+    title: 'Occupational Therapy',
+    slug: 'occupational-therapy',
+    description: 'Personalized therapy at home to improve daily living skills, independence, mobility, and functional abilities through tailored rehabilitation programs.',
   },
   {
     id: 'cat-iv-therapy',

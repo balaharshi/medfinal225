@@ -352,7 +352,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
         const data = await response.json();
         toast.error(data?.error || "Failed to submit request.");
       }
-    } catch {
+    } catch (e) { console.error('Profile change request failed:', e);
       toast.error("Failed to submit request.");
     }
   };
@@ -365,7 +365,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
         const data = await response.json();
         setProfileChangeRequests(Array.isArray(data) ? data : []);
       }
-    } catch {}
+    } catch (e) { console.error('Failed to load profile requests:', e); }
   };
 
   const handleAcceptBooking = async (bookingId: string) => {

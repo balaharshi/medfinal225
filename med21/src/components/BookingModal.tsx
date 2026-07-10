@@ -64,6 +64,31 @@ export default function BookingModal({
   const [selectedBackendServiceId, setSelectedBackendServiceId] = useState<string | null>(null);
   const [apiSlots, setApiSlots] = useState<typeof TIME_SLOTS | null>(null);
 
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setPatientName('');
+      setPhone('');
+      setMobileNine('');
+      setMobileError('');
+      setEmail('');
+      setService(preselectedServiceTitle || '');
+      setDate('');
+      setTime(TIME_SLOTS[0].label);
+      setAddress('');
+      setNotes('');
+      setFormErrors({});
+      setIsPaymentStarting(false);
+      setPromoCode('');
+      setAppliedPromo('');
+      setPromoError('');
+      setIsPromoLoading(false);
+      setRegion('Dubai');
+      setLocation(null);
+      setApiSlots(null);
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (isOpen) {
       fetchServices().then((services) => {
@@ -73,7 +98,7 @@ export default function BookingModal({
           const match = findServiceByTitle(preselectedServiceTitle, services);
           if (match) setSelectedBackendServiceId(match.id);
         }
-      }).catch(() => {});
+      }).catch((e) => { console.error('Failed to fetch services:', e); });
     }
   }, [isOpen, preselectedServiceTitle]);
 

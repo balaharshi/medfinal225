@@ -194,7 +194,7 @@ export default function CartDrawer({
       setPromoDiscount(data?.discountAmount || 0);
       setPromoError('');
       toast.success('Promo code applied.');
-    } catch {
+    } catch (e) { console.error('Promo validation failed:', e);
       setAppliedPromo('');
       setPromoDiscount(0);
       setPromoError('Failed to validate promo code');

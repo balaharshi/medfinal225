@@ -77,7 +77,7 @@ export default function PromotionalBanners({
                 <span className="text-[10px] bg-teal-400/20 text-teal-300 font-bold px-1.5 py-0.5 rounded tracking-wide uppercase">OFF</span>
               </div>
               <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-white/20">
-                <img src="/images/products/Electric Bed 3 Function.jpg" alt="Products" className="w-full h-full object-contain" />
+                <img src="/images/products/Electric Bed 3 Function.jpg" alt="Products" className="w-full h-full object-cover" />
               </div>
             </div>
 

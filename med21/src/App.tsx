@@ -2790,7 +2790,7 @@ function MainApp() {
                       {serviceDetails.title}
                     </h2>
                     <p className="mt-2 text-sm leading-6 text-slate-600">
-                      {serviceDetails.fullDescription || serviceDetails.description}
+                      {serviceDetails.fullDescription || getServiceAttributeValue(serviceDetails, 'Inclusions') || serviceDetails.description}
                     </p>
                     <ShareButtons
                       title={serviceDetails.title}

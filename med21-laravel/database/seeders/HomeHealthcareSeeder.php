@@ -30,13 +30,36 @@ class HomeHealthcareSeeder extends Seeder
     ];
 
     private const CATEGORY_IMAGES = [
-        'nursing-care-at-home' => 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=400',
-        'long-term-specialized-care' => 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=400',
-        'doctor-on-call' => 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=400',
-        'physiotherapy-at-home' => 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=400',
-        'speech-and-language-therapy' => 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=400',
-        'occupational-therapy' => 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=400',
+        'nursing-care-at-home' => '/images/services/Generic Nurse Visit.jpg',
+        'long-term-specialized-care' => '/images/services/DHA Nurse.jpg',
+        'doctor-on-call' => '/images/services/Doctor at Home.jpg',
+        'physiotherapy-at-home' => '/images/services/physiotherapy_session.jpg',
+        'speech-and-language-therapy' => '/images/services/speech_therapy_session.jpg',
+        'occupational-therapy' => '/images/services/occupational_therapy_session.jpg',
     ];
+
+    private function resolveImage(string $title, string $subcat): string
+    {
+        // Map specific titles to their images
+        $titleMap = [
+            'Generic Nurse Visit' => '/images/services/Generic Nurse Visit.jpg',
+            'Wound care and Surgical Dressing-Small' => '/images/services/Wound Care and Surgical Dressing-Small.jpg',
+            'Wound care and Surgical Dressing-Medium' => '/images/services/Wound Care and Surgical Dressing-Medium.jpg',
+            'Wound care and Surgical Dressing-Large' => '/images/services/Wound Care and Surgical Dressing-Large.jpg',
+            'Catheterisation at home' => '/images/services/Catheterisation at home (Female).jpg',
+            'IV antibiotics at home (with Dr Prescription)' => '/images/services/IV antibiotics at home (with Dr Prescription).jpg',
+            'Doctor at Home' => '/images/services/Doctor at Home.jpg',
+            'Doctor at Hotel' => '/images/services/Doctor at Hotel.jpg',
+            'Physiotherapy-1 Hour Session' => '/images/services/physiotherapy_session.jpg',
+            'Physiotherapy-1 Hour Session/Week (6 Sessions)' => '/images/services/physiotherapy_session.jpg',
+            'Speech and Language Therapy' => '/images/services/speech_therapy_session.jpg',
+            'Occupational Therapy' => '/images/services/occupational_therapy_session.jpg',
+        ];
+        if (isset($titleMap[$title])) return $titleMap[$title];
+        if (str_starts_with($title, 'DHA Registered Nurse')) return '/images/services/DHA Nurse.jpg';
+        if (str_starts_with($title, 'Care Giver')) return '/images/services/Caregiver.jpg';
+        return '/images/services/Generic Nurse Visit.jpg';
+    }
 
     public function run(): void
     {
@@ -108,7 +131,7 @@ class HomeHealthcareSeeder extends Seeder
                 'home_visit_fee_included' => true,
                 'duration' => '1 Session',
                 'estimated_visit_time' => '',
-                'image' => self::CATEGORY_IMAGES[$subcatSlug] ?? 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=400',
+                'image' => $this->resolveImage($data['name'], $subcatSlug),
                 'short_description' => $data['desc'],
                 'full_description' => $data['desc'],
                 'description' => $data['desc'],

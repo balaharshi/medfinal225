@@ -1,9 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { HealthcareService, Product, ServiceCategory } from '../types';
-import {
-  resolveHealthcareServiceImage,
-  withRentalEquipmentImages,
-} from '../data';
 
 export interface AppDataState {
   categories: ServiceCategory[];
@@ -44,8 +40,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       }
 
       if (srvRes.ok) {
-        const liveServices = (await srvRes.json())
-          .map(resolveHealthcareServiceImage);
+        const liveServices = await srvRes.json();
         if (Array.isArray(liveServices) && liveServices.length > 0) {
           updates.services = liveServices;
         }
@@ -54,7 +49,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       if (prodRes.ok) {
         const liveProducts = await prodRes.json();
         if (Array.isArray(liveProducts) && liveProducts.length > 0) {
-          updates.products = withRentalEquipmentImages(liveProducts);
+          updates.products = liveProducts;
         }
       }
 

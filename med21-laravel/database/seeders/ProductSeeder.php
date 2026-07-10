@@ -26,6 +26,14 @@ class ProductSeeder extends Seeder
         ];
 
         foreach ($products as $data) {
+            $imageName = $data['name'];
+            if ($imageName === 'Oxygen Cylinder Set 48cft (Includes regulator and trolley)') {
+                $imageName = 'Oxygen Cylinder Set 48cft';
+            } elseif ($imageName === 'Patient Monitor 5 Parameter with trolley and accessories') {
+                $imageName = 'Patient Monitor 5 Parameter with';
+            } elseif ($imageName === 'Patient Hoist') {
+                $imageName = 'hospital patient hoist';
+            }
             Product::updateOrCreate(
                 ['name' => $data['name']],
                 [
@@ -33,7 +41,7 @@ class ProductSeeder extends Seeder
                     'subtitle' => "MRP per week AED {$data['weekly_price']} | MRP per month AED {$data['monthly_price']} | Security deposit AED {$data['security_deposit']}",
                     'price' => $data['weekly_price'],
                     'original_price' => $data['monthly_price'],
-                    'image' => 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=400',
+                    'image' => '/images/products/' . $imageName . '.jpg',
                     'category' => 'devices-for-rent',
                     'subcategory' => 'rent-medical-equipments',
                     'brand' => 'Rental Equipment',

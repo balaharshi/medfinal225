@@ -4,11 +4,12 @@ namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class BookingExpired extends Mailable
+class BookingExpired extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 

@@ -385,7 +385,7 @@ export default function MainHeader({
               <span className="text-[11px] text-slate-400 font-medium leading-none">Cart</span>
               <span className="text-xs font-bold text-slate-800 leading-none mt-1">View Bag</span>
             </div>
-            <span className="absolute -top-1 -right-1 bg-medical-green text-white text-[10px] font-bold h-4.5 w-4.5 rounded-full flex items-center justify-center animate-pulse shadow-sm">
+            <span className={`absolute -top-1 -right-1 bg-medical-green text-white text-[10px] font-bold h-4.5 w-4.5 rounded-full flex items-center justify-center shadow-sm ${cartCount > 0 ? 'animate-pulse' : ''}`}>
               {cartCount}
             </span>
           </button>

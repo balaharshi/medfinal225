@@ -128,12 +128,17 @@ export default function CartDrawer({
     return () => { cancelled = true; };
   }, [dispatchDate, cartItems]);
 
-  // Filter default TIME_SLOTS for today (past slots removed)
-  const filterDefaultSlots = useCallback((date: string): TimeSlot[] => {
+  // Filter default TIME_SLOTS for today (past slots removed + lead time)
+  const filterDefaultSlots = useCallback((date: string, leadTimeHours: number = 0): TimeSlot[] => {
     const todayStr = new Date().toISOString().split('T')[0];
     if (date !== todayStr) return [...TIME_SLOTS];
     const now = new Date();
-    const filtered = TIME_SLOTS.filter(slot => parseSlotStartTime(slot) > now);
+    const filtered = TIME_SLOTS.filter(slot => {
+      const slotTime = new Date();
+      slotTime.setHours(slot.startHour, slot.startMin, 0, 0);
+      const diffHours = (slotTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+      return diffHours >= leadTimeHours;
+    });
     return filtered.length > 0 ? [...filtered] : [...TIME_SLOTS];
   }, []);
 

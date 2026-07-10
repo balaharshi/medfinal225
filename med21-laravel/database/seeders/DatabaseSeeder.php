@@ -101,7 +101,6 @@ class DatabaseSeeder extends Seeder
         $this->call(IVTherapySeeder::class);
         $this->call(LabTestSeeder::class);
         $this->call(BiomarkerSeeder::class);
-        $this->call(HealthPackageSeeder::class);
 
         // Vendor setup
         $this->call(VendorWorkingHoursSeeder::class);

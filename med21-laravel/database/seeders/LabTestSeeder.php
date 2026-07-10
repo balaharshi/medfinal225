@@ -107,7 +107,7 @@ class LabTestSeeder extends Seeder
                 'home_visit_fee_included' => false,
                 'duration' => '',
                 'estimated_visit_time' => '',
-                'image' => 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&q=80&w=400',
+                'image' => '/images/lab-tests/srv-lab-home-' . Str::slug(str_replace('&', 'and', $data['name'])) . '.jpg',
                 'short_description' => $data['who'] ?: $data['name'],
                 'full_description' => $data['name'],
                 'description' => $data['name'],

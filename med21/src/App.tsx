@@ -46,7 +46,6 @@ const SITE_DEFAULT_DESCRIPTION = 'Premium healthcare marketplace in Dubai — bo
 import {
   DEFAULT_HEALTHCARE_SERVICE_IMAGE,
   DUBAI_LOCATIONS,
-  resolveHealthcareServiceImage,
 } from './data';
 import { ActiveTab, CartItem, Product, HealthcareService, ServiceCategory } from './types';
 
@@ -336,8 +335,7 @@ function AdminDashboardApp() {
       }
       if (srvRes.ok) {
         const services = await srvRes.json();
-        const servicesWithLocalImages = services.map(resolveHealthcareServiceImage);
-        if (servicesWithLocalImages.length > 0) setDb(prev => ({ ...prev, services: servicesWithLocalImages }));
+        if (services.length > 0) setDb(prev => ({ ...prev, services }));
       }
     } catch (error) {
       console.error('Error fetching admin data:', error);
@@ -843,11 +841,6 @@ function MainApp() {
     });
   }, [activeSectionId, currentLabTestsRoute, customLabSearch, labTestsAtHomeSearch, db.services]);
 
-  const healthPackages = useMemo(
-    () => db.services.filter((s) => s.category === 'health-packages' && s.active !== false),
-    [db.services],
-  );
-
   const getServiceAttributeValue = (srv: HealthcareService, label: string) => {
     const attributes = srv.attributes;
     if (Array.isArray(attributes)) {
@@ -918,7 +911,7 @@ function MainApp() {
   const getServiceImageClassName = (_srv: HealthcareService) => 'w-full h-full object-cover';
 
   const getServiceImage = (srv: HealthcareService) =>
-    resolveHealthcareServiceImage(srv).image || DEFAULT_HEALTHCARE_SERVICE_IMAGE;
+    srv.image || DEFAULT_HEALTHCARE_SERVICE_IMAGE;
 
   const handleServiceImageError = (event: SyntheticEvent<HTMLImageElement>, srv: HealthcareService) => {
     const image = event.currentTarget;
@@ -1139,7 +1132,7 @@ function MainApp() {
       return;
     }
 
-    if (tab === 'lab-tests' || tab === 'health-packages') {
+    if (tab === 'lab-tests') {
       if (sectionId === 'customize-lab-package-section') {
         setActiveTab('lab-tests');
         setActiveSectionId(sectionId);
@@ -2187,133 +2180,6 @@ function MainApp() {
                 </button>
               </div>
             )}
-          </div>
-        )}
-
-        {/* Dedicated view: HEALTH PACKAGES screen details */}
-        {activeTab === 'health-packages' && (
-          <div className="max-w-7xl mx-auto py-10 px-4 text-left page-section">
-            <div id="preventive-health-packages-section" className="scroll-mt-32" aria-hidden="true" />
-            <div id="womens-health-packages-section" className="scroll-mt-32" aria-hidden="true" />
-            <div className="border-b border-slate-100 pb-5 mb-8">
-              <span className="text-medical-green text-xs font-bold uppercase tracking-widest block mb-1">MedZiva comprehensive checkups</span>
-              <h1 className="text-3xl font-black text-blue-950">Vetted At-Home Clinical Packages</h1>
-              <p className="text-slate-500 text-sm mt-1 max-w-xl">
-                Full physical cardiovascular evaluations, diabetes profile bundles, endocrine screenings, and comprehensive elder care monthly subscriptions designed for optimized families.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {(healthPackages.length > 0 ? healthPackages : [
-                {
-                  id: 'hp-premium', title: 'MedZiva Platinum Comprehensive Pack',
-                  desc: 'Our gold standard full physical evaluation. Covers full profile lipids, diabetes checks, liver/kidney counts, heavy vitamins profile, and an at-home clinician consult.',
-                  bullets: ['Complete lipid panel & HbA1c', 'Liver & kidney metrics assessment', 'Clinician visiting consult included', 'Qualified blood sample collection'],
-                  price: 499, oldPrice: 650, tag: 'Most Popular',
-                  sectionId: undefined, who: undefined, prep: undefined, result: undefined,
-                },
-                {
-                  id: 'hp-cardiac', title: 'Cardiac Hazard Prevention Bundle',
-                  desc: 'A diagnostic profile targeting coronary risk parameters. Identifies high density lipid levels, specific cardiac proteins, uric index, and high tension blood pressure evaluations.',
-                  bullets: ['Total lipids & triglycerides index', 'High tension readings auditing', 'Uric acid indicators check', 'DHA approved physical analysis'],
-                  price: 349, oldPrice: 480, tag: 'Coronary Vetted',
-                  sectionId: undefined, who: undefined, prep: undefined, result: undefined,
-                },
-                {
-                  id: 'hp-fitness', title: 'Elite Fitness and Body Mass Audit',
-                  desc: 'Constructed for athletes or customers during body composition tracking. Monitors endocrine indices, creatine, basic lipid metabolism, and thyroid indicators.',
-                  bullets: ['Thyroid profile & hormonal check', 'Creatine counts auditing', 'Safe home visit drawn vial', 'Metabolic rate overview report'],
-                  price: 299, oldPrice: 399, tag: 'Metabolism Vetted',
-                  sectionId: undefined, who: undefined, prep: undefined, result: undefined,
-                },
-                {
-                  id: 'hp-male-tumour-marker', sectionId: 'mens-health-packages-section',
-                  title: 'Cancer / Tumour Marker Profile (Male)',
-                  desc: 'Screening profile for men focused on cancer risk markers and early detection through at-home sample collection.',
-                  bullets: ['AFP', 'Total hCG', 'CA 19-9', 'CBC (19)', 'Prostate Profile: PSA Total, PSA Free, PSA Ratio'],
-                  price: 260, tag: "Men's Health",
-                  who: 'Men for cancer screening & early detection', prep: 'No fasting required', result: 'Same day / Next day',
-                },
-              ]).map((pack: any) => {
-                const fromDb = 'category' in pack;
-                const bullets: string[] = fromDb ? (pack.attributes || []).filter((a: any) => a.label === 'Includes').map((a: any) => a.value) : pack.bullets || [];
-                const tag: string = fromDb ? (getServiceAttributeValue(pack, 'Tag') || 'Premium') : pack.tag || 'Premium';
-                const oldPrice: number | undefined = fromDb ? (pack.originalPrice && pack.originalPrice !== pack.price ? pack.originalPrice : undefined) : pack.oldPrice;
-                const who: string | undefined = fromDb ? pack.whoIsItFor : pack.who;
-                const prep: string | undefined = fromDb ? pack.preparationInstructions : pack.prep;
-                const result: string | undefined = fromDb ? getServiceAttributeValue(pack, 'Results Time') : pack.result;
-                const title: string = pack.title || pack.name || '';
-                const desc: string = pack.description || pack.desc || '';
-                const price: number = pack.price || 0;
-                const packId: string = pack.id || '';
-                const sectionId: string | undefined = pack.sectionId;
-
-                return (
-                <div 
-                  key={packId}
-                  id={sectionId}
-                  className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between scroll-mt-32"
-                >
-                  <div>
-                    <div className="flex justify-between items-start mb-3">
-                      <span className="bg-purple-50 text-purple-700 text-[9px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider border border-purple-100">
-                        {tag}
-                      </span>
-                    </div>
-
-                    <h3 className="text-sm sm:text-base font-extrabold text-blue-950 leading-snug mb-2">{title}</h3>
-                    <p className="text-xs text-slate-500 leading-relaxed font-normal mb-5">{desc}</p>
-                    {(who || prep || result) && (
-                      <div className="space-y-2 mb-5">
-                        {who && (
-                          <p className="text-[11px] text-slate-600 leading-relaxed">
-                            <span className="font-extrabold text-blue-950">Who:</span> {who}
-                          </p>
-                        )}
-                        {prep && (
-                          <p className="text-[11px] text-slate-600 leading-relaxed">
-                            <span className="font-extrabold text-blue-950">Prep:</span> {prep}
-                          </p>
-                        )}
-                        {result && (
-                          <p className="text-[11px] text-slate-600 leading-relaxed">
-                            <span className="font-extrabold text-blue-950">Result:</span> {result}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="space-y-2 mb-6">
-                      {bullets.map((bullet, idx) => (
-                        <div key={idx} className="flex items-center gap-2 text-xs text-slate-600">
-                          <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                          <span>{bullet}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] text-slate-400 font-bold block leading-none uppercase">Full package cost</span>
-                      <div className="flex items-baseline gap-2 mt-1">
-                        <span className="text-base font-black text-medical-green leading-none">AED {formatAedWhole(price)}</span>
-                        {oldPrice && oldPrice > 0 && (
-                          <span className="text-xs font-medium text-slate-400 line-through leading-none">AED {formatAedWhole(oldPrice)}</span>
-                        )}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => triggerServiceBooking(title, price)}
-                      className="bg-medical-green hover:bg-emerald-600 text-white font-bold text-xs py-3 px-5 rounded-xl cursor-pointer transition-all shrink-0"
-                    >
-                      Book Package Slot
-                    </button>
-                  </div>
-                </div>
-              )})}
-            </div>
           </div>
         )}
 

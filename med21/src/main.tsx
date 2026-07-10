@@ -1,6 +1,6 @@
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
-import './configureApiFetch.ts';
+// configureApiFetch removed - consolidated to api.ts
 import { initGA, initFacebookPixel } from './services/analytics';
 import { AppDataProvider } from './context/AppDataContext';
 import App from './App.tsx';

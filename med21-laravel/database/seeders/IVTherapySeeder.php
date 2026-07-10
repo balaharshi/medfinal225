@@ -43,7 +43,7 @@ class IVTherapySeeder extends Seeder
             [
                 'id' => SequentialId::next(\App\Models\Subcategory::class, 'sub'),
                 'title' => 'IV Therapy',
-                'image' => 'https://images.unsplash.com/photo-1631563016585-64a1e38db6b1?auto=format&fit=crop&q=80&w=800',
+                'image' => '/images/services/iv_therapy_drip.jpg',
             ]
         );
 
@@ -197,7 +197,7 @@ class IVTherapySeeder extends Seeder
                 'home_visit_fee_included' => true,
                 'duration' => '1 Session',
                 'estimated_visit_time' => '',
-                'image' => 'https://images.unsplash.com/photo-1584820927498-cfe5211fd8bf?auto=format&fit=crop&q=80&w=400',
+                'image' => '/images/services/iv_therapy_drip.jpg',
                 'short_description' => $data['description'],
                 'full_description' => $data['description'],
                 'description' => $data['description'],

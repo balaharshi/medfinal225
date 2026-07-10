@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useMemo, useEffect, lazy, Suspense, type SyntheticEvent } from 'react';
+import { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
@@ -46,7 +46,6 @@ const SITE_DEFAULT_DESCRIPTION = 'Premium healthcare marketplace in Dubai — bo
 
 // Static Data and Types
 import {
-  DEFAULT_HEALTHCARE_SERVICE_IMAGE,
   DUBAI_LOCATIONS,
 } from './data';
 import { ActiveTab, CartItem, Product, HealthcareService, ServiceCategory } from './types';
@@ -78,6 +77,7 @@ const VendorDashboard = lazy(() => import('./components/VendorDashboard'));
 import EnquiryModal from './components/EnquiryModal';
 import RentalBookingModal from './components/RentalBookingModal';
 import PhoneInput from './components/PhoneInput';
+import SafeImage from './components/SafeImage';
 import medicalTourismImg from './assets/images/services/medical-tourism.jpg';
 import shippingCrewImg from './assets/images/services/shipping-crew.jpg';
 import SocialProofPopup from './components/SocialProofPopup';
@@ -943,18 +943,7 @@ function MainApp() {
   const getServiceImageClassName = (_srv: HealthcareService) => 'w-full h-full object-cover';
 
   const getServiceImage = (srv: HealthcareService) =>
-    srv.image || DEFAULT_HEALTHCARE_SERVICE_IMAGE;
-
-  const handleServiceImageError = (event: SyntheticEvent<HTMLImageElement>, srv: HealthcareService) => {
-    const image = event.currentTarget;
-    const fallback = getServiceImage(srv);
-    if (image.src.endsWith(fallback) || image.dataset.fallbackApplied === 'true') {
-      image.src = DEFAULT_HEALTHCARE_SERVICE_IMAGE;
-      return;
-    }
-    image.dataset.fallbackApplied = 'true';
-    image.src = fallback;
-  };
+    srv.image || '';
 
   const renderServiceCard = (srv: HealthcareService) => (
     <div
@@ -962,26 +951,27 @@ function MainApp() {
       className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between scroll-mt-32"
     >
       <div>
-        <div className="h-44 w-full flex items-center justify-center rounded-2xl overflow-hidden mb-4 bg-slate-50 relative">
-          <img
+        {srv.image && (
+          <SafeImage
             src={getServiceImage(srv)}
             alt={srv.title}
+            containerClassName="h-44 w-full flex items-center justify-center rounded-2xl overflow-hidden mb-4 bg-slate-50 relative"
             className={getServiceImageClassName(srv)}
             referrerPolicy="no-referrer"
             loading="lazy"
-            onError={(event) => handleServiceImageError(event, srv)}
-          />
-          {srv.popular && (
-            <span className="absolute top-3 left-3 bg-amber-500 text-white text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider shadow">
-              Popular
-            </span>
-          )}
-          {srv.enquiryOnly && (
-            <span className="absolute top-3 right-3 bg-slate-900 text-white text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider shadow">
-              Enquiry
-            </span>
-          )}
-        </div>
+          >
+            {srv.popular && (
+              <span className="absolute top-3 left-3 bg-amber-500 text-white text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider shadow">
+                Popular
+              </span>
+            )}
+            {srv.enquiryOnly && (
+              <span className="absolute top-3 right-3 bg-slate-900 text-white text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider shadow">
+                Enquiry
+              </span>
+            )}
+          </SafeImage>
+        )}
         <h3 className="text-base font-extrabold text-blue-950 mt-0.5 leading-snug line-clamp-2">{srv.title}</h3>
         <p className="text-xs text-slate-500 mt-2 mb-4 line-clamp-3 min-h-[48px]">{srv.shortDescription || srv.description}</p>
         {hasExtraDetails(srv) && (
@@ -1152,6 +1142,7 @@ function MainApp() {
       setActiveTab('services');
       setActiveSectionId(targetSectionId);
       navigate(`/services/${targetRoute}`);
+      window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' }));
       return;
     }
 
@@ -1161,6 +1152,7 @@ function MainApp() {
       setActiveTab('products');
       setActiveSectionId(targetSectionId);
       navigate(`/products/${targetRoute}`);
+      window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' }));
       return;
     }
 
@@ -1416,7 +1408,7 @@ function MainApp() {
         </div>
       )}
 
-      {activeTab === 'lab-tests' && (
+      {activeTab === 'lab-tests' && activeSectionId !== 'customize-lab-package-section' && (
         <div className="bg-white border-b border-slate-100 sticky top-[52px] z-[29]">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex gap-2 overflow-x-auto no-scrollbar py-2.5 sm:justify-center">
@@ -1501,23 +1493,24 @@ function MainApp() {
                             </div>
 
                             {/* Service Image */}
-                            <div className="h-24 w-full flex items-center justify-center rounded-xl overflow-hidden mb-2.5 bg-[#F8FAFC] relative">
-                              <img
+                            {srv.image && (
+                              <SafeImage
                                 src={getServiceImage(srv)}
                                 alt={srv.title}
+                                containerClassName="h-24 w-full flex items-center justify-center rounded-xl overflow-hidden mb-2.5 bg-[#F8FAFC] relative group"
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                 referrerPolicy="no-referrer"
                                 loading="lazy"
-                                onError={(event) => handleServiceImageError(event, srv)}
-                              />
-                              {/* Hover Quick Look Overlay */}
-                              <div className="absolute inset-0 bg-slate-950/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <div className="bg-white/95 text-slate-800 text-[8px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-0.5">
-                                  <Eye className="w-2.5 h-2.5 text-medical-green" />
-                                  <span>Quick View</span>
+                              >
+                                {/* Hover Quick Look Overlay */}
+                                <div className="absolute inset-0 bg-slate-950/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <div className="bg-white/95 text-slate-800 text-[8px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-0.5">
+                                    <Eye className="w-2.5 h-2.5 text-medical-green" />
+                                    <span>Quick View</span>
+                                  </div>
                                 </div>
-                              </div>
-                            </div>
+                              </SafeImage>
+                            )}
 
                             {/* Name and description info */}
                             <div className="text-left mb-2.5 flex-grow">
@@ -1631,9 +1624,10 @@ function MainApp() {
                         >
                           <div>
                             <div className="h-44 w-full flex items-center justify-center rounded-2xl overflow-hidden mb-4 bg-slate-50/50 relative">
-                              <img
+                              <SafeImage
                                 src={prod.image}
                                 alt={prod.name}
+                                containerClassName="h-full w-full"
                                 className={prod.subcategory === 'rent-medical-equipments' || prod.subcategory === 'buy-medical-equipments' || prod.subcategory === 'supplements' ? 'h-full w-full rounded-2xl object-cover' : 'max-h-36 max-w-full object-contain mix-blend-multiply'}
                                 referrerPolicy="no-referrer"
                                 loading="lazy"
@@ -1678,16 +1672,14 @@ function MainApp() {
                             className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs"
                           >
                             {srv.image && (
-                              <div className="h-28 w-full rounded-xl overflow-hidden mb-3 bg-slate-50/50">
-                                <img
-                                  src={getServiceImage(srv)}
-                                  alt={srv.title}
-                                  className="h-full w-full object-cover"
-                                  referrerPolicy="no-referrer"
-                                  loading="lazy"
-                                  onError={(event) => handleServiceImageError(event, srv)}
-                                />
-                              </div>
+                              <SafeImage
+                                src={getServiceImage(srv)}
+                                alt={srv.title}
+                                containerClassName="h-28 w-full rounded-xl overflow-hidden mb-3 bg-slate-50/50"
+                                className="h-full w-full object-cover"
+                                referrerPolicy="no-referrer"
+                                loading="lazy"
+                              />
                             )}
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
@@ -1761,7 +1753,7 @@ function MainApp() {
               onAddToCart={handleAddToCart}
               onViewDetails={setServiceDetails}
               onExploreMore={() => handleTabChange('services')}
-              servicesList={db.services.filter(s => s.popular)}
+              servicesList={(() => { const pop = db.services.filter(s => s.popular); return pop.length >= 8 ? pop.slice(0, 8) : [...pop, ...db.services.filter(s => !s.popular).slice(0, 8 - pop.length)]; })()}
             />
 
             {/* Home Healthcare Services slide container */}
@@ -1801,16 +1793,18 @@ function MainApp() {
                     >
                       <div>
                         <div className="relative h-28 w-full overflow-hidden">
-                          <img
+                          <SafeImage
                             src={prod.image}
                             alt={prod.name}
+                            containerClassName="w-full h-full"
                             className="w-full h-full object-cover"
                             referrerPolicy="no-referrer"
                             loading="lazy"
-                          />
-                          <span className="absolute top-2 left-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider shadow-lg shadow-amber-500/30">
-                            ⭐ POPULAR
-                          </span>
+                          >
+                            <span className="absolute top-2 left-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider shadow-lg shadow-amber-500/30">
+                              ⭐ POPULAR
+                            </span>
+                          </SafeImage>
                         </div>
                         <div className="p-3">
                           <span className="text-[7px] font-bold uppercase text-medical-blue tracking-wider bg-medical-blue/10 px-1.5 py-0.5 rounded-full">
@@ -2051,21 +2045,22 @@ function MainApp() {
                     className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between scroll-mt-32"
                   >
                     <div>
-                      <div className="relative h-44 rounded-2xl overflow-hidden mb-4 border border-slate-100">
-                        <img
+                      {srv.image && (
+                        <SafeImage
                           src={getServiceImage(srv)}
                           alt={srv.title}
+                          containerClassName="relative h-44 rounded-2xl overflow-hidden mb-4 border border-slate-100"
                           className={getServiceImageClassName(srv)}
                           referrerPolicy="no-referrer"
                           loading="lazy"
-                          onError={(event) => handleServiceImageError(event, srv)}
-                        />
-                        {srv.popular && (
-                          <span className="absolute top-3 left-3 bg-amber-500 text-white text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider shadow">
-                            Popular
-                          </span>
-                        )}
-                      </div>
+                        >
+                          {srv.popular && (
+                            <span className="absolute top-3 left-3 bg-amber-500 text-white text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider shadow">
+                              Popular
+                            </span>
+                          )}
+                        </SafeImage>
+                      )}
 
                       <h3 className="text-sm sm:text-base font-extrabold text-blue-950 leading-snug line-clamp-2 min-h-[40px] mb-1">{srv.title}</h3>
                       {srv.bookingNotice && (
@@ -2146,9 +2141,10 @@ function MainApp() {
                   >
                     <div>
                       <div className="h-44 w-full flex items-center justify-center rounded-2xl overflow-hidden mb-4 bg-slate-50/50 relative">
-                        <img
+                        <SafeImage
                           src={prod.image}
                           alt={prod.name}
+                          containerClassName="h-full w-full"
                           className={prod.subcategory === 'rent-medical-equipments' || prod.subcategory === 'buy-medical-equipments' || prod.subcategory === 'supplements' ? 'h-full w-full rounded-2xl object-cover' : 'max-h-36 max-w-full object-contain mix-blend-multiply'}
                           referrerPolicy="no-referrer"
                           loading="lazy"
@@ -2230,14 +2226,13 @@ function MainApp() {
                 onClick={() => handleTabChange('wellness', 'medical-tourism-section')}
                 className="bg-white rounded-3xl border border-slate-200/80 p-8 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all text-left cursor-pointer"
               >
-                <div className="relative h-48 rounded-2xl overflow-hidden mb-5 border border-slate-100">
-                  <img
-                    src={medicalTourismImg}
-                    alt="Medical Tourism Facilitation"
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
+                <SafeImage
+                  src={medicalTourismImg}
+                  alt="Medical Tourism Facilitation"
+                  containerClassName="relative h-48 rounded-2xl overflow-hidden mb-5 border border-slate-100"
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
                 <h2 className="text-lg font-extrabold text-blue-950 mb-2">Medical Tourism Facilitation</h2>
                 <p className="text-sm text-slate-500 leading-relaxed mb-4">
                   End-to-end medical tourism coordination — from hospital selection to post-treatment care.
@@ -2251,14 +2246,13 @@ function MainApp() {
                 onClick={() => handleTabChange('wellness', 'shipping-crews-section')}
                 className="bg-white rounded-3xl border border-slate-200/80 p-8 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all text-left cursor-pointer"
               >
-                <div className="relative h-48 rounded-2xl overflow-hidden mb-5 border border-slate-100">
-                  <img
-                    src={shippingCrewImg}
-                    alt="Medical Facilitation for Shipping Crews"
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
+                <SafeImage
+                  src={shippingCrewImg}
+                  alt="Medical Facilitation for Shipping Crews"
+                  containerClassName="relative h-48 rounded-2xl overflow-hidden mb-5 border border-slate-100"
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
                 <h2 className="text-lg font-extrabold text-blue-950 mb-2">Medical Facilitation for Shipping Crews</h2>
                 <p className="text-sm text-slate-500 leading-relaxed mb-4">
                   Comprehensive medical support for shipping crew members — fitness exams, consultations, and clearance.
@@ -2281,14 +2275,13 @@ function MainApp() {
             </div>
 
             <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs mb-8 flex flex-col md:flex-row overflow-hidden">
-              <div className="relative h-44 md:h-auto md:w-2/5 shrink-0">
-                <img
-                  src={medicalTourismImg}
-                  alt="Medical Tourism Facilitation"
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
+              <SafeImage
+                src={medicalTourismImg}
+                alt="Medical Tourism Facilitation"
+                containerClassName="relative h-44 md:h-auto md:w-2/5 shrink-0"
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
               <div className="p-6 flex flex-col justify-between flex-1">
                 <ul className="space-y-2 mb-5">
                   {[
@@ -2333,14 +2326,13 @@ function MainApp() {
             </div>
 
             <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs mb-8 flex flex-col md:flex-row overflow-hidden">
-              <div className="relative h-44 md:h-auto md:w-2/5 shrink-0">
-                <img
-                  src={shippingCrewImg}
-                  alt="Medical Facilitation for Shipping Crews"
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
+              <SafeImage
+                src={shippingCrewImg}
+                alt="Medical Facilitation for Shipping Crews"
+                containerClassName="relative h-44 md:h-auto md:w-2/5 shrink-0"
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
               <div className="p-6 flex flex-col justify-between flex-1">
                 <ul className="space-y-2 mb-5">
                   {[
@@ -2780,16 +2772,16 @@ function MainApp() {
                   <X className="h-5 w-5" />
                 </button>
 
-                <div className="h-44 shrink-0 bg-slate-100 sm:h-52">
-                  <img
+                {serviceDetails.image && (
+                  <SafeImage
                     src={getServiceImage(serviceDetails)}
                     alt={serviceDetails.title}
+                    containerClassName="h-44 shrink-0 bg-slate-100 sm:h-52"
                     className="h-full w-full object-cover"
                     referrerPolicy="no-referrer"
                     loading="lazy"
-                    onError={(event) => handleServiceImageError(event, serviceDetails)}
                   />
-                </div>
+                )}
 
                 <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-5 sm:p-6">
                   <div>

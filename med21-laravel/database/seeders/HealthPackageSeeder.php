@@ -43,17 +43,6 @@ class HealthPackageSeeder extends Seeder
                 'desc' => 'Constructed for athletes or customers during body composition tracking. Monitors endocrine indices, creatine, basic lipid metabolism, and thyroid indicators.',
                 'bullets' => ['Thyroid profile & hormonal check', 'Creatine counts auditing', 'Safe home visit drawn vial', 'Metabolic rate overview report'],
             ],
-            [
-                'name' => 'Cancer / Tumour Marker Profile (Male)',
-                'mrp' => 260,
-                'old_price' => null,
-                'tag' => "Men's Health",
-                'desc' => 'Screening profile for men focused on cancer risk markers and early detection through at-home sample collection.',
-                'bullets' => ['AFP', 'Total hCG', 'CA 19-9', 'CBC (19)', 'Prostate Profile: PSA Total, PSA Free, PSA Ratio'],
-                'who' => 'Men for cancer screening & early detection',
-                'prep' => 'No fasting required',
-                'result' => 'Same day / Next day',
-            ],
         ];
 
         foreach ($packages as $index => $data) {

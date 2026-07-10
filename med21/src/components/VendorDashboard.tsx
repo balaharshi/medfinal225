@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import ConfirmDialog from './ConfirmDialog';
 import SocialAuthButtons from './SocialAuthButtons';
+import SafeImage from './SafeImage';
 import { subscribeToVendorChannel } from '../services/pusherClient';
 
 interface VendorDashboardProps {
@@ -628,7 +629,13 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center shrink-0 shadow-lg shadow-purple-200">
               {vendorData?.logo ? (
-                <img src={vendorData.logo} alt={vendorData.name} className="w-full h-full object-cover rounded-2xl" referrerPolicy="no-referrer" />
+                <SafeImage
+                  src={vendorData.logo}
+                  alt={vendorData.name}
+                  containerClassName="w-full h-full rounded-2xl overflow-hidden flex items-center justify-center bg-slate-50 border border-slate-100"
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
               ) : (
                 <span className="text-2xl font-black text-white">{(vendorData?.name || "V").charAt(0)}</span>
               )}

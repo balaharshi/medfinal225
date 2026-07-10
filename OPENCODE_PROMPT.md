@@ -23,6 +23,9 @@ RULES I MUST FOLLOW:
 6. Use American English spelling (Color not Colour, Center not Centre)
 7. Never commit secrets (passwords, API keys, tokens)
 8. Never push directly to main branch
+9. Never use image filenames with spaces or mixed case — always lowercase slugs (e.g. generic-nurse-visit.jpg)
+10. Always use the SafeImage component for images, never raw <img>
+11. After changing images or seeders, run php artisan images:verify
 
 BRANCHING:
 - main = production (live website)
@@ -38,6 +41,7 @@ READ THESE FILES FIRST:
 - BALA_START_HERE.md (project overview and setup)
 - DEPLOYMENT.md (how deployment works)
 - CONTRIBUTING.md (full contribution guidelines)
+- AUDIT_REPORT.md (current known issues and roadmap)
 ```
 
 ---
@@ -81,3 +85,20 @@ Deploy to production.
 3. Run ./deploy.sh production
 Tell me when it's done.
 ```
+
+---
+
+## Image Handling Reminder
+
+Images break easily. Follow these rules:
+
+- **Filenames:** lowercase, hyphen-separated, no spaces  
+  Good: `generic-nurse-visit.jpg`  
+  Bad: `Generic Nurse Visit.jpg`
+- **Component:** Use `SafeImage` from `@/components/SafeImage`, never raw `<img>`.
+- **No fallbacks:** Do not add placeholder images to hide broken paths. Fix the source data.
+- **Verification:** After image/seeder changes run:  
+  ```bash
+  cd med21-laravel
+  php artisan images:verify
+  ```

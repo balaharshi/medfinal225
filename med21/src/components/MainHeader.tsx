@@ -533,19 +533,6 @@ export default function MainHeader({
             )}
             <button
               onClick={() => {
-                handleMobileNavigation('lab-tests', 'customize-lab-package-section');
-              }}
-              className={`w-full flex items-center gap-3 p-3 rounded-lg text-left ${
-                activeSectionId === 'customize-lab-package-section'
-                  ? 'bg-teal-50/80 text-medical-green'
-                  : 'hover:bg-slate-50 text-slate-700'
-              }`}
-            >
-              <Beaker className="w-5 h-5 text-medical-blue" />
-              <span className="font-semibold">Create your own Package</span>
-            </button>
-            <button
-              onClick={() => {
                 closeMobileMenu();
                 onTabChange?.('wellness', 'medical-tourism-section');
               }}

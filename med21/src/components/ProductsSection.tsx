@@ -5,9 +5,9 @@
 
 import React, { useState, useRef } from 'react';
 import { ChevronRight, ChevronLeft, CalendarClock, Heart, Send, Eye } from 'lucide-react';
-import { DEFAULT_HEALTHCARE_SERVICE_IMAGE } from '../data';
 import { HealthcareService } from '../types';
 import { formatAedWhole } from '../utils/money';
+import SafeImage from './SafeImage';
 
 const getServiceAttributeValue = (srv: HealthcareService, label: string) => {
   const attributes = srv.attributes;
@@ -70,18 +70,7 @@ export default function ProductsSection({
   };
 
   const getServiceImage = (service: HealthcareService) =>
-    service.image || DEFAULT_HEALTHCARE_SERVICE_IMAGE;
-
-  const handleServiceImageError = (event: React.SyntheticEvent<HTMLImageElement>, service: HealthcareService) => {
-    const image = event.currentTarget;
-    const fallback = getServiceImage(service);
-    if (image.src.endsWith(fallback) || image.dataset.fallbackApplied === 'true') {
-      image.src = DEFAULT_HEALTHCARE_SERVICE_IMAGE;
-      return;
-    }
-    image.dataset.fallbackApplied = 'true';
-    image.src = fallback;
-  };
+    service.image || '';
 
   return (
     <section id="products-section" className="bg-slate-50 py-6 px-4 border-b border-slate-100">
@@ -174,17 +163,16 @@ export default function ProductsSection({
                     </div>
 
                     {/* Service Image Stage */}
-                    <div className="h-28 w-full flex items-center justify-center overflow-hidden relative">
-                      <img
-                        src={getServiceImage(srv)}
-                        alt={srv.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        referrerPolicy="no-referrer"
-                        onError={(event) => handleServiceImageError(event, srv)}
-                      />
+                    <SafeImage
+                      src={getServiceImage(srv)}
+                      alt={srv.title}
+                      containerClassName="h-28 w-full flex items-center justify-center overflow-hidden relative group"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      referrerPolicy="no-referrer"
+                    >
                       {/* Subtle overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </div>
+                    </SafeImage>
 
                     {/* Name and description details */}
                     <div className="p-3 text-left flex-grow relative z-10">

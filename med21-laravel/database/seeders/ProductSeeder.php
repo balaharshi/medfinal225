@@ -5,9 +5,42 @@ namespace Database\Seeders;
 use App\Models\Product;
 use App\Support\SequentialId;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class ProductSeeder extends Seeder
 {
+    private function resolveImage(string $name): string
+    {
+        // Products that do not have a corresponding image file should return ''.
+        $missing = [
+            // Add product names here that do not have a corresponding image file.
+        ];
+
+        if (in_array($name, $missing, true)) {
+            return '';
+        }
+
+        // Map product names to canonical slug-based filenames.
+        $map = [
+            'Electric Bed 3 Function' => 'electric-bed-3-function',
+            'Electric Bed 5 Function' => 'electric-bed-5-function',
+            'Oxygen Concentrator 5 ltr' => 'oxygen-concentrator-5-ltr',
+            'Oxygen Cylinder Set 48cft (Includes regulator and trolley)' => 'oxygen-cylinder-set-48cft',
+            'Patient Monitor 5 Parameter with trolley and accessories' => 'patient-monitor-5-parameter-with',
+            'BIPAP Machine' => 'bipap-machine',
+            'CPAP Machine' => 'cpap-machine',
+            'Suction Machine' => 'suction-machine',
+            'Infusion Pump' => 'infusion-pump',
+            'Syringe Pump' => 'syringe-pump',
+            'Patient Hoist' => 'patient-hoist',
+            'Wheel Chair' => 'wheel-chair',
+        ];
+
+        $slug = $map[$name] ?? Str::slug($name);
+
+        return '/images/products/' . $slug . '.jpg';
+    }
+
     public function run(): void
     {
         $products = [
@@ -26,35 +59,31 @@ class ProductSeeder extends Seeder
         ];
 
         foreach ($products as $data) {
-            $imageName = $data['name'];
-            if ($imageName === 'Oxygen Cylinder Set 48cft (Includes regulator and trolley)') {
-                $imageName = 'Oxygen Cylinder Set 48cft';
-            } elseif ($imageName === 'Patient Monitor 5 Parameter with trolley and accessories') {
-                $imageName = 'Patient Monitor 5 Parameter with';
+            $product = Product::firstOrNew(['name' => $data['name']]);
+            if (! $product->exists) {
+                $product->id = SequentialId::next(Product::class, 'prod');
             }
-            Product::updateOrCreate(
-                ['name' => $data['name']],
-                [
-                    'id' => SequentialId::next(Product::class, 'prod'),
-                    'subtitle' => "MRP per week AED {$data['weekly_price']} | MRP per month AED {$data['monthly_price']} | Security deposit AED {$data['security_deposit']}",
-                    'price' => $data['weekly_price'],
-                    'original_price' => $data['monthly_price'],
-                    'image' => '/images/products/' . $imageName . '.jpg',
-                    'category' => 'devices-for-rent',
-                    'subcategory' => 'rent-medical-equipments',
-                    'brand' => 'Rental Equipment',
-                    'rating' => 4.8,
-                    'in_stock' => true,
-                    'description' => 'Weekly and monthly rental options with listed security deposits.',
-                    'attributes' => [
-                        ['label' => 'MRP per week', 'value' => "AED {$data['weekly_price']}"],
-                        ['label' => 'MRP per month', 'value' => "AED {$data['monthly_price']}"],
-                        ['label' => 'Security deposit', 'value' => "AED {$data['security_deposit']}"],
-                        ['label' => 'Booking notice', 'value' => '12 hours prior booking'],
-                    ],
-                    'vendor_prices' => [],
-                ]
-            );
+
+            $product->fill([
+                'subtitle' => "MRP per week AED {$data['weekly_price']} | MRP per month AED {$data['monthly_price']} | Security deposit AED {$data['security_deposit']}",
+                'price' => $data['weekly_price'],
+                'original_price' => $data['monthly_price'],
+                'image' => $this->resolveImage($data['name']),
+                'category' => 'devices-for-rent',
+                'subcategory' => 'rent-medical-equipments',
+                'brand' => 'Rental Equipment',
+                'rating' => 4.8,
+                'in_stock' => true,
+                'description' => 'Weekly and monthly rental options with listed security deposits.',
+                'attributes' => [
+                    ['label' => 'MRP per week', 'value' => "AED {$data['weekly_price']}"],
+                    ['label' => 'MRP per month', 'value' => "AED {$data['monthly_price']}"],
+                    ['label' => 'Security deposit', 'value' => "AED {$data['security_deposit']}"],
+                    ['label' => 'Booking notice', 'value' => '12 hours prior booking'],
+                ],
+                'vendor_prices' => [],
+            ]);
+            $product->save();
         }
 
         $this->command->info('Seeded ' . count($products) . ' rental products.');

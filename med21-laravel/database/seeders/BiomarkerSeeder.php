@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 
 class BiomarkerSeeder extends Seeder
 {
+    use FormatsTitles;
     public function run(): void
     {
         $demoVendor = Vendor::firstOrCreate(
@@ -324,7 +325,7 @@ class BiomarkerSeeder extends Seeder
             }
 
             $service->fill([
-                'title' => $data['name'],
+                'title' => $this->fmt($data['name']),
                 'slug' => $slug,
                 'category' => 'lab-tests',
                 'subcategory' => 'customize-lab-package',

@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 
 class LabTestSeeder extends Seeder
 {
+    use FormatsTitles;
     public function run(): void
     {
         $demoVendor = Vendor::firstOrCreate(
@@ -94,7 +95,7 @@ class LabTestSeeder extends Seeder
             if (!empty($data['includes'])) $attributes[] = ['label' => 'Inclusions', 'value' => $data['includes']];
 
             $service->fill([
-                'title' => $data['name'],
+                'title' => $this->fmt($data['name']),
                 'slug' => $slug,
                 'category' => 'lab-tests-at-home',
                 'subcategory' => $data['sub'],

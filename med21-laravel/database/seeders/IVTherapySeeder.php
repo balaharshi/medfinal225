@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 
 class IVTherapySeeder extends Seeder
 {
+    use FormatsTitles;
     private const DEFAULT_DISCLAIMER = "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy.";
 
     public function run(): void
@@ -184,7 +185,7 @@ class IVTherapySeeder extends Seeder
             }
 
             $service->fill([
-                'title' => $data['name'],
+                'title' => $this->fmt($data['name']),
                 'slug' => $slug,
                 'category' => 'iv-therapy',
                 'subcategory' => 'iv-therapy',

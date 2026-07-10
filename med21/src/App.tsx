@@ -2010,7 +2010,7 @@ function MainApp() {
                                 Popular
                               </span>
                             )}
-                            <h3 className="text-sm font-extrabold text-blue-950 leading-snug line-clamp-2 min-h-[36px]">{srv.title}</h3>
+                            <h3 className="text-sm font-extrabold text-blue-950 leading-snug line-clamp-2 min-h-[36px]" title={srv.title}>{srv.title}</h3>
                             <div className="flex flex-wrap items-center gap-1.5 mt-1 text-xs">
                               <span className="text-medical-green font-black">AED {formatAedWhole(srv.price)}</span>
                             </div>

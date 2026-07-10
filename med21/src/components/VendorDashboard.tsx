@@ -69,7 +69,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
   });
 
   // Active Pane Tab inside Vendor Console
-  const [activePane, setActivePane] = useState<"dashboard" | "bookings" | "services" | "reports" | "profile">("dashboard");
+  const [activePane, setActivePane] = useState<"dashboard" | "bookings" | "services" | "reports" | "profile" | "workinghours">("dashboard");
 
   // Dynamic lists from backend
   const [bookingsList, setBookingsList] = useState<any[]>([]);
@@ -86,6 +86,16 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
   const [profileChangeReason, setProfileChangeReason] = useState("");
   const [profileChangeRequests, setProfileChangeRequests] = useState<any[]>([]);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  // Working hours state
+  const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const [workingHours, setWorkingHours] = useState<Record<number, { startTime: string; endTime: string; isActive: boolean }>>(() => {
+    const init: Record<number, any> = {};
+    for (let d = 0; d < 7; d++) init[d] = { startTime: '08:00', endTime: '22:00', isActive: true };
+    return init;
+  });
+  const [savingHours, setSavingHours] = useState(false);
+  const [hoursSaved, setHoursSaved] = useState(false);
 
   useEffect(() => {
     localStorage.removeItem("medziva_vendor_auth");
@@ -169,6 +179,58 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
   useEffect(() => {
     if (activePane === 'profile' && vendorData?.id) {
       loadProfileChangeRequests();
+    }
+  }, [activePane, vendorData?.id]);
+
+  const loadWorkingHours = async () => {
+    if (!vendorData?.id) return;
+    try {
+      const res = await fetch(`/api/vendor-working-hours/${vendorData.id}`, getVendorRequestInit());
+      if (!res.ok) return;
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        const hours: Record<number, any> = {};
+        for (let d = 0; d < 7; d++) {
+          hours[d] = { startTime: '08:00', endTime: '22:00', isActive: false };
+        }
+        data.forEach((wh: any) => {
+          hours[wh.dayOfWeek] = {
+            startTime: wh.startTime,
+            endTime: wh.endTime,
+            isActive: wh.isActive ?? true,
+          };
+        });
+        setWorkingHours(hours);
+      }
+    } catch (e) { /* silently handle */ }
+  };
+
+  const saveWorkingHours = async () => {
+    if (!vendorData?.id) return;
+    setSavingHours(true);
+    setHoursSaved(false);
+    try {
+      const hours = (Object.entries(workingHours) as [string, { startTime: string; endTime: string; isActive: boolean }][])
+        .filter(([, v]) => v.isActive)
+        .map(([day, v]) => ({
+          dayOfWeek: parseInt(day),
+          startTime: v.startTime,
+          endTime: v.endTime,
+          isActive: true,
+        }));
+      await fetch(`/api/vendor-working-hours/${vendorData.id}`, getVendorRequestInit({
+        method: 'PUT',
+        body: JSON.stringify({ hours }),
+      }));
+      setHoursSaved(true);
+      setTimeout(() => setHoursSaved(false), 3000);
+    } catch (e) { /* silently handle */ }
+    finally { setSavingHours(false); }
+  };
+
+  useEffect(() => {
+    if (activePane === 'workinghours' && vendorData?.id) {
+      loadWorkingHours();
     }
   }, [activePane, vendorData?.id]);
 
@@ -290,7 +352,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
         const data = await response.json();
         toast.error(data?.error || "Failed to submit request.");
       }
-    } catch {
+    } catch (e) { console.error('Profile change request failed:', e);
       toast.error("Failed to submit request.");
     }
   };
@@ -303,7 +365,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
         const data = await response.json();
         setProfileChangeRequests(Array.isArray(data) ? data : []);
       }
-    } catch {}
+    } catch (e) { console.error('Failed to load profile requests:', e); }
   };
 
   const handleAcceptBooking = async (bookingId: string) => {
@@ -465,7 +527,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                   </span>
                   <input
                     type="email"
-                    placeholder="vendor@medziva.ae"
+                    placeholder="vendor@medzivahealthcare.com"
                     {...register("email", {
                       required: "Vendor email is required",
                       pattern: {
@@ -664,7 +726,8 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
               { id: "bookings", label: "My Bookings", icon: Calendar },
               { id: "services", label: "My Services", icon: HeartPulse },
               { id: "reports", label: "Reports", icon: TrendingUp },
-              { id: "profile", label: "Profile", icon: User }
+              { id: "profile", label: "Profile", icon: User },
+              { id: "workinghours", label: "Working Hours", icon: Clock }
             ].map((pane) => {
               const isSelected = activePane === pane.id;
               return (
@@ -1213,6 +1276,76 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                 <p className="text-slate-400 text-[10px]">No previous change requests.</p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* ---- WORKING HOURS VIEW ---- */}
+        {activePane === "workinghours" && (
+          <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-2xs text-left">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+              <div>
+                <h3 className="font-extrabold text-blue-950 text-sm">Working Hours</h3>
+                <p className="text-[10.5px] text-slate-400">Set your weekly availability schedule</p>
+              </div>
+              <button
+                onClick={saveWorkingHours}
+                disabled={savingHours}
+                className={`text-xs font-bold py-2 px-5 rounded-xl cursor-pointer transition-all ${
+                  hoursSaved
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    : 'bg-medical-green hover:bg-emerald-600 text-white'
+                }`}
+              >
+                {savingHours ? 'Saving...' : hoursSaved ? '✓ Saved' : 'Save Hours'}
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {DAYS.map((day, index) => {
+                const wh = workingHours[index] || { startTime: '08:00', endTime: '22:00', isActive: false };
+                return (
+                  <div key={day} className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-slate-200 transition-colors">
+                    <div className="w-24 shrink-0">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={wh.isActive}
+                          onChange={(e) => setWorkingHours(prev => ({
+                            ...prev,
+                            [index]: { ...prev[index], isActive: e.target.checked }
+                          }))}
+                          className="w-4 h-4 rounded accent-medical-green cursor-pointer"
+                        />
+                        <span className="text-xs font-bold text-blue-950">{day}</span>
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-2 flex-1">
+                      <input
+                        type="time"
+                        value={wh.startTime}
+                        onChange={(e) => setWorkingHours(prev => ({
+                          ...prev,
+                          [index]: { ...prev[index], startTime: e.target.value }
+                        }))}
+                        disabled={!wh.isActive}
+                        className="text-xs border border-slate-200 rounded-lg p-2 bg-white disabled:opacity-40 disabled:bg-slate-50"
+                      />
+                      <span className="text-xs text-slate-400">to</span>
+                      <input
+                        type="time"
+                        value={wh.endTime}
+                        onChange={(e) => setWorkingHours(prev => ({
+                          ...prev,
+                          [index]: { ...prev[index], endTime: e.target.value }
+                        }))}
+                        disabled={!wh.isActive}
+                        className="text-xs border border-slate-200 rounded-lg p-2 bg-white disabled:opacity-40 disabled:bg-slate-50"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 

@@ -4,11 +4,12 @@ namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class VendorNewBooking extends Mailable
+class VendorNewBooking extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -20,7 +21,7 @@ class VendorNewBooking extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "New Booking Available - {$this->booking['service_title']}",
+            subject: "New Booking Available - {$this->booking['serviceTitle'] ?? $this->booking['service_title'] ?? 'Healthcare Service'}",
         );
     }
 
@@ -35,11 +36,11 @@ class VendorNewBooking extends Mailable
     {
         $booking = $this->booking;
         $vendorName = htmlspecialchars($this->vendorName);
-        $serviceName = htmlspecialchars($booking['service_title'] ?? 'Healthcare Service');
-        $customerName = htmlspecialchars($booking['customer_name'] ?? 'Customer');
+        $serviceName = htmlspecialchars($booking['serviceTitle'] ?? $booking['service_title'] ?? 'Healthcare Service');
+        $customerName = htmlspecialchars($booking['customerName'] ?? $booking['customer_name'] ?? 'Customer');
         $bookingId = htmlspecialchars($booking['id'] ?? 'N/A');
         $date = htmlspecialchars($booking['date'] ?? 'N/A');
-        $timeSlot = htmlspecialchars($booking['time_slot'] ?? 'N/A');
+        $timeSlot = htmlspecialchars($booking['timeSlot'] ?? $booking['time_slot'] ?? 'N/A');
         $region = htmlspecialchars($booking['region'] ?? 'N/A');
         $price = number_format($booking['price'] ?? 0);
         $notes = htmlspecialchars($booking['notes'] ?? '');

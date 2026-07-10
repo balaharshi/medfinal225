@@ -5,7 +5,6 @@
 
 import { Flame, Sparkles, Heart, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
-import bloodTestImage from '../assets/images/lab-tests-at-home/srv-lab-home-complete-blood-count-cbc-with-differential.jpg';
 
 interface PromoProps {
   onOffersClick?: () => void;
@@ -18,7 +17,7 @@ export default function PromotionalBanners({
     <section id="promotions-section" className="bg-white py-12 px-4 border-b border-gray-50">
       <div className="max-w-7xl mx-auto">
         
-        {/* Unified "Exclusive Deals & Offers" Dark Green Container Banner (Image 4 Alignment) */}
+        {/* Unified "Exclusive Deals & Offers" Dark Green Container Banner */}
         <div className="bg-gradient-to-br from-[#004A3C] via-[#013F33] to-[#012F26] rounded-[32px] p-6 lg:p-10 text-white flex flex-col lg:flex-row items-center justify-between gap-8 shadow-xl relative overflow-hidden text-left">
           
           {/* Decorative Subtle Glowing Background Radial */}
@@ -43,93 +42,47 @@ export default function PromotionalBanners({
             </button>
           </div>
 
-          {/* Right panel: 3 Premium Promotion Box Columns with Artwork thumbnails */}
+          {/* Right panel: 3 Premium Promotion Box Columns */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
             
             {/* Promo card 1: LAB Tests */}
-            <div 
-              className="bg-white/10 border border-white/15 rounded-2xl p-4 flex items-center justify-between gap-3 group relative overflow-hidden"
-            >
+            <div className="bg-white/10 border border-white/15 rounded-2xl p-4 flex items-center justify-between gap-3 group relative overflow-hidden">
               <div className="space-y-1 z-10">
-                <span className="text-[10px] text-teal-300 font-extrabold tracking-wider block uppercase">
-                  Lab Tests
-                </span>
-                <h4 className="text-sm font-bold text-white leading-tight">
-                  10%
-                </h4>
-                <span className="text-[10px] bg-teal-400/20 text-teal-300 font-bold px-1.5 py-0.5 rounded tracking-wide uppercase">
-                  OFF
-                </span>
+                <span className="text-[10px] text-teal-300 font-extrabold tracking-wider block uppercase">Lab Tests</span>
+                <h4 className="text-sm font-bold text-white leading-tight">10%</h4>
+                <span className="text-[10px] bg-teal-400/20 text-teal-300 font-bold px-1.5 py-0.5 rounded tracking-wide uppercase">OFF</span>
               </div>
-              
-              {/* Promo image alignment */}
               <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-white/20">
-                <img 
-                  src={bloodTestImage}
-                  alt="Blood Vial Drawing Lab"
-                  className="w-full h-full object-cover"
-                />
+                <img src="/images/lab-tests/srv-lab-home-lipid-profile.jpg" alt="Lab Tests" className="w-full h-full object-cover" />
               </div>
             </div>
 
-            {/* Promo card 2: Health Packages */}
-            <div 
-              className="bg-white/10 border border-white/15 rounded-2xl p-4 flex items-center justify-between gap-3 group relative overflow-hidden"
-            >
+            {/* Promo card 2: Services */}
+            <div className="bg-white/10 border border-white/15 rounded-2xl p-4 flex items-center justify-between gap-3 group relative overflow-hidden">
               <div className="space-y-1 z-10">
-                <span className="text-[10px] text-teal-300 font-extrabold tracking-wider block uppercase">
-                  Services
-                </span>
-                <h4 className="text-sm font-bold text-white leading-tight">
-                  10%
-                </h4>
-                <span className="text-[10px] bg-teal-400/20 text-teal-300 font-bold px-1.5 py-0.5 rounded tracking-wide uppercase">
-                  OFF
-                </span>
+                <span className="text-[10px] text-teal-300 font-extrabold tracking-wider block uppercase">Services</span>
+                <h4 className="text-sm font-bold text-white leading-tight">10%</h4>
+                <span className="text-[10px] bg-teal-400/20 text-teal-300 font-bold px-1.5 py-0.5 rounded tracking-wide uppercase">OFF</span>
               </div>
-              
-              {/* Promo image alignment */}
               <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-white/20">
-                <img 
-                  src="/src/assets/images/services/long-term-care.jpg" 
-                  alt="Smiling Nurses Consultation"
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
+                <img src="/images/services/Generic Nurse Visit.jpg" alt="Services" className="w-full h-full object-cover" />
               </div>
             </div>
 
-            {/* Promo card 3: Devices for Rent */}
-            <div 
-              className="bg-white/10 border border-white/15 rounded-2xl p-4 flex items-center justify-between gap-3 group relative overflow-hidden"
-            >
+            {/* Promo card 3: Products */}
+            <div className="bg-white/10 border border-white/15 rounded-2xl p-4 flex items-center justify-between gap-3 group relative overflow-hidden">
               <div className="space-y-1 z-10">
-                <span className="text-[10px] text-teal-300 font-extrabold tracking-wider block uppercase">
-                  Products
-                </span>
-                <h4 className="text-sm font-bold text-white leading-tight">
-                  10%
-                </h4>
-                <span className="text-[10px] bg-teal-400/20 text-teal-300 font-bold px-1.5 py-0.5 rounded tracking-wide uppercase">
-                  OFF
-                </span>
+                <span className="text-[10px] text-teal-300 font-extrabold tracking-wider block uppercase">Products</span>
+                <h4 className="text-sm font-bold text-white leading-tight">10%</h4>
+                <span className="text-[10px] bg-teal-400/20 text-teal-300 font-bold px-1.5 py-0.5 rounded tracking-wide uppercase">OFF</span>
               </div>
-              
-              {/* Promo image alignment */}
               <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-white/20">
-                <img 
-                  src="/src/assets/images/services/medical-devices.jpg" 
-                  alt="Wheelchair Devices for Rent"
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
+                <img src="/images/products/Electric Bed 3 Function.jpg" alt="Products" className="w-full h-full object-cover" />
               </div>
             </div>
 
           </div>
-
         </div>
-
       </div>
     </section>
   );

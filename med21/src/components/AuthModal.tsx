@@ -122,14 +122,24 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     }
     if (message.includes('validation')) {
       return signingUp
-        ? 'Please enter a valid name, email, and password with at least 6 characters.'
+        ? 'Please enter a valid name, email, and password with at least 8 characters.'
         : 'Please enter a valid email and password.';
     }
     if (message.includes('invalid credentials')) {
       return 'The email or password is incorrect. Please try again.';
     }
-    if (message.includes('backend api') || message.includes('unavailable')) {
+    if (message.includes('backend api') || message.includes('unavailable') || message.includes('server error')) {
       return 'We could not connect to the secure login service. Please try again in a moment.';
+    }
+    if (message.includes('unique constraint') || message.includes('duplicate')) {
+      return signingUp
+        ? 'This email is already registered. Please use Login instead.'
+        : 'An account error occurred. Please try again.';
+    }
+    // Show actual error in development, generic in production
+    const isDev = window.location.hostname === 'localhost';
+    if (isDev && data?.error) {
+      return `Error: ${data.error}`;
     }
     return signingUp
       ? 'Registration could not be completed. Please check your details and try again.'
@@ -347,9 +357,10 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
         <div className="relative min-h-0 overflow-y-auto">
           <button
             onClick={closeModal}
-            className="absolute right-4 top-4 z-20 p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full cursor-pointer transition-colors"
+            aria-label="Close login dialog"
+            className="absolute right-4 top-4 z-20 p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full cursor-pointer transition-colors"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
 
           <div className="bg-white px-5 pt-6 pb-3 sm:px-8 sm:pt-8 relative flex flex-col gap-3">
@@ -392,7 +403,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             </label>
             <input
               type="email"
-              placeholder="e.g. customer@medziva.com"
+              placeholder="e.g. customer@medzivahealthcare.com"
               value={forgotEmail}
               onChange={(e) => setForgotEmail(e.target.value)}
               required
@@ -403,7 +414,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
           <button
             type="submit"
             disabled={forgotLoading}
-            className="w-full bg-[#10B981] hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl text-xs tracking-wider transition-all mt-2 cursor-pointer shadow-md text-center"
+            className="w-full bg-medical-green hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl text-xs tracking-wider transition-all mt-2 cursor-pointer shadow-md text-center"
           >
             {forgotLoading ? 'SENDING...' : 'SEND RESET CODE'}
           </button>
@@ -465,7 +476,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
               value={resetNewPassword}
               onChange={(e) => setResetNewPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={8}
               className="w-full text-xs border border-slate-200 rounded-xl p-3 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
             />
           </div>
@@ -481,7 +492,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
               value={resetConfirmPassword}
               onChange={(e) => setResetConfirmPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={8}
               className="w-full text-xs border border-slate-200 rounded-xl p-3 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
             />
           </div>
@@ -489,7 +500,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
           <button
             type="submit"
             disabled={resetLoading}
-            className="w-full bg-[#10B981] hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl text-xs tracking-wider transition-all mt-2 cursor-pointer shadow-md text-center"
+            className="w-full bg-medical-green hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl text-xs tracking-wider transition-all mt-2 cursor-pointer shadow-md text-center"
           >
             {resetLoading ? 'RESETTING...' : 'RESET PASSWORD'}
           </button>
@@ -584,7 +595,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             </label>
             <input
               type="email"
-              placeholder="e.g. customer@medziva.com"
+              placeholder="e.g. customer@medzivahealthcare.com"
               {...register('email', {
                 required: 'Customer email is required',
                 pattern: {
@@ -608,8 +619,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
               {...register('password', {
                 required: 'Password is required',
                 minLength: {
-                  value: 6,
-                  message: 'Password must be at least 6 characters',
+                  value: 8,
+                  message: 'Password must be at least 8 characters',
                 },
               })}
               className="w-full text-xs border border-slate-200 rounded-xl p-3 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
@@ -634,13 +645,13 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
           <button
             type="submit"
             disabled={authLoading}
-            className="w-full bg-[#10B981] hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl text-xs tracking-wider transition-all mt-2 cursor-pointer shadow-md text-center"
+            className="w-full bg-medical-green hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl text-xs tracking-wider transition-all mt-2 cursor-pointer shadow-md text-center"
           >
             {authLoading ? 'Processing...' : isSignUp ? 'Create Account' : 'Login'}
           </button>
 
           <p className="text-[10px] text-slate-400 text-center leading-snug mt-2">
-            By clicking {isSignUp ? 'Create Account' : 'Login'}, I certify that all details submitted are accurate and I consent to MedZiva's <span className="text-emerald-600 font-semibold cursor-pointer hover:underline">Terms &amp; Conditions</span>.
+            By clicking {isSignUp ? 'Create Account' : 'Login'}, I certify that all details submitted are accurate and I consent to MedZiva's <a href="https://medzivahealthcare.com" target="_blank" rel="noopener noreferrer" className="text-emerald-600 font-semibold cursor-pointer hover:underline">Terms &amp; Conditions</a>.
           </p>
 
           <div className="flex items-center gap-3">

@@ -5,7 +5,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, Clock, Check, User, Phone, Mail, Award, CheckCircle2, ShieldAlert } from 'lucide-react';
-import { HEALTHCARE_SERVICES, SERVICE_CATEGORIES } from '../data';
 import toast from 'react-hot-toast';
 import { createEnbdpayCheckout } from '../services/enbdpay';
 import PhoneInput from './PhoneInput';
@@ -48,7 +47,7 @@ export default function BookingModal({
   const [mobileNine, setMobileNine] = useState('');
   const [mobileError, setMobileError] = useState('');
   const [email, setEmail] = useState('');
-  const [service, setService] = useState(preselectedServiceTitle || HEALTHCARE_SERVICES[0].title);
+  const [service, setService] = useState(preselectedServiceTitle || '');
   const [date, setDate] = useState('');
   const [time, setTime] = useState(TIME_SLOTS[0].label);
   const [address, setAddress] = useState('');
@@ -63,6 +62,32 @@ export default function BookingModal({
   const [location, setLocation] = useState<SelectedLocation | null>(null);
   const [backendServices, setBackendServices] = useState<BackendService[]>([]);
   const [selectedBackendServiceId, setSelectedBackendServiceId] = useState<string | null>(null);
+  const [apiSlots, setApiSlots] = useState<typeof TIME_SLOTS | null>(null);
+
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setPatientName('');
+      setPhone('');
+      setMobileNine('');
+      setMobileError('');
+      setEmail('');
+      setService(preselectedServiceTitle || '');
+      setDate('');
+      setTime(TIME_SLOTS[0].label);
+      setAddress('');
+      setNotes('');
+      setFormErrors({});
+      setIsPaymentStarting(false);
+      setPromoCode('');
+      setAppliedPromo('');
+      setPromoError('');
+      setIsPromoLoading(false);
+      setRegion('Dubai');
+      setLocation(null);
+      setApiSlots(null);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -73,7 +98,7 @@ export default function BookingModal({
           const match = findServiceByTitle(preselectedServiceTitle, services);
           if (match) setSelectedBackendServiceId(match.id);
         }
-      }).catch(() => {});
+      }).catch((e) => { console.error('Failed to fetch services:', e); });
     }
   }, [isOpen, preselectedServiceTitle]);
 
@@ -106,16 +131,37 @@ export default function BookingModal({
     }
   }, [isOpen, preselectedServiceTitle]);
 
+  // Fetch available time slots from backend (considers vendor working hours + lead time)
+  useEffect(() => {
+    if (!selectedBackendServiceId || !date || !isOpen) {
+      setApiSlots(null);
+      return;
+    }
+    let cancelled = false;
+    fetch(`/api/services/${selectedBackendServiceId}/available-slots?date=${encodeURIComponent(date)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!cancelled && Array.isArray(data) && data.length > 0) {
+          setApiSlots(data);
+        } else if (!cancelled) {
+          setApiSlots(null);
+        }
+      })
+      .catch(() => { if (!cancelled) setApiSlots(null); });
+    return () => { cancelled = true; };
+  }, [selectedBackendServiceId, date, isOpen]);
+
   const isToday = date === new Date().toISOString().split('T')[0];
 
-  // Resolve the active service: prefer backend service by ID, fallback to hardcoded by title
+  // Resolve the active service: prefer backend service by ID
   const activeBackendService = selectedBackendServiceId ? findServiceById(selectedBackendServiceId, backendServices) : undefined;
-  const activeServiceObj = activeBackendService || HEALTHCARE_SERVICES.find(s => s.title === service);
+  const activeServiceObj = activeBackendService;
+  const leadTimeHours = 12;
+
+  // Use API-driven slots when available (considers vendor working hours + lead time)
+  // Falls back to hardcoded TIME_SLOTS filtered by leadTimeHours
   const activeTimeSlots = activeServiceObj?.id === 'srv-generic-nurse' ? TIME_SLOTS_3HR : TIME_SLOTS;
-
-  const leadTimeHours = activeServiceObj?.leadTimeHours ?? 12;
-
-  const availableSlots = isToday
+  const fallbackSlots = isToday
     ? activeTimeSlots.filter(slot => {
         const now = new Date();
         const slotTime = new Date();
@@ -125,6 +171,8 @@ export default function BookingModal({
         return diffHours >= leadTimeHours;
       })
     : activeTimeSlots;
+
+  const availableSlots = apiSlots && apiSlots.length > 0 ? apiSlots : fallbackSlots;
 
   useEffect(() => {
     if (availableSlots.length === 0) return;
@@ -136,7 +184,7 @@ export default function BookingModal({
   // Use backend services for dropdown — fallback to hardcoded if API hasn't loaded yet
   const servicesList = backendServices.length > 0
     ? backendServices.map(s => ({ id: s.id, title: s.title, price: s.price, category: s.category || 'Other' }))
-    : HEALTHCARE_SERVICES.map(s => ({ id: s.id, title: s.title, price: s.price, category: s.category || 'Other' }));
+    : [];
 
   const groupedServices = React.useMemo(() => {
     const groups: Record<string, typeof servicesList> = {};
@@ -278,7 +326,7 @@ export default function BookingModal({
       window.location.assign(checkout.redirectUri);
       return;
     } catch (err) {
-      console.error('Booking/Payment error:', err);
+      console.error('Booking/Payment error:', err instanceof Error ? err.message : 'Unknown error');
       toast.error(err instanceof Error ? err.message : 'Could not open payment checkout.', { id: 'enbdpay-booking' });
       setIsPaymentStarting(false);
     }
@@ -322,6 +370,7 @@ export default function BookingModal({
           </div>
           <button
             onClick={success ? handleReset : onClose}
+            aria-label="Close booking dialog"
             className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full cursor-pointer transition-colors"
           >
             <X className="w-5 h-5" />
@@ -601,7 +650,7 @@ export default function BookingModal({
                   <button
                     type="submit"
                     disabled={isPaymentStarting}
-                    className="bg-medical-green hover:bg-[#0fd08f] hover:scale-102 hover:shadow-md text-white font-bold text-xs tracking-wider py-3.5 px-6 rounded-xl transition-all cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    className="bg-medical-green hover:bg-emerald-600 hover:scale-102 hover:shadow-md text-white font-bold text-xs tracking-wider py-3.5 px-6 rounded-xl transition-all cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     {isPaymentStarting ? 'OPENING PAYMENT...' : 'PAY NOW'}
                   </button>

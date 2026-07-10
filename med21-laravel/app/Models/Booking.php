@@ -12,7 +12,7 @@ class Booking extends BaseModel
         'vendor_name', 'vendor_id', 'service_id', 'price', 'date', 'time_slot',
         'region', 'status', 'payment_status', 'payment_provider', 'payment_app_utr',
         'payment_order_id', 'payment_transaction_utr', 'payment_response_status',
-        'paid_at', 'notes', 'accepted_at', 'completed_at',
+        'paid_at', 'notes', 'accepted_at', 'completed_at', 'expires_at', 'reschedule_count',
     ];
 
     protected function casts(): array
@@ -21,6 +21,8 @@ class Booking extends BaseModel
             'paid_at' => 'datetime',
             'accepted_at' => 'datetime',
             'completed_at' => 'datetime',
+            'expires_at' => 'datetime',
+            'reschedule_count' => 'integer',
         ];
     }
 

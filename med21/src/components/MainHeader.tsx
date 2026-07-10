@@ -385,7 +385,7 @@ export default function MainHeader({
               <span className="text-[11px] text-slate-400 font-medium leading-none">Cart</span>
               <span className="text-xs font-bold text-slate-800 leading-none mt-1">View Bag</span>
             </div>
-            <span className="absolute -top-1 -right-1 bg-medical-green text-white text-[10px] font-bold h-4.5 w-4.5 rounded-full flex items-center justify-center animate-pulse shadow-sm">
+            <span className={`absolute -top-1 -right-1 bg-medical-green text-white text-[10px] font-bold h-4.5 w-4.5 rounded-full flex items-center justify-center shadow-sm ${cartCount > 0 ? 'animate-pulse' : ''}`}>
               {cartCount}
             </span>
           </button>
@@ -415,7 +415,7 @@ export default function MainHeader({
             <button
               onClick={() => setShowMobileServices((current) => !current)}
               className={`w-full flex items-center justify-between gap-3 p-3 rounded-lg text-left ${
-                activeTab === 'services' || activeTab === 'lab-tests' || activeTab === 'health-packages' ? 'bg-teal-50/80 text-medical-green' : 'hover:bg-slate-50 text-slate-700'
+                activeTab === 'services' || activeTab === 'lab-tests' ? 'bg-teal-50/80 text-medical-green' : 'hover:bg-slate-50 text-slate-700'
               }`}
               aria-expanded={showMobileServices}
             >
@@ -467,7 +467,7 @@ export default function MainHeader({
                 <button
                   onClick={() => setShowMobileLabTests((current) => !current)}
                   className={`w-full flex items-center justify-between gap-3 p-2.5 rounded-lg text-left ${
-                    activeTab === 'lab-tests' || activeTab === 'health-packages' ? 'bg-emerald-50 text-medical-green' : 'hover:bg-slate-50 text-slate-600'
+                    activeTab === 'lab-tests' ? 'bg-emerald-50 text-medical-green' : 'hover:bg-slate-50 text-slate-600'
                   }`}
                   aria-expanded={showMobileLabTests}
                 >

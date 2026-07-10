@@ -5,7 +5,7 @@
 
 import React, { useState, useRef } from 'react';
 import { ChevronRight, ChevronLeft, CalendarClock, Heart, Send, Eye } from 'lucide-react';
-import { DEFAULT_HEALTHCARE_SERVICE_IMAGE, resolveHealthcareServiceImage } from '../data';
+import { DEFAULT_HEALTHCARE_SERVICE_IMAGE } from '../data';
 import { HealthcareService } from '../types';
 import { formatAedWhole } from '../utils/money';
 
@@ -70,7 +70,7 @@ export default function ProductsSection({
   };
 
   const getServiceImage = (service: HealthcareService) =>
-    resolveHealthcareServiceImage(service).image || DEFAULT_HEALTHCARE_SERVICE_IMAGE;
+    service.image || DEFAULT_HEALTHCARE_SERVICE_IMAGE;
 
   const handleServiceImageError = (event: React.SyntheticEvent<HTMLImageElement>, service: HealthcareService) => {
     const image = event.currentTarget;

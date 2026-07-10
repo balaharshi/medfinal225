@@ -197,4 +197,44 @@ ENBDPAY_MOCK=true
 
 ### Git pull fails on server
 - Check if .git folder exists: `ls -la /path/to/folder/.git`
+
+---
+
+## ⚠️ Critical Config (Added July 2026)
+
+The following .env values MUST be set correctly. See `DEPLOYMENT_GUIDE.md` for full details.
+
+```env
+APP_TIMEZONE=Asia/Dubai          # NOT UTC — Dubai is GMT+4
+SESSION_ENCRYPT=true             # Encrypt session data at rest
+MAIL_MAILER=smtp                 # NOT "log" — must send real emails
+MAIL_HOST=smtpout.secureserver.net
+MAIL_PORT=465
+MAIL_FROM_ADDRESS=booking@medzivahealthcare.com   # NO quotes around the address
+ENBDPAY_MOCK=false               # Set to false in production for real payments
+ENBDPAY_REDIRECT_URL=https://medzivahealthcare.com/payment/return
+ENBDPAY_WEBHOOK_URL=https://medzivahealthcare.com/api/payments/enbd/webhook
+# NOT: /api/enbdpay/webhook (wrong path)
+```
+
+### Cron Jobs (must be running)
+
+```
+* * * * * cd /path/to/med21-laravel && php artisan schedule:run >> /dev/null 2>&1
+```
+
+This enables:
+- `bookings:cancel-expired` — cancels unaccepted bookings (5min)
+- `bookings:send-reminders` — 24h WhatsApp/email reminders (hourly)
+- `CaptureExpiredAuthorizations` — payment auth cleanup (hourly)
+
+### Post-Deploy Checklist
+
+- [ ] Run `php artisan migrate --force`
+- [ ] Run `php artisan config:cache`
+- [ ] Run `php artisan route:cache`
+- [ ] Run `php artisan key:generate` (first time only)
+- [ ] Verify ENBDPAY_WEBHOOK_URL path is correct (/api/payments/enbd/webhook)
+- [ ] Verify MAIL_MAILER=smtp (not "log")
+- [ ] Verify APP_TIMEZONE=Asia/Dubai
 - If not, initialize git (see First-Time Server Setup)

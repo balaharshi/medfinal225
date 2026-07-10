@@ -7,12 +7,7 @@ import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronRight, ChevronLeft, CalendarClock, Eye, X, ShieldCheck, Heart, Clock, Star, MessageCircle, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import {
-  DEFAULT_HEALTHCARE_SERVICE_IMAGE,
-  SERVICE_CATEGORIES as STATIC_CATEGORIES,
-  HEALTHCARE_SERVICES as STATIC_SERVICES,
-  resolveHealthcareServiceImage,
-} from '../data';
+import { DEFAULT_HEALTHCARE_SERVICE_IMAGE } from '../data';
 import { ServiceCategory, HealthcareService } from '../types';
 import { formatAedWhole } from '../utils/money';
 
@@ -59,8 +54,8 @@ export default function ServicesSection({
   onServiceEnquire,
   onAddToCart,
   onExploreMore,
-  categoriesList = STATIC_CATEGORIES,
-  servicesList = STATIC_SERVICES,
+  categoriesList = [] as ServiceCategory[],
+  servicesList = [] as HealthcareService[],
   overlapHero = true
 }: ServicesSectionProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('cat-home-health');
@@ -69,7 +64,7 @@ export default function ServicesSection({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Filter actual services based on the clicked category
-  const activeCategoryObject = categoriesList.find(c => c.id === selectedCategory) || categoriesList[0];
+  const activeCategoryObject = categoriesList.find(c => c.id === selectedCategory) || categoriesList[0] || null;
   const activeServices = servicesList.filter(
     (s) => s.category === activeCategoryObject?.slug || s.subcategory === activeCategoryObject?.slug
   );
@@ -96,7 +91,7 @@ export default function ServicesSection({
   };
 
   const getServiceImage = (service: HealthcareService) =>
-    resolveHealthcareServiceImage(service).image || DEFAULT_HEALTHCARE_SERVICE_IMAGE;
+    service.image || DEFAULT_HEALTHCARE_SERVICE_IMAGE;
 
   const handleServiceImageError = (event: React.SyntheticEvent<HTMLImageElement>, service: HealthcareService) => {
     const image = event.currentTarget;
@@ -508,7 +503,7 @@ export default function ServicesSection({
                                 <Star key={i} className="w-3 h-3 fill-current" />
                               ))}
                             </div>
-                            <p className="text-[10px] text-slate-500 font-medium">4.9 Rating</p>
+                            <p className="text-[10px] text-slate-500 font-medium">Rating</p>
                           </div>
                         </div>
                         {(quickViewService?.bookingNotice) && (

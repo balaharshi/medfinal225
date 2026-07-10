@@ -31,10 +31,15 @@ import {
   Globe,
   HeartPulse,
   MapPin,
-  Mail
+  Mail,
+  Heart,
+  Gift
 } from 'lucide-react';
 import { useSEO } from './hooks/useSEO';
+import { useStructuredData } from './hooks/useStructuredData';
 import { api } from './lib/api';
+import { useAppData } from './context/AppDataContext';
+import ShareButtons from './components/ShareButtons';
 import NotFoundPage from './components/NotFoundPage';
 
 const SITE_DEFAULT_DESCRIPTION = 'Premium healthcare marketplace in Dubai — book home healthcare, lab tests, IV therapy, and medical equipment rental from DHA compliant providers.';
@@ -42,14 +47,19 @@ const SITE_DEFAULT_DESCRIPTION = 'Premium healthcare marketplace in Dubai — bo
 // Static Data and Types
 import {
   DEFAULT_HEALTHCARE_SERVICE_IMAGE,
-  SERVICE_CATEGORIES,
-  PRODUCTS,
-  HEALTHCARE_SERVICES,
   DUBAI_LOCATIONS,
-  resolveHealthcareServiceImage,
 } from './data';
 import { ActiveTab, CartItem, Product, HealthcareService, ServiceCategory } from './types';
-import { LAB_TESTS_AT_HOME_CATEGORIES } from '../../shared/labTestsAtHomeCatalog.js';
+
+const LAB_TESTS_AT_HOME_CATEGORIES = [
+  { title: 'Routine Blood Tests', slug: 'routine-blood-tests' },
+  { title: 'Preventive Health Packages', slug: 'preventive-health-packages' },
+  { title: "Men's Health Packages", slug: 'mens-health-packages' },
+  { title: "Women's Health Packages", slug: 'womens-health-packages' },
+  { title: 'STD / Sexual Health', slug: 'std-sexual-health' },
+  { title: 'Specialized Diagnostic Tests', slug: 'specialized-diagnostic-tests' },
+  { title: 'Genetic Testing', slug: 'genetic-testing' },
+];
 
 // UI Components
 import MainHeader from './components/MainHeader';
@@ -70,7 +80,7 @@ import RentalBookingModal from './components/RentalBookingModal';
 import PhoneInput from './components/PhoneInput';
 import medicalTourismImg from './assets/images/services/medical-tourism.jpg';
 import shippingCrewImg from './assets/images/services/shipping-crew.jpg';
-import ErrorBoundary from './components/ErrorBoundary';
+import SocialProofPopup from './components/SocialProofPopup';
 import { subscribeToNotifications } from './services/pusherClient';
 import { checkEnbdpayStatus } from './services/enbdpay';
 import { FAQ_SECTIONS, PRIVACY_SECTIONS, TERMS_SECTIONS } from './content/legalContent';
@@ -133,16 +143,40 @@ const DEFAULT_LAB_TESTS_ROUTE = 'routine-blood-tests';
 
 const HOME_ADDITIONAL_HEALTHCARE_CATEGORIES = [
   {
+    id: 'cat-nursing-care',
+    title: 'Nursing Care at Home',
+    slug: 'nursing-care-at-home',
+    description: 'Professional nursing support delivered at the comfort of your home, including routine nurse visits, wound dressing, catheterisation, and prescription-based IV antibiotic administration.',
+  },
+  {
+    id: 'cat-physiotherapy',
+    title: 'Physiotherapy at Home',
+    slug: 'physiotherapy-at-home',
+    description: 'Professional physiotherapy sessions delivered at the comfort of your home, including rehabilitation support, mobility improvement, pain management, and recovery-focused exercises.',
+  },
+  {
+    id: 'cat-doctor-on-call',
+    title: 'Doctor on Call',
+    slug: 'doctor-on-call',
+    description: 'Convenient medical consultations at your home with qualified doctors providing assessment, advice, treatment guidance, and follow-up care.',
+  },
+  {
     id: 'cat-long-term-care',
     title: 'Long-Term / Specialized Care',
     slug: 'long-term-care',
     description: 'Dedicated nursing support at home for long-term and specialized care needs, including ongoing monitoring, chronic condition management, and personalised patient assistance.',
   },
   {
-    id: 'cat-rent-medical-equipments',
-    title: 'Rent Medical Equipment',
-    slug: 'devices-for-rent',
-    description: 'Rent certified medical equipment with weekly and monthly options for home healthcare support.',
+    id: 'cat-speech-therapy',
+    title: 'Speech and Language Therapy',
+    slug: 'speech-and-language-therapy',
+    description: 'Specialized therapy at home to support speech, communication, language development, and swallowing difficulties through personalized care plans.',
+  },
+  {
+    id: 'cat-occupational-therapy',
+    title: 'Occupational Therapy',
+    slug: 'occupational-therapy',
+    description: 'Personalized therapy at home to improve daily living skills, independence, mobility, and functional abilities through tailored rehabilitation programs.',
   },
   {
     id: 'cat-iv-therapy',
@@ -207,22 +241,6 @@ const PRODUCT_PAGE_COPY: Record<string, { title: string; description: string }> 
 };
 
 const DEFAULT_PRODUCT_ROUTE = 'rent-medical-equipments';
-const IV_THERAPY_ALLOWED_IDS = new Set([
-  'srv-iv-skin-glow',
-  'srv-iv-hair-skin-nail-care',
-  'srv-iv-energy-weight-loss',
-  'srv-iv-immune-hydration-drip',
-  'srv-iv-antistress-relax',
-  'srv-iv-gut-cleanse-acne-cure',
-  'srv-iv-memory-boost',
-  'srv-iv-surgery-recovery',
-  'srv-iv-women-health-fertilty',
-  'srv-iv-men-power-drip',
-  'srv-iv-liver-detox-after-party',
-  'srv-iv-nad-100',
-  'srv-iv-nad-250',
-  'srv-iv-nad-500',
-]);
 
 const addSpacesAroundSlashes = (value?: string) =>
   value?.replace(/\s*\/\s*/g, ' / ');
@@ -318,9 +336,9 @@ function NotFoundPageWrapper() {
 
 function AdminDashboardApp() {
   const [db, setDb] = useState({
-    categories: SERVICE_CATEGORIES as any[],
-    products: PRODUCTS as any[],
-    services: HEALTHCARE_SERVICES as any[]
+    categories: [] as any[],
+    products: [] as any[],
+    services: [] as any[]
   });
   const triggerToast = (msg: string) => {
     toast.success(msg);
@@ -349,8 +367,7 @@ function AdminDashboardApp() {
       }
       if (srvRes.ok) {
         const services = await srvRes.json();
-        const servicesWithLocalImages = services.map(resolveHealthcareServiceImage);
-        if (servicesWithLocalImages.length > 0) setDb(prev => ({ ...prev, services: servicesWithLocalImages }));
+        if (services.length > 0) setDb(prev => ({ ...prev, services }));
       }
     } catch (error) {
       console.error('Error fetching admin data:', error);
@@ -651,56 +668,9 @@ function MainApp() {
   // Toast / Copy notification states
   const [copiedCoupon, setCopiedCoupon] = useState<string | null>(null);
 
-  // Reactive ERP states loaded from back-end
-  const [db, setDb] = useState<{
-    categories: any[];
-    products: any[];
-    services: any[];
-  }>({
-    categories: SERVICE_CATEGORIES,
-    products: PRODUCTS,
-    services: HEALTHCARE_SERVICES
-  });
-
-  const fetchDb = async () => {
-    try {
-      const [catRes, srvRes] = await Promise.all([
-        fetch('/api/categories'),
-        fetch('/api/services'),
-      ]);
-
-      if (catRes.ok) {
-        const categories = await catRes.json();
-        if (categories.length > 0) setDb(prev => ({ ...prev, categories }));
-      }
-
-      if (srvRes.ok) {
-        const liveServices = (await srvRes.json())
-          .map(resolveHealthcareServiceImage)
-          .filter((service: any) =>
-            !(service.category === 'iv-therapy' || service.subcategory === 'iv-therapy') ||
-            IV_THERAPY_ALLOWED_IDS.has(service.id)
-          );
-        if (liveServices.length > 0) {
-          const liveIds = new Set(liveServices.map((s: any) => s.id));
-          const hasLiveIvTherapy = liveServices.some((s: any) => s.category === 'iv-therapy' || s.subcategory === 'iv-therapy');
-          setDb(prev => ({
-            ...prev,
-            services: [
-              ...prev.services.filter(s => !liveIds.has(s.id) && !(hasLiveIvTherapy && (s.category === 'iv-therapy' || s.subcategory === 'iv-therapy'))),
-              ...liveServices,
-            ],
-          }));
-        }
-      }
-    } catch (e) {
-      console.error('Error fetching service data:', e);
-    }
-  };
-
-  useEffect(() => {
-    fetchDb();
-  }, []);
+  // Data from API via shared context
+  const { categories: dbCategories, products: dbProducts, services: dbServices, loading: dataLoading } = useAppData();
+  const db = { categories: dbCategories, products: dbProducts, services: dbServices };
 
   useEffect(() => {
     if (activeTab !== 'search-results') {
@@ -728,7 +698,7 @@ function MainApp() {
     }
 
     if (location.pathname === '/') {
-      if (activeTab === 'services' || activeTab === 'products') {
+      if (activeTab === 'services' || activeTab === 'products' || activeTab === 'lab-tests') {
         setActiveTab('home');
         setActiveSectionId(null);
       }
@@ -752,17 +722,14 @@ function MainApp() {
   }, [db.services]);
 
   const homeHealthcareCategories = useMemo(() => {
-    const categoriesBySlug = new Map<string, ServiceCategory>(
-      SERVICE_CATEGORIES.map((category) => [category.slug, category as ServiceCategory]),
-    );
+    const categoriesBySlug = new Map<string, ServiceCategory>();
 
     db.categories
       .filter((category) => category.slug !== 'service')
       .forEach((category) => {
-        const existing = categoriesBySlug.get(category.slug);
         categoriesBySlug.set(category.slug, {
           ...(category as ServiceCategory),
-          image: existing?.image || (category as ServiceCategory).image || '',
+          image: (category as ServiceCategory).image || '',
         } as ServiceCategory);
       });
 
@@ -770,6 +737,9 @@ function MainApp() {
       const existingCategory = categoriesBySlug.get(category.slug);
       const matchingService = db.services.find(
         (service) => service.category === category.slug || service.subcategory === category.slug,
+      );
+      const matchingProduct = db.products.find(
+        (product) => product.category === category.slug || product.subcategory === category.slug,
       );
 
       const catImage = (category as any).image;
@@ -780,6 +750,7 @@ function MainApp() {
           catImage ||
           existingCategory?.image ||
           matchingService?.image ||
+          matchingProduct?.image ||
           '',
       });
     });
@@ -972,7 +943,7 @@ function MainApp() {
   const getServiceImageClassName = (_srv: HealthcareService) => 'w-full h-full object-cover';
 
   const getServiceImage = (srv: HealthcareService) =>
-    resolveHealthcareServiceImage(srv).image || DEFAULT_HEALTHCARE_SERVICE_IMAGE;
+    srv.image || DEFAULT_HEALTHCARE_SERVICE_IMAGE;
 
   const handleServiceImageError = (event: SyntheticEvent<HTMLImageElement>, srv: HealthcareService) => {
     const image = event.currentTarget;
@@ -1193,7 +1164,7 @@ function MainApp() {
       return;
     }
 
-    if (tab === 'lab-tests' || tab === 'health-packages') {
+    if (tab === 'lab-tests') {
       if (sectionId === 'customize-lab-package-section') {
         setActiveTab('lab-tests');
         setActiveSectionId(sectionId);
@@ -1315,13 +1286,14 @@ function MainApp() {
         'iv-therapy': { title: 'IV Therapy', desc: 'Professional IV therapy administered at home under medical guidance, offering convenient access to prescribed treatments, hydration support, and wellness infusions.' },
       };
       const data = routeLabels[currentServiceRoute] || { title: 'Healthcare Services', desc: SITE_DEFAULT_DESCRIPTION };
-      return { title: data.title, description: data.desc, canonicalPath: `/services/${currentServiceRoute}` };
+      return { title: data.title, description: data.desc, canonicalPath: `/services/${currentServiceRoute}`, ogImage: `/og-${currentServiceRoute}.jpg` };
     }
     if (activeTab === 'lab-tests') {
-      return { title: 'Lab Tests at Home', description: 'Book lab tests at home in Dubai. Routine blood tests, preventive health packages, STD screening, and genetic testing with home sample collection.', canonicalPath: '/services/lab-tests-at-home' };
+      const labRoute = currentLabTestsRoute || '';
+      return { title: 'Lab Tests at Home', description: 'Book lab tests at home in Dubai. Routine blood tests, preventive health packages, STD screening, and genetic testing with home sample collection.', canonicalPath: labRoute ? `/services/lab-tests-at-home/${labRoute}` : '/services/lab-tests-at-home', ogImage: '/og-lab-tests.jpg' };
     }
     if (activeTab === 'products') {
-      return { title: 'Medical Equipment', description: 'Rent certified medical equipment in Dubai. Hospital beds, oxygen concentrators, wheelchairs, BP monitors, and more.', canonicalPath: '/products' };
+      return { title: 'Medical Equipment Rental', description: 'Rent certified medical equipment in Dubai. Hospital beds, oxygen concentrators, wheelchairs, BP monitors, and more.', canonicalPath: '/products/rent-medical-equipments', ogImage: '/og-rental.jpg' };
     }
     if (activeTab === 'wellness') {
       return { title: 'Other Services', description: 'Medical tourism facilitation and medical support for shipping crew members in Dubai and Sharjah.' };
@@ -1345,9 +1317,10 @@ function MainApp() {
       return { title: 'About Us', description: 'MedZiva International Healthcare L.L.C — premium healthcare marketplace in Dubai connecting patients with DHA compliant providers.', canonicalPath: '/about' };
     }
     return { title: 'Home', description: SITE_DEFAULT_DESCRIPTION, canonicalPath: '/' };
-  }, [activeTab, currentServiceRoute]);
+  }, [activeTab, currentServiceRoute, currentLabTestsRoute]);
 
   useSEO(seoData);
+  useStructuredData();
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans transition-all selection:bg-teal-500 selection:text-white">
@@ -1398,6 +1371,11 @@ function MainApp() {
       />
 
       {/* 3. Horizontal Navigation Menu bar */}
+      {dataLoading && (
+        <div className="h-0.5 bg-blue-100 overflow-hidden">
+          <div className="h-full bg-medical-green animate-pulse rounded-full" style={{ width: '30%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+        </div>
+      )}
       <NavigationMenu 
         activeTab={activeTab} 
         activeSectionId={activeSectionId}
@@ -1473,7 +1451,6 @@ function MainApp() {
 
       {/* 4. Display Core layouts based on dynamic state ActiveTab */}
       <main className="flex-grow">
-        <ErrorBoundary>
         
         {activeTab === 'search-results' && (
           <div className="max-w-7xl mx-auto py-10 px-4 page-section">
@@ -1976,7 +1953,7 @@ function MainApp() {
         )}
 
         {/* Dedicated view: LAB TESTS page */}
-        {activeTab === 'lab-tests' && (
+      {activeTab === 'lab-tests' && (
           <div id={currentLabTestsSectionId || 'lab-tests-section'} className="max-w-7xl mx-auto py-10 px-4 text-left page-section scroll-mt-32">
             <div id="std-sexual-health-section" className="scroll-mt-32" aria-hidden="true" />
             <div id="specialized-diagnostic-tests-section" className="scroll-mt-32" aria-hidden="true" />
@@ -2033,7 +2010,7 @@ function MainApp() {
                                 Popular
                               </span>
                             )}
-                            <h3 className="text-sm font-extrabold text-blue-950 leading-snug line-clamp-2 min-h-[36px]">{srv.title}</h3>
+                            <h3 className="text-sm font-extrabold text-blue-950 leading-snug line-clamp-2 min-h-[36px]" title={srv.title}>{srv.title}</h3>
                             <div className="flex flex-wrap items-center gap-1.5 mt-1 text-xs">
                               <span className="text-medical-green font-black">AED {formatAedWhole(srv.price)}</span>
                             </div>
@@ -2234,130 +2211,6 @@ function MainApp() {
                 </button>
               </div>
             )}
-          </div>
-        )}
-
-        {/* Dedicated view: HEALTH PACKAGES screen details */}
-        {activeTab === 'health-packages' && (
-          <div className="max-w-7xl mx-auto py-10 px-4 text-left page-section">
-            <div id="preventive-health-packages-section" className="scroll-mt-32" aria-hidden="true" />
-            <div id="womens-health-packages-section" className="scroll-mt-32" aria-hidden="true" />
-            <div className="border-b border-slate-100 pb-5 mb-8">
-              <span className="text-medical-green text-xs font-bold uppercase tracking-widest block mb-1">MedZiva comprehensive checkups</span>
-              <h1 className="text-3xl font-black text-blue-950">Vetted At-Home Clinical Packages</h1>
-              <p className="text-slate-500 text-sm mt-1 max-w-xl">
-                Full physical cardiovascular evaluations, diabetes profile bundles, endocrine screenings, and comprehensive elder care monthly subscriptions designed for optimized families.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                {
-                  id: 'hp-premium',
-                  title: 'MedZiva Platinum Comprehensive Pack',
-                  desc: 'Our gold standard full physical evaluation. Covers full profile lipids, diabetes checks, liver/kidney counts, heavy vitamins profile, and an at-home clinician consult.',
-                  bullets: ['Complete lipid panel & HbA1c', 'Liver & kidney metrics assessment', 'Clinician visiting consult included', 'Qualified blood sample collection'],
-                  price: 499,
-                  oldPrice: 650,
-                  tag: 'Most Popular'
-                },
-                {
-                  id: 'hp-cardiac',
-                  title: 'Cardiac Hazard Prevention Bundle',
-                  desc: 'A diagnostic profile targeting coronary risk parameters. Identifies high density lipid levels, specific cardiac proteins, uric index, and high tension blood pressure evaluations.',
-                  bullets: ['Total lipids & triglycerides index', 'High tension readings auditing', 'Uric acid indicators check', 'DHA approved physical analysis'],
-                  price: 349,
-                  oldPrice: 480,
-                  tag: 'Coronary Vetted'
-                },
-                {
-                  id: 'hp-fitness',
-                  title: 'Elite Fitness and Body Mass Audit',
-                  desc: 'Constructed for athletes or customers during body composition tracking. Monitors endocrine indices, creatine, basic lipid metabolism, and thyroid indicators.',
-                  bullets: ['Thyroid profile & hormonal check', 'Creatine counts auditing', 'Safe home visit drawn vial', 'Metabolic rate overview report'],
-                  price: 299,
-                  oldPrice: 399,
-                  tag: 'Metabolism Vetted'
-                },
-                {
-                  id: 'hp-male-tumour-marker',
-                  sectionId: 'mens-health-packages-section',
-                  title: 'Cancer / Tumour Marker Profile (Male)',
-                  desc: 'Screening profile for men focused on cancer risk markers and early detection through at-home sample collection.',
-                  bullets: ['AFP', 'Total hCG', 'CA 19-9', 'CBC (19)', 'Prostate Profile: PSA Total, PSA Free, PSA Ratio'],
-                  price: 260,
-                  tag: "Men's Health",
-                  who: 'Men for cancer screening & early detection',
-                  prep: 'No fasting required',
-                  result: 'Same day / Next day'
-                }
-              ].map((pack) => (
-                <div 
-                  key={pack.id}
-                  id={pack.sectionId}
-                  className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between scroll-mt-32"
-                >
-                  <div>
-                    <div className="flex justify-between items-start mb-3">
-                      <span className="bg-purple-50 text-purple-700 text-[9px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider border border-purple-100">
-                        {pack.tag}
-                      </span>
-                    </div>
-
-                    <h3 className="text-sm sm:text-base font-extrabold text-blue-950 leading-snug mb-2">{pack.title}</h3>
-                    <p className="text-xs text-slate-500 leading-relaxed font-normal mb-5">{pack.desc}</p>
-                    {(pack.who || pack.prep || pack.result) && (
-                      <div className="space-y-2 mb-5">
-                        {pack.who && (
-                          <p className="text-[11px] text-slate-600 leading-relaxed">
-                            <span className="font-extrabold text-blue-950">Who:</span> {pack.who}
-                          </p>
-                        )}
-                        {pack.prep && (
-                          <p className="text-[11px] text-slate-600 leading-relaxed">
-                            <span className="font-extrabold text-blue-950">Prep:</span> {pack.prep}
-                          </p>
-                        )}
-                        {pack.result && (
-                          <p className="text-[11px] text-slate-600 leading-relaxed">
-                            <span className="font-extrabold text-blue-950">Result:</span> {pack.result}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Bullet elements */}
-                    <div className="space-y-2 mb-6">
-                      {pack.bullets.map((bullet, idx) => (
-                        <div key={idx} className="flex items-center gap-2 text-xs text-slate-600">
-                          <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                          <span>{bullet}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] text-slate-400 font-bold block leading-none uppercase">Full package cost</span>
-                      <div className="flex items-baseline gap-2 mt-1">
-                        <span className="text-base font-black text-medical-green leading-none">AED {formatAedWhole(pack.price)}</span>
-                        {pack.oldPrice && (
-                          <span className="text-xs font-medium text-slate-400 line-through leading-none">AED {formatAedWhole(pack.oldPrice)}</span>
-                        )}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => triggerServiceBooking(pack.title, pack.price)}
-                      className="bg-medical-green hover:bg-emerald-600 text-white font-bold text-xs py-3 px-5 rounded-xl cursor-pointer transition-all shrink-0"
-                    >
-                      Book Package Slot
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         )}
 
@@ -2670,7 +2523,9 @@ function MainApp() {
                             serviceTitle: 'Provider Registration',
                           },
                         });
-                       } catch {
+                       } catch (e) {
+                        toast.error('Registration failed. Please try again.');
+                        return;
                       }
                       setProviderApplied(true);
                     }}
@@ -2751,7 +2606,9 @@ function MainApp() {
                             serviceTitle: 'Support Request',
                           },
                         });
-                       } catch {
+                       } catch (e) {
+                        toast.error('Failed to send support request. Please try again.');
+                        return;
                       }
                       setSupportSubmitted(true);
                     }}
@@ -2945,6 +2802,11 @@ function MainApp() {
                     <p className="mt-2 text-sm leading-6 text-slate-600">
                       {serviceDetails.fullDescription || serviceDetails.description}
                     </p>
+                    <ShareButtons
+                      title={serviceDetails.title}
+                      description={serviceDetails.shortDescription || serviceDetails.description}
+                      className="mt-3"
+                    />
                   </div>
 
                   {serviceDetails.inclusions?.length ? (
@@ -3017,7 +2879,6 @@ function MainApp() {
             </div>
           )}
         </AnimatePresence>
-        </ErrorBoundary>
       </main>
 
       {/* Mobile Bottom Tab Bar - Only visible on mobile */}
@@ -3030,7 +2891,7 @@ function MainApp() {
             }`}
           >
             {activeTab === 'home' && <motion.span layoutId="mobile-active-tab" className="absolute inset-0 rounded-xl bg-emerald-50" />}
-            <span className="relative z-10 text-[22px] leading-none" aria-hidden="true">🏠</span>
+            <span className="relative z-10" aria-hidden="true"><Home className="w-5 h-5" /></span>
             <span className="relative z-10 text-[10px] font-bold">Home</span>
           </button>
           <button
@@ -3045,7 +2906,7 @@ function MainApp() {
             }`}
           >
             {(activeTab === 'services' || activeTab === 'lab-tests') && <motion.span layoutId="mobile-active-tab" className="absolute inset-0 rounded-xl bg-emerald-50" />}
-            <span className="relative z-10 text-[22px] leading-none" aria-hidden="true">🩺</span>
+            <span className="relative z-10" aria-hidden="true"><Stethoscope className="w-5 h-5" /></span>
             <span className="relative z-10 text-[10px] font-bold">Services</span>
           </button>
           <button
@@ -3060,7 +2921,7 @@ function MainApp() {
             }`}
           >
             {activeTab === 'products' && <motion.span layoutId="mobile-active-tab" className="absolute inset-0 rounded-xl bg-emerald-50" />}
-            <span className="relative z-10 text-[22px] leading-none" aria-hidden="true">🛒</span>
+            <span className="relative z-10" aria-hidden="true"><ShoppingCart className="w-5 h-5" /></span>
             <span className="relative z-10 text-[10px] font-bold">Shop</span>
           </button>
           <button
@@ -3070,7 +2931,7 @@ function MainApp() {
             }`}
           >
             {activeTab === 'wellness' && <motion.span layoutId="mobile-active-tab" className="absolute inset-0 rounded-xl bg-emerald-50" />}
-            <span className="relative z-10 text-[22px] leading-none" aria-hidden="true">❤️</span>
+            <span className="relative z-10" aria-hidden="true"><Heart className="w-5 h-5" /></span>
             <span className="relative z-10 text-[10px] font-bold">Other Services</span>
           </button>
           <button
@@ -3080,7 +2941,7 @@ function MainApp() {
             }`}
           >
             {activeTab === 'offers' && <motion.span layoutId="mobile-active-tab" className="absolute inset-0 rounded-xl bg-emerald-50" />}
-            <span className="relative z-10 text-[22px] leading-none" aria-hidden="true">🎁</span>
+            <span className="relative z-10" aria-hidden="true"><Gift className="w-5 h-5" /></span>
             <span className="relative z-10 text-[10px] font-bold">Offers</span>
           </button>
         </div>
@@ -3100,6 +2961,9 @@ function MainApp() {
 
       {/* 5. Deep Blue Healthcare Footer */}
       <Footer onNavigationClick={handleTabChange} />
+
+      {/* Social proof popup */}
+      <SocialProofPopup services={db.services.filter((s: any) => s.category !== 'lab-tests')} products={db.products} cartOpen={isCartOpen} />
 
       {/* 6. Sliding Side Cart Drawer */}
       <CartDrawer 

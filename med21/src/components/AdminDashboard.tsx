@@ -52,7 +52,7 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import ConfirmDialog from "./ConfirmDialog";
 import SocialAuthButtons from "./SocialAuthButtons";
 import PhoneInput from "./PhoneInput";
-import { HEALTHCARE_SERVICES, DEFAULT_HEALTHCARE_SERVICE_IMAGE } from "../data";
+import { DEFAULT_HEALTHCARE_SERVICE_IMAGE } from "../data";
 import { subscribeToNotifications } from "../services/pusherClient";
 
 interface AdminDashboardProps {
@@ -212,7 +212,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       .replace(/[^a-z0-9]+/g, "")
       .trim();
   const frontendServiceImageByKey = useMemo(() => {
-    const entries = HEALTHCARE_SERVICES.flatMap((service) => {
+    const entries = (db.services || []).flatMap((service: any) => {
       const normalizedTitle = normalizeServiceImageKey(service.title || "");
       return [
         [String(service.id || ""), service.image],
@@ -223,7 +223,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       ];
     });
     return new Map(entries.filter(([key]) => Boolean(key)) as Array<[string, string]>);
-  }, []);
+  }, [db.services]);
   const getServiceRecordImage = (service: any) =>
     frontendServiceImageByKey.get(String(service.id || "")) ||
     frontendServiceImageByKey.get(String(service.title || "").trim().toLowerCase()) ||
@@ -328,7 +328,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     siteName: "MedZiva Home Healthcare",
     vatPercent: 5,
     defaultCurrency: "AED",
-    supportEmail: "support@medziva.ae",
+    supportEmail: "support@medzivahealthcare.com",
     serviceRegions: ["Dubai", "Sharjah"],
     maintenanceMode: false,
     adminUsername: "admin"
@@ -417,7 +417,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     siteName: "",
     vatPercent: 5,
     defaultCurrency: "AED",
-    supportEmail: "support@medziva.ae",
+    supportEmail: "support@medzivahealthcare.com",
     serviceRegions: [] as string[],
     maintenanceMode: false,
     adminPassword: ""
@@ -513,7 +513,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
           siteName: data.siteName || "MedZiva Home Healthcare",
           vatPercent: Number(data.vatPercent) || 5,
           defaultCurrency: data.defaultCurrency || "AED",
-          supportEmail: data.supportEmail || "support@medziva.ae",
+          supportEmail: data.supportEmail || "support@medzivahealthcare.com",
           serviceRegions: data.serviceRegions || ["Dubai", "Sharjah"],
           maintenanceMode: !!data.maintenanceMode,
           adminPassword: ""
@@ -976,7 +976,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     const nextActive = service.active === false || service.status === "inactive";
     const nextStatus = nextActive ? "active" : "inactive";
     try {
-      const response = await fetch(`/api/service/${service.id}`, getAdminRequestInit({
+      const response = await fetch(`/api/services/${service.id}`, getAdminRequestInit({
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -997,7 +997,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const handleToggleServicePopular = async (service: any) => {
     const nextPopular = !service.popular;
     try {
-      const response = await fetch(`/api/service/${service.id}`, getAdminRequestInit({
+      const response = await fetch(`/api/services/${service.id}`, getAdminRequestInit({
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1126,7 +1126,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
     try {
       const isEdit = !!editingServiceId;
-      const url = isEdit ? `/api/service/${editingServiceId}` : "/api/services";
+      const url = isEdit ? `/api/services/${editingServiceId}` : "/api/services";
       const method = isEdit ? "PATCH" : "POST";
       
       const response = await fetch(
@@ -1192,7 +1192,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       `This will permanently remove "${name}" from the service catalog and admin records.`,
       async () => {
         try {
-          const response = await fetch(`/api/service/${id}`, getAdminRequestInit({ method: "DELETE" }));
+          const response = await fetch(`/api/services/${id}`, getAdminRequestInit({ method: "DELETE" }));
           if (response.ok) {
             triggerToast(`${name} deleted from active catalog.`);
             onRefresh();
@@ -1574,7 +1574,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     const targetStatus = currentStatus === "Pending Response" ? "Answered" : "Closed";
     try {
       const res = await fetch(
-        `/api/enquiryStatus/${id}`,
+        `/api/enquiries/${id}/status`,
         getAdminRequestInit({
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1595,7 +1595,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       "Are you sure you want to delete this enquiry from records?",
       async () => {
         try {
-          const res = await fetch(`/api/enquiry/${id}`, getAdminRequestInit({ method: "DELETE" }));
+          const res = await fetch(`/api/enquiries/${id}`, getAdminRequestInit({ method: "DELETE" }));
           if (res.ok) {
             triggerToast("Enquiry deleted.");
             fetchAdminData();

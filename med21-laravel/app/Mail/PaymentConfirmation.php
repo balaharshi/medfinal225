@@ -4,11 +4,12 @@ namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class PaymentConfirmation extends Mailable
+class PaymentConfirmation extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -19,7 +20,7 @@ class PaymentConfirmation extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "Payment Received - {$this->booking['service_title']}",
+            subject: "Payment Received - {$this->booking['serviceTitle'] ?? $this->booking['service_title'] ?? 'Healthcare Service'}",
         );
     }
 
@@ -33,11 +34,11 @@ class PaymentConfirmation extends Mailable
     private function buildHtml(): string
     {
         $booking = $this->booking;
-        $serviceName = htmlspecialchars($booking['service_title'] ?? 'Healthcare Service');
-        $customerName = htmlspecialchars($booking['customer_name'] ?? 'Valued Customer');
+        $serviceName = htmlspecialchars($booking['serviceTitle'] ?? $booking['service_title'] ?? 'Healthcare Service');
+        $customerName = htmlspecialchars($booking['customerName'] ?? $booking['customer_name'] ?? 'Valued Customer');
         $bookingId = htmlspecialchars($booking['id'] ?? 'N/A');
         $date = htmlspecialchars($booking['date'] ?? 'N/A');
-        $timeSlot = htmlspecialchars($booking['time_slot'] ?? 'N/A');
+        $timeSlot = htmlspecialchars($booking['timeSlot'] ?? $booking['time_slot'] ?? 'N/A');
         $price = number_format($booking['price'] ?? 0);
 
         return "
@@ -100,6 +101,7 @@ class PaymentConfirmation extends Mailable
 
         <!-- Footer -->
         <div style='background-color:#f1f5f9;padding:20px;text-align:center;'>
+            <p style='color:#475569;font-size:13px;font-weight:700;margin:0 0 4px;'>— MedZiva Team</p>
             <p style='color:#94a3b8;font-size:11px;margin:0 0 5px;'>MedZiva International Healthcare L.L.C.</p>
             <p style='color:#94a3b8;font-size:11px;margin:0;'>Dubai, United Arab Emirates | medzivahealthcare.com</p>
         </div>

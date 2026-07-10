@@ -31,34 +31,36 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
         Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1');
     });
 
-    Route::post('/payments/enbd/create', [PaymentController::class, 'createEnbdpayCheckout'])->middleware('throttle:5,1');
+    Route::post('/payments/enbd/create', [PaymentController::class, 'createEnbdpayCheckout'])->middleware('api.auth', 'throttle:5,1');
     Route::get('/payments/enbd/status', [PaymentController::class, 'getEnbdpayStatus'])->middleware('throttle:30,1');
     Route::post('/payments/enbd/webhook', [PaymentController::class, 'enbdpayWebhook'])->middleware('throttle:60,1');
-    Route::post('/payments/enbd/capture', [PaymentController::class, 'captureTransaction'])->middleware('throttle:10,1');
-    Route::post('/payments/enbd/refund', [PaymentController::class, 'refundTransaction'])->middleware('throttle:10,1');
-    Route::post('/payments/enbd/void/auth', [PaymentController::class, 'voidAuthorization'])->middleware('throttle:10,1');
-    Route::post('/payments/enbd/void/capture', [PaymentController::class, 'voidCapture'])->middleware('throttle:10,1');
-    Route::post('/payments/enbd/void/refund', [PaymentController::class, 'voidRefund'])->middleware('throttle:10,1');
+    Route::post('/payments/enbd/capture', [PaymentController::class, 'captureTransaction'])->middleware($admin, 'throttle:10,1');
+    Route::post('/payments/enbd/refund', [PaymentController::class, 'refundTransaction'])->middleware($admin, 'throttle:10,1');
+    Route::post('/payments/enbd/void/auth', [PaymentController::class, 'voidAuthorization'])->middleware($admin, 'throttle:10,1');
+    Route::post('/payments/enbd/void/capture', [PaymentController::class, 'voidCapture'])->middleware($admin, 'throttle:10,1');
+    Route::post('/payments/enbd/void/refund', [PaymentController::class, 'voidRefund'])->middleware($admin, 'throttle:10,1');
 
-    Route::get('/categories', [CatalogController::class, 'getCategories']);
+    Route::get('/categories', [CatalogController::class, 'getCategories'])->middleware('throttle:60,1');
     Route::post('/categories', [CatalogController::class, 'createCategory'])->middleware($admin);
     Route::patch('/category/{id}', [CatalogController::class, 'updateCategory'])->middleware($admin);
     Route::delete('/category/{id}', [CatalogController::class, 'deleteCategory'])->middleware($admin);
     Route::post('/categories/{catId}/subcategories', [CatalogController::class, 'createSubcategory'])->middleware($admin);
     Route::delete('/categories/{catId}/subcategories/{subId}', [CatalogController::class, 'deleteSubcategory'])->middleware($admin);
 
-    Route::get('/products', [CatalogController::class, 'getProducts']);
+    Route::get('/products', [CatalogController::class, 'getProducts'])->middleware('throttle:60,1');
     Route::post('/products', [CatalogController::class, 'createProduct'])->middleware($admin);
     Route::delete('/products/{id}', [CatalogController::class, 'deleteProduct'])->middleware($admin);
 
     Route::get('/services/all', [CatalogController::class, 'getAllServices'])->middleware($admin);
-    Route::get('/services', [CatalogController::class, 'getServices']);
+    Route::get('/services', [CatalogController::class, 'getServices'])->middleware('throttle:60,1');
     Route::post('/services', [CatalogController::class, 'createService'])->middleware($admin);
     Route::patch('/services/{id}', [CatalogController::class, 'updateService'])->middleware($admin);
     Route::delete('/services/{id}', [CatalogController::class, 'deleteService'])->middleware($admin);
+    Route::get('/services/{serviceId}/available-slots', [CatalogController::class, 'getAvailableSlots'])->middleware('throttle:30,1');
 
-    Route::get('/vendors', [CatalogController::class, 'getVendors']);
+    Route::get('/vendors', [CatalogController::class, 'getVendors'])->middleware('throttle:60,1');
     Route::get('/users', [CatalogController::class, 'getUsers'])->middleware($admin);
+    Route::delete('/users/{id}', [CatalogController::class, 'deleteUser'])->middleware($admin);
     Route::post('/vendors', [CatalogController::class, 'createVendor'])->middleware($admin);
     Route::patch('/vendor/{id}', [CatalogController::class, 'updateVendor'])->middleware($admin);
     Route::delete('/vendors/{id}', [CatalogController::class, 'deleteVendor'])->middleware($admin);
@@ -69,14 +71,19 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
     Route::get('/vendors/{vendorId}/service-assignments', [VendorServiceAssignmentController::class, 'index'])->middleware($admin);
     Route::patch('/vendors/{vendorId}/service-assignments/{serviceId}', [VendorServiceAssignmentController::class, 'update'])->middleware($admin);
     Route::post('/vendors/{vendorId}/service-assignments/bulk', [VendorServiceAssignmentController::class, 'bulk'])->middleware($admin);
+    Route::get('/vendors/{vendorId}/export-catalog', [CatalogController::class, 'exportVendorCatalog'])->middleware($admin);
+    Route::post('/vendors/{vendorId}/import-catalog', [CatalogController::class, 'importVendorCatalog'])->middleware($admin);
     Route::get('/vendorProfile/{vendorId}', [CatalogController::class, 'getVendorProfile'])->middleware($vendorSelfOrAdmin);
     Route::patch('/vendorProfile/{vendorId}', [CatalogController::class, 'updateVendorProfile'])->middleware($admin);
     Route::get('/vendorProfile/{vendorId}/change-requests', [CatalogController::class, 'getVendorProfileChangeRequests'])->middleware($vendorSelfOrAdmin);
     Route::post('/vendorProfile/{vendorId}/change-requests', [CatalogController::class, 'createVendorProfileChangeRequest'])->middleware($vendorSelfOrAdmin);
+    Route::get('/vendor-working-hours/{vendorId}', [CatalogController::class, 'getVendorWorkingHours'])->middleware($vendorSelfOrAdmin);
+    Route::put('/vendor-working-hours/{vendorId}', [CatalogController::class, 'updateVendorWorkingHours'])->middleware($vendorSelfOrAdmin);
     Route::get('/vendorProfileChangeRequests', [CatalogController::class, 'getAllVendorProfileChangeRequests'])->middleware($admin);
     Route::patch('/vendorProfileChangeRequests/{id}/review', [CatalogController::class, 'reviewVendorProfileChangeRequest'])->middleware($admin);
 
     Route::get('/admin/vendor-sla', [CatalogController::class, 'getVendorSlaMetrics'])->middleware($admin);
+    Route::get('/admin/reports/revenue', [CatalogController::class, 'getRevenueReport'])->middleware($admin);
     Route::post('/vendorLogin', [AuthController::class, 'vendorLogin'])->middleware('throttle:10,1');
 
     Route::get('/bookings', [CatalogController::class, 'getBookings'])->middleware($admin);
@@ -87,6 +94,7 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
 
     Route::get('/my-bookings', [CatalogController::class, 'getMyBookings'])->middleware('api.auth');
     Route::delete('/my-bookings/{id}', [CatalogController::class, 'cancelMyBooking'])->middleware('api.auth', 'throttle:10,1');
+    Route::post('/my-bookings/{id}/reschedule', [CatalogController::class, 'rescheduleMyBooking'])->middleware('api.auth', 'throttle:10,1');
 
     Route::get('/enquiries', [CatalogController::class, 'getEnquiries'])->middleware($admin);
     Route::post('/enquiries', [CatalogController::class, 'createEnquiry'])->middleware('throttle:10,1');
@@ -103,6 +111,9 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
         );
         return response()->json(['message' => 'Subscribed successfully']);
     })->middleware('throttle:5,1');
+
+    Route::get('/whatsapp/webhook', [App\Http\Controllers\Api\WhatsAppController::class, 'verify'])->middleware('throttle:30,1');
+    Route::post('/whatsapp/webhook', [App\Http\Controllers\Api\WhatsAppController::class, 'handleIncoming'])->middleware('throttle:30,1');
 
     Route::get('/settings', [CatalogController::class, 'getSettings'])->middleware($admin);
     Route::post('/settings', [CatalogController::class, 'updateSettings'])->middleware($admin);

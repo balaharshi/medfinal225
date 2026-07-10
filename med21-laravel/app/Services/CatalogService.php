@@ -1546,4 +1546,39 @@ class CatalogService
     {
         return $this->timeSlotCalculator->getAvailableSlots($serviceId, $date, $region);
     }
+
+    // ── Vendor Catalog CSV ──────────────────────────────────────────
+
+    public function exportVendorCatalog(string $vendorId): string
+    {
+        Vendor::query()->find($vendorId) ?? throw new HttpException(404, 'Vendor not found');
+        $services = Service::query()->where('active', true)->where('status', 'active')
+            ->orderBy('category')->orderBy('title')->get();
+        $csv = fopen('php://temp', 'r+');
+        fputcsv($csv, ['Service ID', 'Name', 'Category', 'Subcategory', 'Description', 'MRP (AED)', 'Available? (Yes/No)']);
+        foreach ($services as $s) {
+            fputcsv($csv, [$s->id, $s->title, $s->category, $s->subcategory, strip_tags($s->description ?? $s->short_description ?? ''), $s->price, '']);
+        }
+        rewind($csv); $content = stream_get_contents($csv); fclose($csv);
+        return $content;
+    }
+
+    public function importVendorCatalog(string $vendorId, string $filePath): array
+    {
+        $vendor = Vendor::query()->find($vendorId) ?? throw new HttpException(404, 'Vendor not found');
+        $csv = fopen($filePath, 'r'); fgetcsv($csv);
+        $enabled = 0; $errors = [];
+        while (($row = fgetcsv($csv)) !== false) {
+            $serviceId = $row[0] ?? '';
+            if (! $serviceId || ! Service::query()->find($serviceId)) continue;
+            $isEnabled = in_array(strtolower(trim($row[6] ?? '')), ['yes', 'y', 'true', '1']);
+            \App\Models\VendorServiceAssignment::updateOrCreate(
+                ['vendor_id' => $vendorId, 'service_id' => $serviceId],
+                ['id' => \App\Support\SequentialId::next(\App\Models\VendorServiceAssignment::class, 'vsa'), 'enabled' => $isEnabled],
+            );
+            if ($isEnabled) $enabled++;
+        }
+        fclose($csv);
+        return ['success' => true, 'vendor' => $vendor->name, 'enabled' => $enabled, 'errors' => $errors];
+    }
 }

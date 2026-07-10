@@ -82,7 +82,7 @@ export default function NavigationMenu({ activeTab, activeSectionId, onTabChange
               <button
                 onClick={() => { setShowServicesDropdown((current) => !current); onTabChange('services'); }}
                 className={`relative px-3 py-3 text-xs sm:text-[13px] font-bold tracking-wide transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 ${
-                  activeTab === 'services' || ((activeTab === 'lab-tests' || activeTab === 'health-packages') && activeSectionId !== 'customize-lab-package-section')
+                  activeTab === 'services' || activeTab === 'lab-tests'
                     ? 'text-medical-blue border-b-2 border-medical-green font-extrabold pb-3'
                     : 'text-slate-600 hover:text-medical-blue'
                 }`}
@@ -150,7 +150,7 @@ export default function NavigationMenu({ activeTab, activeSectionId, onTabChange
                     <button
                       onClick={() => setShowLabTestsDropdown((current) => !current)}
                       className={`w-full text-left px-4 py-2.5 text-xs font-bold transition-colors cursor-pointer flex items-center justify-between gap-3 ${
-                        activeTab === 'lab-tests' || activeTab === 'health-packages'
+                        activeTab === 'lab-tests'
                           ? 'bg-teal-50/80 text-medical-green'
                           : 'text-slate-600 hover:bg-teal-50/60 hover:text-medical-green'
                       }`}

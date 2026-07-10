@@ -96,7 +96,6 @@ export type ActiveTab =
   | 'services' 
   | 'lab-tests' 
   | 'products' 
-  | 'health-packages' 
   | 'wellness' 
   | 'offers' 
   | 'providers' 

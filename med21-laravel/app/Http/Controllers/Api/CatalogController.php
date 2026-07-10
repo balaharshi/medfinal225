@@ -209,4 +209,23 @@ class CatalogController extends Controller
             $request->query('to'),
         ));
     }
+
+    public function exportVendorCatalog(string $vendorId): \Illuminate\Http\Response
+    {
+        $csv = $this->catalogService->exportVendorCatalog($vendorId);
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="medziva-service-catalog.csv"',
+        ]);
+    }
+
+    public function importVendorCatalog(Request $request, string $vendorId): JsonResponse
+    {
+        $file = $request->file('catalog');
+        if (! $file || ! $file->isValid()) {
+            return response()->json(['error' => 'CSV file is required'], 422);
+        }
+        $result = $this->catalogService->importVendorCatalog($vendorId, $file->path());
+        return response()->json($result);
+    }
 }

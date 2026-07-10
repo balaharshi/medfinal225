@@ -71,6 +71,8 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
     Route::get('/vendors/{vendorId}/service-assignments', [VendorServiceAssignmentController::class, 'index'])->middleware($admin);
     Route::patch('/vendors/{vendorId}/service-assignments/{serviceId}', [VendorServiceAssignmentController::class, 'update'])->middleware($admin);
     Route::post('/vendors/{vendorId}/service-assignments/bulk', [VendorServiceAssignmentController::class, 'bulk'])->middleware($admin);
+    Route::get('/vendors/{vendorId}/export-catalog', [CatalogController::class, 'exportVendorCatalog'])->middleware($admin);
+    Route::post('/vendors/{vendorId}/import-catalog', [CatalogController::class, 'importVendorCatalog'])->middleware($admin);
     Route::get('/vendorProfile/{vendorId}', [CatalogController::class, 'getVendorProfile'])->middleware($vendorSelfOrAdmin);
     Route::patch('/vendorProfile/{vendorId}', [CatalogController::class, 'updateVendorProfile'])->middleware($admin);
     Route::get('/vendorProfile/{vendorId}/change-requests', [CatalogController::class, 'getVendorProfileChangeRequests'])->middleware($vendorSelfOrAdmin);

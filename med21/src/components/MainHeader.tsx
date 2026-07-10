@@ -415,7 +415,7 @@ export default function MainHeader({
             <button
               onClick={() => setShowMobileServices((current) => !current)}
               className={`w-full flex items-center justify-between gap-3 p-3 rounded-lg text-left ${
-                activeTab === 'services' || activeTab === 'lab-tests' || activeTab === 'health-packages' ? 'bg-teal-50/80 text-medical-green' : 'hover:bg-slate-50 text-slate-700'
+                activeTab === 'services' || activeTab === 'lab-tests' ? 'bg-teal-50/80 text-medical-green' : 'hover:bg-slate-50 text-slate-700'
               }`}
               aria-expanded={showMobileServices}
             >
@@ -467,7 +467,7 @@ export default function MainHeader({
                 <button
                   onClick={() => setShowMobileLabTests((current) => !current)}
                   className={`w-full flex items-center justify-between gap-3 p-2.5 rounded-lg text-left ${
-                    activeTab === 'lab-tests' || activeTab === 'health-packages' ? 'bg-emerald-50 text-medical-green' : 'hover:bg-slate-50 text-slate-600'
+                    activeTab === 'lab-tests' ? 'bg-emerald-50 text-medical-green' : 'hover:bg-slate-50 text-slate-600'
                   }`}
                   aria-expanded={showMobileLabTests}
                 >

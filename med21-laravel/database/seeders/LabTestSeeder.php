@@ -82,9 +82,16 @@ class LabTestSeeder extends Seeder
             ['sub' => 'genetic-testing', 'name' => 'DNA Talent & Personality Test', 'mrp' => 1500, 'who' => 'Genetic talent assessment', 'prep' => 'No fasting required', 'results' => '10-15 working days', 'includes' => ''],
         ];
 
+        $usedSlugs = [];
         foreach ($services as $index => $data) {
-            $slug = Str::slug($data['name']) . '-' . ($index + 1);
-            $service = Service::firstOrNew(['slug' => $slug]);
+            $baseSlug = Str::slug($data['name']);
+            $slug = $baseSlug;
+            $suffix = 1;
+            while (isset($usedSlugs[$slug])) {
+                $slug = $baseSlug . '-' . (++$suffix);
+            }
+            $usedSlugs[$slug] = true;
+            $service = Service::firstOrNew(['subcategory' => $data['sub'], 'title' => $this->fmt($data['name'])]);
             if (! $service->exists) {
                 $service->id = SequentialId::next(Service::class, 'srv');
             }

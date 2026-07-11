@@ -5,6 +5,7 @@
 
 import { Flame, Sparkles, Heart, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
+import SafeImage from './SafeImage';
 
 interface PromoProps {
   onOffersClick?: () => void;
@@ -53,7 +54,12 @@ export default function PromotionalBanners({
                 <span className="text-[10px] bg-teal-400/20 text-teal-300 font-bold px-1.5 py-0.5 rounded tracking-wide uppercase">OFF</span>
               </div>
               <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-white/20">
-                <img src="/images/lab-tests/srv-lab-home-lipid-profile.jpg" alt="Lab Tests" className="w-full h-full object-cover" />
+                <SafeImage
+                  src="/images/lab-tests/srv-lab-home-lipid-profile.jpg"
+                  alt="Lab Tests"
+                  containerClassName="w-full h-full"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
 
@@ -65,7 +71,12 @@ export default function PromotionalBanners({
                 <span className="text-[10px] bg-teal-400/20 text-teal-300 font-bold px-1.5 py-0.5 rounded tracking-wide uppercase">OFF</span>
               </div>
               <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-white/20">
-                <img src="/images/services/Generic Nurse Visit.jpg" alt="Services" className="w-full h-full object-cover" />
+                <SafeImage
+                  src="/images/services/generic-nurse-visit.jpg"
+                  alt="Services"
+                  containerClassName="w-full h-full"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
 
@@ -77,7 +88,12 @@ export default function PromotionalBanners({
                 <span className="text-[10px] bg-teal-400/20 text-teal-300 font-bold px-1.5 py-0.5 rounded tracking-wide uppercase">OFF</span>
               </div>
               <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-white/20">
-                <img src="/images/products/Electric Bed 3 Function.jpg" alt="Products" className="w-full h-full object-cover" />
+                <SafeImage
+                  src="/images/products/electric-bed-3-function.jpg"
+                  alt="Products"
+                  containerClassName="w-full h-full"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
 

@@ -44,7 +44,7 @@ class IVTherapySeeder extends Seeder
             [
                 'id' => SequentialId::next(\App\Models\Subcategory::class, 'sub'),
                 'title' => 'IV Therapy',
-                'image' => '/images/services/iv_therapy_drip.jpg',
+                'image' => '/images/services/iv-therapy-drip.jpg',
             ]
         );
 
@@ -239,21 +239,21 @@ class IVTherapySeeder extends Seeder
     private function resolveIVImage(string $name): string
     {
         return match (true) {
-            str_contains($name, 'Skin Glow') => '/images/services/skin_glow_iv.jpg',
-            str_contains($name, 'NAD 500') => '/images/services/antiaging_nad_500.jpg',
-            str_contains($name, 'NAD 250') => '/images/services/antiaging_nad_500.jpg',
-            str_contains($name, 'NAD 100') => '/images/services/Antiaging with NAD 100mg IV Therapy.jpg',
-            str_contains($name, 'Hair') => '/images/services/Skin and Hair wellness IV Drip.jpg',
-            str_contains($name, 'Energy') || str_contains($name, 'Weight') => '/images/services/Energy Booster IV Therapy.jpg',
-            str_contains($name, 'Immune') || str_contains($name, 'Hydration') => '/images/services/Immune Booster IV Therapy.jpg',
-            str_contains($name, 'Antistress') || str_contains($name, 'Relax') => '/images/services/Antistress and Antioxidant IV Therapy.jpg',
-            str_contains($name, 'Gut') || str_contains($name, 'Acne') => '/images/services/Gut support IV Therapy.jpg',
-            str_contains($name, 'Memory') || str_contains($name, 'Focus') => '/images/services/Memory Boost IV Therapy.jpg',
-            str_contains($name, 'Surgery') => '/images/services/Surgery Recovery IV Therapy.jpg',
-            str_contains($name, 'Women') || str_contains($name, 'Fertility') => '/images/services/Female Balance IV Therapy.jpg',
-            str_contains($name, 'Men') => '/images/services/Men Power IV Therapy.jpg',
-            str_contains($name, 'Liver') || str_contains($name, 'Detox') => '/images/services/Liver Detox IV Therapy.jpg',
-            default => '/images/services/iv_therapy_drip.jpg',
+            str_contains($name, 'Skin Glow') => '/images/services/skin-glow-iv.jpg',
+            str_contains($name, 'NAD 500') => '/images/services/antiaging-nad-500.jpg',
+            str_contains($name, 'NAD 250') => '/images/services/antiaging-nad-500.jpg',
+            str_contains($name, 'NAD 100') => '/images/services/antiaging-nad-500.jpg',
+            str_contains($name, 'Hair') => '/images/services/hair-loss-iv-therapy.jpg',
+            str_contains($name, 'Energy') || str_contains($name, 'Weight') => '/images/services/vitamin-mix-iv-therapy.jpg',
+            str_contains($name, 'Immune') || str_contains($name, 'Hydration') => '/images/services/iv-therapy-drip.jpg',
+            str_contains($name, 'Antistress') || str_contains($name, 'Relax') => '/images/services/antistress-and-antioxidant-iv-therapy.jpg',
+            str_contains($name, 'Gut') || str_contains($name, 'Acne') => '/images/services/iv-therapy-drip.jpg',
+            str_contains($name, 'Memory') || str_contains($name, 'Focus') => '/images/services/iv-therapy-drip.jpg',
+            str_contains($name, 'Surgery') => '/images/services/surgery-recovery-iv-therapy.jpg',
+            str_contains($name, 'Women') || str_contains($name, 'Fertility') => '/images/services/iv-therapy-drip.jpg',
+            str_contains($name, 'Men') => '/images/services/iv-therapy-drip.jpg',
+            str_contains($name, 'Liver') || str_contains($name, 'Detox') => '/images/services/iv-therapy-drip.jpg',
+            default => '/images/services/iv-therapy-drip.jpg',
         };
     }
 }

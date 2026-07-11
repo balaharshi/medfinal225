@@ -85,6 +85,9 @@ feature/xyz  →  develop  →  main
 - **No hardcoded values:** Use environment variables for URLs, API keys, etc.
 - **No console.log in production:** Use `console.warn` or `console.error` only
 - **No comments:** Unless explicitly asked for
+- **No raw `<img>` tags:** Use `SafeImage` from `@/components/SafeImage` for all images
+- **No spaces or mixed case in image filenames:** Use lowercase slugs (e.g. `generic-nurse-visit.jpg`)
+- **Verify images after seeders change:** Run `php artisan images:verify`
 
 ### Rule 5: Before Committing
 
@@ -214,6 +217,57 @@ git push origin main
 
 ---
 
+## Image Handling Conventions
+
+Images are a first-class source of bugs on this project. Treat them carefully.
+
+### Naming
+
+- Use lowercase slugs: `generic-nurse-visit.jpg`
+- No spaces, no mixed case, no special characters except hyphens
+- Prefer `.jpg` or `.webp` for photos
+
+### Storage
+
+| Asset type | Folder |
+|------------|--------|
+| Services / IV therapy | `med21/public/images/services/` |
+| Products / rental equipment | `med21/public/images/products/` |
+| Lab tests | `med21/public/images/lab-tests/` |
+
+### React Usage
+
+```tsx
+import { SafeImage } from '@/components/SafeImage';
+
+<SafeImage
+  src={service.image}
+  alt={service.title}
+  className="h-48 w-full object-cover rounded-lg"
+/>
+```
+
+`SafeImage` intentionally does **not** show a fallback placeholder. A missing image means the DB path or file is wrong — fix the data instead of hiding the bug.
+
+### Backend Verification
+
+After renaming files, updating seeders, or adding new images:
+
+```bash
+cd med21-laravel
+php artisan images:verify        # Confirm every DB path exists on disk
+php artisan images:canonicalize  # Rename files to slugs and update DB
+php artisan images:repair-missing # Map known bad paths to canonical files
+```
+
+### Seeder Rules
+
+- Map images by stable slug or SKU, not by display title.
+- Reference images through a central registry if one exists (`config/medziva-images.php` or similar).
+- Never generate filenames by concatenating titles with spaces.
+
+---
+
 ## API Conventions
 
 ### Using the API Client
@@ -331,14 +385,19 @@ If you are an AI coding assistant (OpenCode, Cursor, Copilot, etc.) working on t
 
 1. **Read `BALA_START_HERE.md` first** — it explains the project structure
 2. **Read `DEPLOYMENT.md`** — it explains how deployment works
-3. **Always use `src/lib/api.ts`** for API calls — never use raw `fetch()`
-4. **Never modify `.env` files** — only `.env.staging` and `.env.production` templates
-5. **Run `npm run lint`, `npm run format`, `npm run typecheck`, `npm run build`** after changes
-6. **Never add comments** unless explicitly asked
-7. **Never add demo credentials** to the codebase
-8. **Always use American English spelling**
-9. **Never commit secrets** (passwords, API keys, tokens)
-10. **Never push to `main`** — always use the feature branch → develop → main flow
+3. **Read `AUDIT_REPORT.md`** — it lists current known issues and the roadmap
+4. **Always use `src/lib/api.ts`** for API calls — never use raw `fetch()`
+5. **Never modify `.env` files** — only `.env.staging` and `.env.production` templates
+6. **Run `npm run lint`, `npm run format`, `npm run typecheck`, `npm run build`** after changes
+7. **Run `php artisan images:verify`** after any image or seeder change
+8. **Never add comments** unless explicitly asked
+9. **Never add demo credentials** to the codebase
+10. **Always use American English spelling**
+11. **Never commit secrets** (passwords, API keys, tokens)
+12. **Never push to `main`** — always use the feature branch → develop → main flow
+13. **Never use raw `<img>` tags** — always use `SafeImage` from `@/components/SafeImage`
+14. **Never create image filenames with spaces or mixed case** — use lowercase slugs
+15. **Never hardcode image paths in components** — resolve from API data or a registry
 
 ---
 
@@ -362,6 +421,9 @@ RULES:
 5. Never add demo credentials
 6. Use American English spelling (Color not Colour)
 7. Never commit secrets
+8. Never use image filenames with spaces or mixed case
+9. Always use SafeImage component, never raw <img>
+10. Run php artisan images:verify after image/seeder changes
 
 BRANCHING:
 - main = production (live site)
@@ -373,5 +435,5 @@ DEPLOYMENT:
 - ./deploy.sh production = deploy to live site
 - Always test on staging before production
 
-Read BALA_START_HERE.md for full details.
+Read BALA_START_HERE.md, CONTRIBUTING.md, and AUDIT_REPORT.md for full details.
 ```

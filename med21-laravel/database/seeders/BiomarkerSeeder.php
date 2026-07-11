@@ -338,7 +338,7 @@ class BiomarkerSeeder extends Seeder
                 'home_visit_fee_included' => false,
                 'duration' => '',
                 'estimated_visit_time' => '',
-                'image' => '/images/lab-tests/srv-lab-home-lipid-profile.jpg',
+                'image' => '',
                 'short_description' => $data['name'],
                 'full_description' => $data['name'],
                 'description' => $data['name'],

@@ -47,6 +47,7 @@ class LabTestSeeder extends Seeder
             // Men's Health
             ['sub' => 'mens-health-packages', 'name' => 'Male Infertility Profile', 'mrp' => 449, 'who' => 'Men undergoing fertility evaluation', 'prep' => '2-5 days abstinence required (for semen analysis)', 'results' => 'Same day / Next day', 'includes' => 'FSH, Prolactin, LH, Testosterone (Free & Total), CBC (19), Lipid Profile, Thyroid Profile, Thyroid Antibodies, Semen Analysis (20)'],
             ['sub' => 'mens-health-packages', 'name' => 'Preventive Health Checkup-Male (100 parameters)', 'mrp' => 1299, 'who' => 'Men aged 30+ for comprehensive annual health screening', 'prep' => 'Fasting required (10-12 hours)', 'results' => 'Same day / Next day', 'includes' => 'Apolipoprotein A1 & B, CBC (19), hsCRP, CKMB, Fasting & PP Glucose, HbA1c, HBsAg, HCV Ab, HIV Combo, Homocysteine, Microalbumin/Creatinine Ratio, fPSA, UIBC, Urinalysis (21), Kidney & Liver Function (18), Lipid Profile (5), Transferrin Saturation (3), Ionized Calcium, GFR, Bicarbonate, CEA'],
+            ['sub' => 'mens-health-packages', 'name' => 'Cancer / Tumour Marker Profile (Male)', 'mrp' => 260, 'who' => 'Men for cancer screening & early detection', 'prep' => 'No fasting required', 'results' => 'Same day / Next day', 'includes' => 'AFP, Total hCG, CA 19-9, CBC (19), Prostate Profile: PSA Total, PSA Free, PSA Ratio'],
 
             // Women's Health
             ['sub' => 'womens-health-packages', 'name' => 'Menopause Profile', 'mrp' => 399, 'who' => 'Women with menopausal symptoms or hormonal imbalance', 'prep' => 'No fasting required', 'results' => 'Same day / Next day', 'includes' => 'Glucose (R), CBC (19), Iron, Lipid Profile, Creatinine, Thyroid Profile, FSH, Prolactin, LH, beta-hCG, Estradiol (E2), Progesterone, LBC (Gynae), Urinalysis (21)'],
@@ -81,9 +82,29 @@ class LabTestSeeder extends Seeder
             ['sub' => 'genetic-testing', 'name' => 'DNA Talent & Personality Test', 'mrp' => 1500, 'who' => 'Genetic talent assessment', 'prep' => 'No fasting required', 'results' => '10-15 working days', 'includes' => ''],
         ];
 
+        // Remove any duplicate records by title+subcategory before seeding
+        $duplicates = Service::selectRaw('title, subcategory, MIN(id) as keep_id')
+            ->whereIn('subcategory', array_unique(array_column($services, 'sub')))
+            ->groupBy('title', 'subcategory')
+            ->havingRaw('COUNT(*) > 1')
+            ->get();
+        foreach ($duplicates as $dup) {
+            Service::where('title', $dup->title)
+                ->where('subcategory', $dup->subcategory)
+                ->where('id', '!=', $dup->keep_id)
+                ->delete();
+        }
+
+        $usedSlugs = [];
         foreach ($services as $index => $data) {
-            $slug = Str::slug($data['name']) . '-' . ($index + 1);
-            $service = Service::firstOrNew(['slug' => $slug]);
+            $baseSlug = Str::slug($data['name']);
+            $slug = $baseSlug;
+            $suffix = 1;
+            while (isset($usedSlugs[$slug])) {
+                $slug = $baseSlug . '-' . (++$suffix);
+            }
+            $usedSlugs[$slug] = true;
+            $service = Service::firstOrNew(['subcategory' => $data['sub'], 'title' => $this->fmt($data['name'])]);
             if (! $service->exists) {
                 $service->id = SequentialId::next(Service::class, 'srv');
             }
@@ -110,8 +131,8 @@ class LabTestSeeder extends Seeder
                 'estimated_visit_time' => '',
                 'image' => '/images/lab-tests/srv-lab-home-' . Str::slug(str_replace('&', 'and', $data['name'])) . '.jpg',
                 'short_description' => $data['who'] ?: $data['name'],
-                'full_description' => $data['name'],
-                'description' => $data['name'],
+                'full_description' => $data['includes'] ?: $data['name'],
+                'description' => $data['includes'] ?: $data['name'],
                 'inclusions' => [],
                 'preparation_instructions' => $data['prep'] ?? '',
                 'who_is_it_for' => $data['who'] ?? '',

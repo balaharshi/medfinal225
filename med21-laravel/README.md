@@ -17,8 +17,19 @@ cp .env.example .env
 # Edit DB credentials in .env
 php artisan key:generate
 php artisan migrate:fresh --seed
+php artisan images:verify   # Confirm all seeded image paths exist
 php artisan serve
 ```
+
+## Image Management Commands
+
+| Command | Purpose |
+|---------|---------|
+| `php artisan images:verify` | Check every DB image path exists on disk |
+| `php artisan images:canonicalize` | Rename image files to URL-safe slugs and update DB |
+| `php artisan images:repair-missing` | Map known bad paths to canonical filenames |
+
+Configure the frontend public path in `config/medziva.php` or via the `FRONTEND_PUBLIC_PATH` env variable.
 
 ## Key Architecture
 
@@ -62,7 +73,7 @@ BookingConfirmation, BookingExpired, BookingReminder, BookingStatusUpdate, Payme
 | HealthPackageSeeder | 4 packages |
 | ProductSeeder | 12 products |
 | VendorWorkingHoursSeeder | 7 days (8AM-10PM) |
-| DatabaseSeeder | 4 accounts + promo code + 386 vendor assignments |
+| DatabaseSeeder | 4 accounts + promo code + ~407 vendor assignments |
 
 ### Test Accounts
 
@@ -76,6 +87,20 @@ BookingConfirmation, BookingExpired, BookingReminder, BookingStatusUpdate, Payme
 ## Deployment
 
 See `../DEPLOYMENT_GUIDE.md` for full deployment instructions.
+
+## Verified Counts (Current DB)
+
+```bash
+php artisan tinker --execute="echo json_encode([
+  'services' => App\Models\Service::count(),
+  'products' => App\Models\Product::count(),
+  'users' => App\Models\User::count(),
+  'vendors' => App\Models\Vendor::count(),
+  'vendor_assignments' => App\Models\VendorServiceAssignment::count(),
+]);"
+```
+
+Run this after seeding to confirm numbers match expectations.
 
 ## WhatsApp Integration
 

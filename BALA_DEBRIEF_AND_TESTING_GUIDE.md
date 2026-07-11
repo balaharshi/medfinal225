@@ -6,6 +6,18 @@ This document captures all the issues found and fixed in the MedZiva healthcare 
 
 ## Part 1: Critical Mistakes Fixed
 
+> **Note:** The most recent audit also produced `AUDIT_REPORT.md`, which contains the full list of remaining issues and roadmap. Read it before starting any new work.
+
+### Image Handling (New — July 2026)
+
+| # | Issue | Fix |
+|---|-------|-----|
+| 44 | **Image paths were free-text with no validation** | Added `images:verify`, `images:canonicalize`, and `images:repair-missing` artisan commands. |
+| 45 | **Filenames had spaces and mixed case** | Renamed every image to a lowercase, hyphenated slug (e.g. `Generic Nurse Visit.jpg` → `generic-nurse-visit.jpg`). |
+| 46 | **Broken image paths were hidden by fallbacks** | Created `SafeImage` component that hides broken/missing images cleanly instead of showing placeholders. |
+| 47 | **Hardcoded image paths in components** | Removed literal paths from `PromotionalBanners.tsx` and other components; images now come from API data. |
+| 48 | **Missing images for 3 services** | Downloaded CC0 images from Wikimedia Commons for catheterisation, IV antibiotics, and oxygen cylinder set. |
+
 ### Architecture
 
 | # | Issue | Fix |
@@ -169,12 +181,19 @@ App\Models\VendorWorkingHour::count(); # Should be 7
 5. Login as customer → try booking that service → verify slots respect new hours
 
 ### Test 14: Image Verification
-1. Navigate to ALL service pages
-2. Verify each service card shows a relevant, good quality photo (not broken, not stretched)
-3. Check IV therapy → should show IV drip bags
-4. Check wound care → should show wound dressing
-5. Check caregiver → should show caregiving
-6. Verify all 12 rental products show correct equipment images (not generic laptop/stethoscope)
+1. Run the automated check:  
+   ```bash
+   cd med21-laravel
+   php artisan images:verify
+   ```  
+   Expect `OK — all X image paths exist on disk` with zero failures.
+2. Navigate to ALL service pages
+3. Verify each service card shows a relevant, good quality photo (not broken, not stretched)
+4. Check IV therapy → should show IV drip bags
+5. Check wound care → should show wound dressing
+6. Check caregiver → should show caregiving
+7. Verify all 12 rental products show correct equipment images (not generic laptop/stethoscope)
+8. Inspect any broken image in the browser → `SafeImage` should hide it cleanly with no empty placeholder box
 
 ### Test 15: Email Flow (check `storage/logs/laravel.log`)
 1. Create a booking → check log for `BookingConfirmation` email
@@ -219,6 +238,9 @@ APP_KEY={generated key}
 8. **Mobile touch targets must be ≥44px** — Buttons with `p-1` are too small. Use `p-2` minimum.
 9. **One source of truth for emails** — Always pass `CaseKeys::camelize()` data to mail classes. Mail classes should check both key formats.
 10. **All unsplash URLs must be verified** — Check they return 200 before using. Use `?w=400&h=300&fit=crop&q=80` for consistent sizing and small file size.
+11. **Image filenames must be lowercase slugs** — `generic-nurse-visit.jpg`, never `Generic Nurse Visit.jpg`. Run `php artisan images:verify` after image changes.
+12. **Use `SafeImage`, never raw `<img>`** — `SafeImage` hides broken images cleanly. Do not add fallback placeholders to mask bad paths.
+13. **Read `AUDIT_REPORT.md` before starting new work** — It contains the current issue list and roadmap.
 
 ---
 

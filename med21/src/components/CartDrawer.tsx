@@ -18,6 +18,7 @@ import { createBooking } from '../services/bookings';
 import { formatAedWhole } from '../utils/money';
 import { TIME_SLOTS } from '../constants';
 import { trackEvent, AnalyticsEvents } from '../services/analytics';
+import SafeImage from './SafeImage';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -435,10 +436,11 @@ export default function CartDrawer({
                             key={item.product.id}
                             className="flex items-center gap-3 bg-white border border-slate-150 rounded-2xl p-3 shadow-2xs hover:shadow-xs transition-shadow"
                           >
-                            <img
+                            <SafeImage
                               src={item.product.image}
                               alt={'name' in item.product ? item.product.name : item.product.title}
-                              className="w-16 h-16 rounded-xl object-contain bg-slate-50 border border-slate-100 p-1.5"
+                              containerClassName="w-16 h-16 rounded-xl bg-slate-50 border border-slate-100 p-1.5 flex items-center justify-center shrink-0"
+                              className="max-w-full max-h-full object-contain"
                               referrerPolicy="no-referrer"
                             />
                             <div className="flex-grow text-left">

@@ -5,11 +5,11 @@
 
 import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronRight, ChevronLeft, CalendarClock, Eye, X, ShieldCheck, Heart, Clock, Star, MessageCircle, CheckCircle } from 'lucide-react';
+import { ChevronRight, ChevronLeft, CalendarClock, Eye, X, ShieldCheck, Clock, Star, MessageCircle, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { DEFAULT_HEALTHCARE_SERVICE_IMAGE } from '../data';
 import { ServiceCategory, HealthcareService } from '../types';
 import { formatAedWhole } from '../utils/money';
+import SafeImage from './SafeImage';
 
 const getServiceAttributeValue = (srv: HealthcareService, label: string) => {
   const attributes = srv.attributes;
@@ -60,7 +60,6 @@ export default function ServicesSection({
 }: ServicesSectionProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('cat-home-health');
   const [quickViewService, setQuickViewService] = useState<HealthcareService | null>(null);
-  const [favorites, setFavorites] = useState<string[]>([]);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Filter actual services based on the clicked category
@@ -68,15 +67,6 @@ export default function ServicesSection({
   const activeServices = servicesList.filter(
     (s) => s.category === activeCategoryObject?.slug || s.subcategory === activeCategoryObject?.slug
   );
-
-  const toggleFavorite = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (favorites.includes(id)) {
-      setFavorites(favorites.filter(fav => fav !== id));
-    } else {
-      setFavorites([...favorites, id]);
-    }
-  };
 
   const scrollRight = () => {
     if (scrollContainerRef.current) {
@@ -91,18 +81,7 @@ export default function ServicesSection({
   };
 
   const getServiceImage = (service: HealthcareService) =>
-    service.image || DEFAULT_HEALTHCARE_SERVICE_IMAGE;
-
-  const handleServiceImageError = (event: React.SyntheticEvent<HTMLImageElement>, service: HealthcareService) => {
-    const image = event.currentTarget;
-    const fallback = getServiceImage(service);
-    if (image.src.endsWith(fallback) || image.dataset.fallbackApplied === 'true') {
-      image.src = DEFAULT_HEALTHCARE_SERVICE_IMAGE;
-      return;
-    }
-    image.dataset.fallbackApplied = 'true';
-    image.src = fallback;
-  };
+    service.image || '';
 
   return (
     <section 
@@ -169,14 +148,13 @@ export default function ServicesSection({
                 >
                   <div>
                     {/* Category Image (Rectangular, high-quality, as per mockup) */}
-                    <div className="w-full aspect-[3/2] rounded-xl overflow-hidden mb-2.5 border border-slate-100/50 bg-[#EBF3FE] shrink-0">
-                      <img 
-                        src={cat.image} 
-                        alt={cat.title} 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        referrerPolicy="no-referrer"
-                      />
-                    </div>
+                    <SafeImage
+                      src={cat.image}
+                      alt={cat.title}
+                      containerClassName="w-full aspect-[3/2] rounded-xl overflow-hidden mb-2.5 border border-slate-100/50 bg-[#EBF3FE] shrink-0"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      referrerPolicy="no-referrer"
+                    />
                     
                     {/* Category Name (Centered below image) */}
                     <span className="text-[11.5px] sm:text-[12px] font-extrabold text-[#0E1E43] leading-tight line-clamp-2 min-h-[32px] flex items-center justify-center px-1">
@@ -214,7 +192,6 @@ export default function ServicesSection({
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
               {activeServices.length > 0 ? (
                 activeServices.map((srv) => {
-                  const isFav = favorites.includes(srv.id);
                   return (
                     <div 
                       key={srv.id} 
@@ -236,44 +213,31 @@ export default function ServicesSection({
                             POPULAR
                           </span>
                         )}
-                        <span className="bg-slate-900/90 text-white text-[6px] sm:text-[7px] font-bold px-0.5 sm:px-1 py-0.5 rounded-sm uppercase tracking-wider backdrop-blur-xs">
-                          ⏱️ {srv.duration}
-                        </span>
-                      </div>
-
-                      {/* Favorite Button */}
-                      <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10">
-                        <button
-                          onClick={(e) => toggleFavorite(srv.id, e)}
-                          className={`p-1 rounded-full shadow-xs hover:scale-110 active:scale-95 transition-all cursor-pointer bg-white border border-slate-100 ${
-                            isFav ? 'text-rose-500' : 'text-slate-400 hover:text-slate-600'
-                          }`}
-                          title={isFav ? 'Remove from Wishlist' : 'Add to Wishlist'}
-                        >
-                          <Heart className={`w-2 h-2 sm:w-2.5 sm:h-2.5 ${isFav ? 'fill-current' : ''}`} />
-                        </button>
+                        {srv.duration && (
+                          <span className="bg-slate-900/90 text-white text-[6px] sm:text-[7px] font-bold px-0.5 sm:px-1 py-0.5 rounded-sm uppercase tracking-wider backdrop-blur-xs">
+                            ⏱️ {srv.duration}
+                          </span>
+                        )}
                       </div>
 
                       {/* Service Image Stage */}
-                      <div 
-                        className="h-20 sm:h-24 w-full flex items-center justify-center rounded-xl overflow-hidden mb-2 sm:mb-2.5 bg-[#F8FAFC] relative"
-                      >
-                        <img
+                      {srv.image && (
+                        <SafeImage
                           src={getServiceImage(srv)}
                           alt={srv.title}
+                          containerClassName="h-20 sm:h-24 w-full flex items-center justify-center rounded-xl overflow-hidden mb-2 sm:mb-2.5 bg-[#F8FAFC] relative group"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           referrerPolicy="no-referrer"
-                          onError={(event) => handleServiceImageError(event, srv)}
-                        />
-                        
-                        {/* Visual Hover Quick Look Overlay button */}
-                        <div className="absolute inset-0 bg-slate-950/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <div className="bg-white/95 text-slate-800 text-[7px] sm:text-[8px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full shadow-sm flex items-center gap-0.5">
-                            <Eye className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-medical-green" />
-                            <span>Quick View</span>
+                        >
+                          {/* Visual Hover Quick Look Overlay button */}
+                          <div className="absolute inset-0 bg-slate-950/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <div className="bg-white/95 text-slate-800 text-[7px] sm:text-[8px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full shadow-sm flex items-center gap-0.5">
+                              <Eye className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-medical-green" />
+                              <span>Quick View</span>
+                            </div>
                           </div>
-                        </div>
-                      </div>
+                        </SafeImage>
+                      )}
 
                       {/* Name and description info */}
                       <div className="text-left mb-2 sm:mb-2.5 flex-grow">
@@ -391,15 +355,13 @@ export default function ServicesSection({
               </button>
 
               {/* Image Section */}
-              <div className="relative h-44 sm:h-52 overflow-hidden shrink-0 bg-slate-100">
-                <img
-                  src={getServiceImage(quickViewService)}
-                  className="w-full h-full object-cover object-center"
-                  alt={quickViewService?.title}
-                  referrerPolicy="no-referrer"
-                  onError={(event) => handleServiceImageError(event, quickViewService)}
-                />
-                
+              <SafeImage
+                src={getServiceImage(quickViewService)}
+                alt={quickViewService?.title ?? ''}
+                containerClassName="relative h-44 sm:h-52 overflow-hidden shrink-0 bg-slate-100"
+                className="w-full h-full object-cover object-center"
+                referrerPolicy="no-referrer"
+              >
                 {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 
@@ -419,7 +381,7 @@ export default function ServicesSection({
                     POPULAR
                   </div>
                 )}
-              </div>
+              </SafeImage>
 
               {/* Content Section */}
               <div className="p-5 sm:p-6 flex flex-col gap-5 overflow-y-auto flex-1 min-h-0">

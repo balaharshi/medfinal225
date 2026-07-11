@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useRef } from 'react';
-import { ChevronRight, ChevronLeft, CalendarClock, Heart, Send, Eye } from 'lucide-react';
-import { DEFAULT_HEALTHCARE_SERVICE_IMAGE } from '../data';
+import React, { useRef } from 'react';
+import { ChevronRight, ChevronLeft, CalendarClock, Send, Eye } from 'lucide-react';
 import { HealthcareService } from '../types';
 import { formatAedWhole } from '../utils/money';
+import SafeImage from './SafeImage';
 
 const getServiceAttributeValue = (srv: HealthcareService, label: string) => {
   const attributes = srv.attributes;
@@ -28,7 +28,8 @@ const hasExtraDetails = (srv: HealthcareService) =>
   Boolean(srv.inclusions?.length) ||
   Boolean(srv.preparationInstructions) ||
   Boolean(srv.whoIsItFor) ||
-  Boolean(srv.availability);
+  Boolean(srv.availability) ||
+  Boolean(Array.isArray(srv.attributes) && srv.attributes.length > 0);
 
 interface ProductsSectionProps {
   onServiceSelect: (title: string, price: number) => void;
@@ -47,17 +48,7 @@ export default function ProductsSection({
   onExploreMore, 
   servicesList = [] 
 }: ProductsSectionProps) {
-  const [favorites, setFavorites] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  const toggleFavorite = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (favorites.includes(id)) {
-      setFavorites(favorites.filter(fav => fav !== id));
-    } else {
-      setFavorites([...favorites, id]);
-    }
-  };
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -70,18 +61,7 @@ export default function ProductsSection({
   };
 
   const getServiceImage = (service: HealthcareService) =>
-    service.image || DEFAULT_HEALTHCARE_SERVICE_IMAGE;
-
-  const handleServiceImageError = (event: React.SyntheticEvent<HTMLImageElement>, service: HealthcareService) => {
-    const image = event.currentTarget;
-    const fallback = getServiceImage(service);
-    if (image.src.endsWith(fallback) || image.dataset.fallbackApplied === 'true') {
-      image.src = DEFAULT_HEALTHCARE_SERVICE_IMAGE;
-      return;
-    }
-    image.dataset.fallbackApplied = 'true';
-    image.src = fallback;
-  };
+    service.image || '';
 
   return (
     <section id="products-section" className="bg-slate-50 py-6 px-4 border-b border-slate-100">
@@ -110,7 +90,7 @@ export default function ProductsSection({
           {/* Slider Left Arrow */}
           <button
             onClick={() => scroll('left')}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -ml-3 sm:-ml-5 bg-white shadow-xl hover:bg-slate-50 text-slate-700 w-11 h-11 rounded-full z-10 flex items-center justify-center border border-slate-100/50 hover:scale-115 transition-all cursor-pointer sm:opacity-0 sm:group-hover/carousel:opacity-100"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -ml-3 sm:-ml-5 bg-white shadow-xl hover:bg-slate-50 text-slate-700 w-11 h-11 rounded-full z-10 flex items-center justify-center border border-slate-100/50 hover:scale-110 transition-all cursor-pointer"
             title="Slide Left"
           >
             <ChevronLeft className="w-6 h-6" />
@@ -119,7 +99,7 @@ export default function ProductsSection({
           {/* Slider Right Arrow */}
           <button
             onClick={() => scroll('right')}
-            className="absolute right-0 top-1/2 -translate-y-1/2 -mr-3 sm:-mr-5 bg-white shadow-xl hover:bg-slate-50 text-slate-700 w-11 h-11 rounded-full z-10 flex items-center justify-center border border-slate-100/50 hover:scale-115 transition-all cursor-pointer sm:opacity-0 sm:group-hover/carousel:opacity-100"
+            className="absolute right-0 top-1/2 -translate-y-1/2 -mr-3 sm:-mr-5 bg-white shadow-xl hover:bg-slate-50 text-slate-700 w-11 h-11 rounded-full z-10 flex items-center justify-center border border-slate-100/50 hover:scale-110 transition-all cursor-pointer"
             title="Slide Right"
           >
             <ChevronRight className="w-6 h-6" />
@@ -128,11 +108,10 @@ export default function ProductsSection({
           {/* Core Horizontal Scroll container */}
           <div
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto no-scrollbar snap-x pb-2"
+            className="flex gap-4 overflow-x-auto no-scrollbar snap-x pb-2 px-8 sm:px-10"
           >
             {servicesList.length > 0 ? (
               servicesList.map((srv) => {
-                const isFav = favorites.includes(srv.id);
                 const hasPrice = srv.price > 0 && !srv.enquiryOnly;
 
                 // Capitalize and format category titles for subtitle badge
@@ -156,35 +135,24 @@ export default function ProductsSection({
                           ⭐ POPULAR
                         </span>
                       )}
-                      <span className="bg-slate-900/95 backdrop-blur-md text-white text-[7px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider shadow-lg">
-                        ⏱️ {srv.duration}
-                      </span>
-                    </div>
-
-                    <div className="absolute top-2 right-2 z-20">
-                      <button
-                        onClick={(e) => toggleFavorite(srv.id, e)}
-                        className={`p-1.5 rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all cursor-pointer bg-white/95 backdrop-blur-sm border border-slate-200 ${
-                          isFav ? 'text-rose-500 border-rose-200' : 'text-slate-400 hover:text-slate-600'
-                        }`}
-                        title={isFav ? 'Remove from Wishlist' : 'Add to Wishlist'}
-                      >
-                        <Heart className={`w-3 h-3 ${isFav ? 'fill-current' : ''}`} />
-                      </button>
+                      {srv.duration && (
+                        <span className="bg-slate-900/95 backdrop-blur-md text-white text-[7px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider shadow-lg">
+                          ⏱️ {srv.duration}
+                        </span>
+                      )}
                     </div>
 
                     {/* Service Image Stage */}
-                    <div className="h-28 w-full flex items-center justify-center overflow-hidden relative">
-                      <img
-                        src={getServiceImage(srv)}
-                        alt={srv.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        referrerPolicy="no-referrer"
-                        onError={(event) => handleServiceImageError(event, srv)}
-                      />
+                    <SafeImage
+                      src={getServiceImage(srv)}
+                      alt={srv.title}
+                      containerClassName="h-28 w-full flex items-center justify-center overflow-hidden relative group"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      referrerPolicy="no-referrer"
+                    >
                       {/* Subtle overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </div>
+                    </SafeImage>
 
                     {/* Name and description details */}
                     <div className="p-3 text-left flex-grow relative z-10">

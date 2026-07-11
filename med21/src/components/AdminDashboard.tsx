@@ -52,6 +52,7 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import ConfirmDialog from "./ConfirmDialog";
 import SocialAuthButtons from "./SocialAuthButtons";
 import PhoneInput from "./PhoneInput";
+import SafeImage from "./SafeImage";
 import { DEFAULT_HEALTHCARE_SERVICE_IMAGE } from "../data";
 import { subscribeToNotifications } from "../services/pusherClient";
 
@@ -1148,7 +1149,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
             homeVisitFeeIncluded: srvVisitFeeIncluded,
             duration: srvDuration,
             estimatedVisitTime: srvEstimatedVisitTime,
-            image: srvImage || DEFAULT_HEALTHCARE_SERVICE_IMAGE,
+            image: srvImage || "",
             shortDescription: srvShortDesc || srvDesc,
             description: srvDesc || "No description provided.",
             fullDescription: srvFullDesc || srvDesc || "No description provided.",
@@ -2507,7 +2508,15 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                     <input type="file" accept="image/*" className="hidden" onChange={e => handleServiceImageUpload(e.target.files?.[0])} />
                   </label>
                 </div>
-                {srvImage && <img src={srvImage} alt="Service preview" className="mt-2 h-24 w-full object-cover rounded-lg border border-slate-150" />}
+                {srvImage && (
+                  <SafeImage
+                    src={srvImage}
+                    alt="Service preview"
+                    containerClassName="mt-2 h-24 w-full rounded-lg border border-slate-150 overflow-hidden bg-slate-50 flex items-center justify-center"
+                    className="h-full w-full object-cover"
+                    fallback={<div className="mt-2 h-24 w-full rounded-lg border border-slate-150 bg-slate-50 flex items-center justify-center text-[10px] text-slate-400">Image unavailable</div>}
+                  />
+                )}
               </div>
 
               <div className="space-y-1">
@@ -2656,7 +2665,13 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                   return (
                     <div key={srv.id} className="p-3 border border-slate-150 rounded-xl flex items-center justify-between gap-3 bg-slate-50/50 hover:bg-slate-50 transition-colors">
                       <div className="flex items-center gap-2.5 overflow-hidden">
-                        <img src={getServiceRecordImage(srv)} className="w-10 h-10 object-cover bg-white border border-slate-150 rounded-lg shrink-0" alt="srv" referrerPolicy="no-referrer" />
+                        <SafeImage
+                          src={getServiceRecordImage(srv)}
+                          alt="srv"
+                          containerClassName="w-10 h-10 bg-white border border-slate-150 rounded-lg shrink-0 flex items-center justify-center overflow-hidden"
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
                         <div className="text-left overflow-hidden">
                           <h4 className="text-xs font-extrabold text-blue-950 truncate leading-snug">{srv.title}</h4>
                           <span className="text-[10px] text-slate-400 block truncate font-medium">Department: {srv.category} • Cost: {srv.price} AED</span>
@@ -2807,7 +2822,13 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                   categoriesList.map(c => (
                     <div key={c.id} className="p-3 border border-slate-150 rounded-xl flex items-center justify-between gap-3 bg-slate-50/50 hover:bg-slate-50">
                       <div className="flex items-start gap-2.5 overflow-hidden">
-                        <img src={c.image} className="w-11 h-11 object-cover rounded-lg bg-white border border-slate-150 shrink-0" alt="cat" referrerPolicy="no-referrer" />
+                        <SafeImage
+                          src={c.image}
+                          alt="cat"
+                          containerClassName="w-11 h-11 rounded-lg bg-white border border-slate-150 shrink-0 overflow-hidden flex items-center justify-center"
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
                         <div className="text-left overflow-hidden">
                           <div className="flex items-center gap-2">
                             <h5 className="font-extrabold text-blue-950 text-xs">{c.title}</h5>
@@ -2896,9 +2917,13 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                   className="w-full text-xs p-2.5 border border-slate-200 rounded-lg"
                 />
                 {subImage && (
-                  <div className="mt-2 rounded-lg overflow-hidden border border-slate-100 h-20 bg-slate-50 flex items-center justify-center">
-                    <img src={subImage} alt="Preview" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
-                  </div>
+                  <SafeImage
+                    src={subImage}
+                    alt="Preview"
+                    containerClassName="mt-2 rounded-lg overflow-hidden border border-slate-100 h-20 bg-slate-50 flex items-center justify-center"
+                    className="w-full h-full object-cover"
+                    fallback={<span className="text-[10px] text-slate-400">Image unavailable</span>}
+                  />
                 )}
               </div>
 
@@ -2934,7 +2959,13 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                       <div key={cat.id} className="border border-slate-150 rounded-xl p-3 bg-slate-50/40">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <img src={cat.image} className="w-7 h-7 object-cover rounded-md bg-white border border-slate-150 shrink-0" alt="" referrerPolicy="no-referrer" />
+                            <SafeImage
+                              src={cat.image}
+                              alt=""
+                              containerClassName="w-7 h-7 rounded-md bg-white border border-slate-150 shrink-0 overflow-hidden flex items-center justify-center"
+                              className="w-full h-full object-cover"
+                              referrerPolicy="no-referrer"
+                            />
                             <span className="font-extrabold text-blue-950 text-xs">{cat.title}</span>
                             <span className="text-[9px] bg-slate-150 text-slate-600 font-bold px-1.5 py-0.2 rounded">{cat.type || "service"}</span>
                           </div>
@@ -2948,7 +2979,18 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                               <div key={sub.id} className="bg-white p-2 border border-slate-100 rounded-lg flex justify-between items-center text-xs">
                                 <div className="flex items-center gap-2 min-w-0">
                                   {sub.image ? (
-                                    <img src={sub.image} alt="" className="w-6 h-6 rounded object-cover border border-slate-100 shrink-0" referrerPolicy="no-referrer" />
+                                    <SafeImage
+                                      src={sub.image}
+                                      alt=""
+                                      containerClassName="w-6 h-6 rounded border border-slate-100 shrink-0 overflow-hidden flex items-center justify-center"
+                                      className="w-full h-full object-cover"
+                                      referrerPolicy="no-referrer"
+                                      fallback={(
+                                        <div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center shrink-0">
+                                          <ImageIcon className="w-3 h-3 text-slate-400" />
+                                        </div>
+                                      )}
+                                    />
                                   ) : (
                                     <div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center shrink-0">
                                       <ImageIcon className="w-3 h-3 text-slate-400" />
@@ -4966,7 +5008,13 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl relative overflow-hidden max-h-[90vh] overflow-y-auto">
             <div className="relative h-56 bg-slate-100">
-              <img src={getServiceRecordImage(previewingService)} alt={previewingService.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              <SafeImage
+                src={getServiceRecordImage(previewingService)}
+                alt={previewingService.title}
+                containerClassName="w-full h-full"
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
               <button onClick={() => setPreviewingService(null)} className="absolute top-3 right-3 p-2 bg-white/90 text-slate-600 hover:text-slate-900 rounded-full shadow cursor-pointer">
                 <X className="w-5 h-5" />
               </button>

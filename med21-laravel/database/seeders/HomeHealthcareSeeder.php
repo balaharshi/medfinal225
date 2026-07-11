@@ -31,35 +31,35 @@ class HomeHealthcareSeeder extends Seeder
     ];
 
     private const CATEGORY_IMAGES = [
-        'nursing-care-at-home' => '/images/services/Generic Nurse Visit.jpg',
-        'long-term-specialized-care' => '/images/services/DHA Nurse.jpg',
-        'doctor-on-call' => '/images/services/Doctor at Home.jpg',
-        'physiotherapy-at-home' => '/images/services/physiotherapy_session.jpg',
-        'speech-and-language-therapy' => '/images/services/speech_therapy_session.jpg',
-        'occupational-therapy' => '/images/services/occupational_therapy_session.jpg',
+        'nursing-care-at-home' => '/images/services/generic-nurse-visit.jpg',
+        'long-term-specialized-care' => '/images/services/dha-nurse.jpg',
+        'doctor-on-call' => '/images/services/doctor-at-home.jpg',
+        'physiotherapy-at-home' => '/images/services/physiotherapy.jpg',
+        'speech-and-language-therapy' => '/images/services/adult-speech-rehabilitation.jpg',
+        'occupational-therapy' => '/images/services/occupational-therapy.jpg',
     ];
 
     private function resolveImage(string $title, string $subcat): string
     {
-        // Map specific titles to their images
+        // Map specific titles to their canonical slug-based images.
         $titleMap = [
-            'Generic Nurse Visit' => '/images/services/Generic Nurse Visit.jpg',
-            'Wound care and Surgical Dressing-Small' => '/images/services/Wound Care and Surgical Dressing-Small.jpg',
-            'Wound care and Surgical Dressing-Medium' => '/images/services/Wound Care and Surgical Dressing-Medium.jpg',
-            'Wound care and Surgical Dressing-Large' => '/images/services/Wound Care and Surgical Dressing-Large.jpg',
-            'Catheterisation at home' => '/images/services/Catheterisation at home (Female).jpg',
-            'IV antibiotics at home (with Dr Prescription)' => '/images/services/IV antibiotics at home (with Dr Prescription).jpg',
-            'Doctor at Home' => '/images/services/Doctor at Home.jpg',
-            'Doctor at Hotel' => '/images/services/Doctor at Hotel.jpg',
-            'Physiotherapy-1 Hour Session' => '/images/services/physiotherapy_session.jpg',
-            'Physiotherapy-1 Hour Session/Week (6 Sessions)' => '/images/services/physiotherapy_session.jpg',
-            'Speech and Language Therapy' => '/images/services/speech_therapy_session.jpg',
-            'Occupational Therapy' => '/images/services/occupational_therapy_session.jpg',
+            'Generic Nurse Visit' => '/images/services/generic-nurse-visit.jpg',
+            'Wound care and Surgical Dressing-Small' => '/images/services/wound-care-and-surgical-dressing-small.jpg',
+            'Wound care and Surgical Dressing-Medium' => '/images/services/wound-care-and-surgical-dressing-medium.jpg',
+            'Wound care and Surgical Dressing-Large' => '/images/services/wound-care-and-surgical-dressing-large.jpg',
+            'Catheterisation at home' => '/images/services/catheterisation-at-home.jpg',
+            'IV antibiotics at home (with Dr Prescription)' => '/images/services/iv-antibiotics-at-home.jpg',
+            'Doctor at Home' => '/images/services/doctor-home-fix.jpg',
+            'Doctor at Hotel' => '/images/services/doctor-home-fix.jpg',
+            'Physiotherapy-1 Hour Session' => '/images/services/physio-fix.jpg',
+            'Physiotherapy-1 Hour Session/Week (6 Sessions)' => '/images/services/physio-fix.jpg',
+            'Speech and Language Therapy' => '/images/services/speech-fix.jpg',
+            'Occupational Therapy' => '/images/services/ot-fix.jpg',
         ];
         if (isset($titleMap[$title])) return $titleMap[$title];
-        if (str_starts_with($title, 'DHA Registered Nurse')) return '/images/services/DHA Nurse.jpg';
-        if (str_starts_with($title, 'Care Giver')) return '/images/services/Caregiver.jpg';
-        return '/images/services/Generic Nurse Visit.jpg';
+        if (str_starts_with($title, 'DHA Registered Nurse')) return '/images/services/nurse-fix.jpg';
+        if (str_starts_with($title, 'Care Giver')) return '/images/services/caregiver-fix.jpg';
+        return '/images/services/nurse-fix.jpg';
     }
 
     public function run(): void

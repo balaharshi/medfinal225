@@ -128,11 +128,25 @@ echo ""
 echo "[6/6] Running server commands..."
 ssh "$REMOTE_USER@$REMOTE_HOST" << REMOTE_COMMANDS
     cd $BACKEND_REMOTE_DIR
-    if [ "$ENV" = "staging" ]; then
-        cp .env.staging .env 2>/dev/null || true
-    elif [ "$ENV" = "production" ]; then
-        cp .env.production .env 2>/dev/null || true
+    # Seed .env from the environment template ONLY on first deploy.
+    # On subsequent deploys we MUST keep the server's real .env (which holds
+    # the actual DB password and other secrets). The committed .env.staging /
+    # .env.production templates contain empty secrets, so overwriting the
+    # server .env would wipe the real credentials and break the database.
+    if [ ! -f .env ]; then
+        if [ "$ENV" = "staging" ]; then
+            cp .env.staging .env 2>/dev/null || true
+        elif [ "$ENV" = "production" ]; then
+            cp .env.production .env 2>/dev/null || true
+        fi
     fi
+    # Export the real .env values into the shell so that `php artisan config:cache`
+    # captures them. On this host Laravel's env() does not pick up DB_PASSWORD from
+    # the .env file alone, but it DOES honour variables already present in the
+    # environment (phpdotenv runs in immutable mode and keeps pre-set values).
+    set -a
+    [ -f .env ] && . ./.env
+    set +a
     composer install --no-dev --optimize-autoloader --no-interaction 2>/dev/null || true
     php artisan migrate --force 2>/dev/null || true
     php artisan config:cache 2>/dev/null || true

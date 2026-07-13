@@ -25,14 +25,35 @@ Every command below assumes you are on `feature/repo-improvements`. Double-check
 We have changed a LOT — 46 files, new database columns, new components, new console commands. You MUST start completely fresh. Do NOT reuse any old files or databases.
 
 ### Step 1: Delete EVERYTHING from staging server
+
+There are two locations on the server that need complete deletion:
+
+| Location | What it is | Why delete |
+|----------|-----------|------------|
+| `/home/rvdkqh1z30zk/public_html/staging.medzivahealthcare.com/` | Frontend files (the website people see) | 46 files changed, old build is incompatible |
+| `/home/rvdkqh1z30zk/staging/api/` | Backend files (Laravel PHP code) | Schema changed, new migrations, new commands, old code will crash |
+
+Both must be empty before we start fresh. Run these exact commands:
+
 ```bash
 ssh rvdkqh1z30zk@92.204.28.237
+
+# Delete frontend
 cd /home/rvdkqh1z30zk/public_html/staging.medzivahealthcare.com
 rm -rf * .* 2>/dev/null
+ls -la
+# Should show nothing (or just . and ..)
+
+# Delete backend
 cd /home/rvdkqh1z30zk/staging/api
 rm -rf * .* 2>/dev/null
+ls -la
+# Should show nothing (or just . and ..)
+
 exit
 ```
+
+**IF YOU SKIP THIS STEP, THE OLD CODE WILL CONFLICT WITH THE NEW CODE AND NOTHING WILL WORK.**
 
 ### Step 2: Clone the repo and switch to the RIGHT branch
 ```bash

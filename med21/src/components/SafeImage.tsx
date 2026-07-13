@@ -12,16 +12,6 @@ interface SafeImageProps {
   onError?: (event: SyntheticEvent<HTMLImageElement>) => void;
 }
 
-/**
- * SafeImage
- *
- * Renders an <img> only when a non-empty src is provided. If the image fails
- * to load, the entire container is hidden so no broken-image icon or empty
- * placeholder box is shown.
- *
- * Use this for all product/service/category images so the UI degrades cleanly
- * when an image path is missing or a file is unavailable.
- */
 export default function SafeImage({
   src,
   alt,
@@ -43,8 +33,6 @@ export default function SafeImage({
     return <>{fallback}</>;
   }
 
-  // Defensive: ensure spaces in URLs are encoded. Most browsers handle raw
-  // spaces, but encoding keeps paths consistent and avoids edge cases.
   const safeSrc = src.replace(/ /g, '%20');
 
   const image = (

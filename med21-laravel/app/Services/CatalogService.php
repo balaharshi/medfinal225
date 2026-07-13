@@ -27,7 +27,6 @@ class CatalogService
 
     public function __construct(
         private readonly VendorServiceAssignmentService $assignmentService,
-        private readonly TimeSlotCalculator $timeSlotCalculator,
         private readonly PusherService $pusherService,
     ) {
     }
@@ -211,20 +210,6 @@ class CatalogService
         return CaseKeys::camelize(User::query()->orderByDesc('created_at')->get());
     }
 
-    public function deleteUser(string $id, string $actorRole): array
-    {
-        $user = User::query()->find($id) ?? throw new HttpException(404, 'User not found');
-
-        if (!AppConstants::canManageRole($actorRole, (string) $user->role)) {
-            throw new HttpException(403, 'You do not have permission to delete this user.');
-        }
-
-        $deleted = CaseKeys::camelize($user);
-        $user->delete();
-
-        return ['success' => true, 'deleted' => [$deleted]];
-    }
-
     public function createVendor(array $payload): array
     {
         $vendor = Vendor::query()->create([
@@ -310,22 +295,6 @@ class CatalogService
             $this->assignmentService->ensureVendorServiceEnabled((string) $payload['vendorId'], (string) $payload['serviceId']);
         }
 
-        // Prevent duplicate bookings for same customer+service+date+slot
-        $customerEmail = $payload['customerEmail'] ?? '';
-        if ($customerEmail && $customerEmail !== 'guest@example.com' && ($payload['serviceId'] ?? null)) {
-            $duplicate = Booking::query()
-                ->where('customer_email', $customerEmail)
-                ->where('service_id', $payload['serviceId'])
-                ->where('date', $payload['date'] ?? now()->toDateString())
-                ->where('time_slot', $payload['timeSlot'] ?? 'Flexible')
-                ->whereIn('status', [AppConstants::BOOKING_STATUSES['PENDING'], AppConstants::BOOKING_STATUSES['ACTIVE']])
-                ->exists();
-
-            if ($duplicate) {
-                throw new HttpException(409, 'You already have a pending booking for this service at the same date and time');
-            }
-        }
-
         // Resolve category/subcategory from service record if serviceId provided
         $category = $payload['category'] ?? null;
         $subcategory = $payload['subcategory'] ?? null;
@@ -337,6 +306,16 @@ class CatalogService
             }
         }
 
+        $vendorCost = 0;
+        $vendorId = $payload['vendorId'] ?? null;
+        if ($vendorId && isset($payload['serviceId'])) {
+            $assignment = \App\Models\VendorServiceAssignment::query()
+                ->where('vendor_id', $vendorId)
+                ->where('service_id', $payload['serviceId'])
+                ->first();
+            $vendorCost = $assignment?->vendor_price ?? 0;
+        }
+
         $booking = Booking::query()->create([
             'id' => SequentialId::next(Booking::class, 'b'),
             'customer_name' => $payload['customerName'],
@@ -344,11 +323,12 @@ class CatalogService
             'customer_phone' => $payload['customerPhone'] ?? '',
             'service_title' => $payload['serviceTitle'],
             'vendor_name' => $payload['vendorName'] ?? 'Unassigned',
-            'vendor_id' => $payload['vendorId'] ?? null,
+            'vendor_id' => $vendorId,
             'service_id' => $payload['serviceId'] ?? null,
             'category' => $category,
             'subcategory' => $subcategory,
             'price' => (int) ($payload['price'] ?? 150),
+            'cost' => $vendorCost,
             'date' => $payload['date'] ?? now()->toDateString(),
             'time_slot' => $payload['timeSlot'] ?? 'Flexible',
             'region' => $payload['region'] ?? 'Dubai',
@@ -360,8 +340,8 @@ class CatalogService
             'payment_transaction_utr' => $payload['paymentTransactionUtr'] ?? null,
             'payment_response_status' => $payload['paymentResponseStatus'] ?? null,
             'paid_at' => isset($payload['paidAt']) ? new \DateTime($payload['paidAt']) : null,
+            'expires_at' => now()->addHours(2),
             'notes' => $payload['notes'] ?? '',
-            'expires_at' => $this->calculateBookingExpiry($payload['serviceId'] ?? null, $payload['date'] ?? null),
         ]);
 
         $this->sendBookingConfirmationEmail($booking);
@@ -439,12 +419,7 @@ class CatalogService
     public function cancelBooking(string $id): array
     {
         $booking = Booking::query()->find($id) ?? throw new HttpException(404, 'Booking record not found');
-        $previousStatus = $booking->status;
         $booking->forceFill(['status' => AppConstants::BOOKING_STATUSES['CANCELLED']])->save();
-
-        $this->handleCancellationPayment($booking);
-        $this->sendBookingStatusUpdateEmail($booking, $previousStatus);
-        $this->sendVendorCancellationEmail($booking);
 
         return ['success' => true, 'updated' => CaseKeys::camelize($booking)];
     }
@@ -503,6 +478,13 @@ class CatalogService
         }
 
         $this->assignmentService->ensureVendorServiceEnabled($vendorId, $booking->service_id);
+        $vendorCost = 0;
+        $assignment = \App\Models\VendorServiceAssignment::query()
+            ->where('vendor_id', $vendorId)
+            ->where('service_id', $booking->service_id)
+            ->first();
+        $vendorCost = $assignment?->vendor_price ?? 0;
+
         $updated = Booking::query()
             ->whereKey($bookingId)
             ->whereNull('vendor_id')
@@ -512,6 +494,8 @@ class CatalogService
                 'vendor_name' => $vendor->name,
                 'status' => AppConstants::BOOKING_STATUSES['ACTIVE'],
                 'accepted_at' => now(),
+                'cost' => $vendorCost,
+                'expires_at' => null,
                 'updated_at' => now(),
             ]);
 
@@ -521,7 +505,6 @@ class CatalogService
 
         $updatedBooking = Booking::query()->findOrFail($bookingId);
         $this->sendBookingStatusUpdateEmail($updatedBooking, 'Pending');
-        $this->sendVendorAcceptanceEmail($updatedBooking);
 
         return CaseKeys::camelize($updatedBooking);
     }
@@ -591,77 +574,7 @@ class CatalogService
         if (! in_array($booking->status, [AppConstants::BOOKING_STATUSES['PENDING'], AppConstants::BOOKING_STATUSES['ACTIVE']], true)) {
             throw new HttpException(400, 'Only pending or active bookings can be cancelled');
         }
-        $previousStatus = $booking->status;
         $booking->forceFill(['status' => AppConstants::BOOKING_STATUSES['CANCELLED']])->save();
-
-        $this->handleCancellationPayment($booking);
-        $this->sendBookingStatusUpdateEmail($booking, $previousStatus);
-        $this->sendVendorCancellationEmail($booking);
-
-        return CaseKeys::camelize($booking);
-    }
-
-    public function rescheduleCustomerBooking(string $id, string $email, string $newDate, string $newTimeSlot): array
-    {
-        $booking = Booking::query()->find($id) ?? throw new HttpException(404, 'Booking not found');
-        if ($booking->customer_email !== $email) {
-            throw new HttpException(403, 'You can only reschedule your own bookings');
-        }
-        if ($booking->status !== AppConstants::BOOKING_STATUSES['PENDING'] && $booking->status !== AppConstants::BOOKING_STATUSES['ACTIVE']) {
-            throw new HttpException(400, 'Only pending or active bookings can be rescheduled');
-        }
-
-        // Check 1 free reschedule limit
-        if ($booking->reschedule_count >= 1) {
-            throw new HttpException(400, 'You have already used your free reschedule. Contact support for further changes.');
-        }
-
-        // Check 24 hours notice before original appointment
-        try {
-            $originalAppointment = \Carbon\Carbon::parse($booking->date . ' ' . explode('-', str_replace(' ', '', $booking->time_slot))[0]);
-        } catch (\Throwable) {
-            $originalAppointment = \Carbon\Carbon::parse($booking->date);
-        }
-        if (now()->diffInHours($originalAppointment, false) <= 24) {
-            throw new HttpException(400, 'Rescheduling requires at least 24 hours notice before your original appointment.');
-        }
-
-        // Validate new date/time slot is available
-        if ($booking->service_id) {
-            $available = $this->timeSlotCalculator->getAvailableSlots($booking->service_id, $newDate);
-            $slotAvailable = \Illuminate\Support\Collection::make($available)->first(fn ($s) => $s['label'] === $newTimeSlot);
-            if (! $slotAvailable) {
-                throw new HttpException(400, 'The selected time slot is not available. Please choose from the available slots.');
-            }
-        }
-
-        $previousStatus = $booking->status;
-        $updateData = [
-            'date' => $newDate,
-            'time_slot' => $newTimeSlot,
-            'reschedule_count' => $booking->reschedule_count + 1,
-        ];
-
-        // If a vendor was assigned, put back to unassigned so all vendors can re-accept
-        if ($booking->vendor_id) {
-            $updateData['vendor_id'] = null;
-            $updateData['vendor_name'] = 'Unassigned';
-            $updateData['status'] = AppConstants::BOOKING_STATUSES['PENDING'];
-            $updateData['accepted_at'] = null;
-
-            // Notify the previously assigned vendor
-            $this->sendVendorCancellationEmail($booking);
-        }
-
-        $booking->forceFill($updateData)->save();
-
-        // Notify all eligible vendors about the rescheduled slot
-        if ($booking->service_id) {
-            $this->notifyEligibleVendors($booking);
-        }
-
-        // Notify customer
-        $this->sendBookingStatusUpdateEmail($booking, $previousStatus);
 
         return CaseKeys::camelize($booking);
     }
@@ -677,10 +590,6 @@ class CatalogService
         if ($booking->vendor_id !== $vendorId) {
             throw new HttpException(403, 'You can only update bookings assigned to you');
         }
-        $vendor = Vendor::query()->find($vendorId);
-        if (! $vendor || ! $vendor->active) {
-            throw new HttpException(403, 'This vendor account has been deactivated');
-        }
 
         $previousStatus = $booking->status;
         $updateData = ['status' => $status];
@@ -690,10 +599,7 @@ class CatalogService
 
         $booking->forceFill($updateData)->save();
 
-        if ($status === 'Canceled') {
-            $this->sendBookingStatusUpdateEmail($booking, $previousStatus);
-            $this->sendVendorCancellationEmail($booking);
-        }
+        $this->sendBookingStatusUpdateEmail($booking, $previousStatus);
 
         return CaseKeys::camelize($booking);
     }
@@ -1040,201 +946,6 @@ class CatalogService
         return $metrics->toArray();
     }
 
-    // ── Booking Expiry ────────────────────────────────────────────────
-
-    // ── Cancellation Payment ─────────────────────────────────────────
-
-    /**
-     * Calculate cancellation fee based on policy:
-     *   - > 24 hours from booking time: full refund (no fee)
-     *   - ≤ 24 hours from booking time: 20% of booking or AED 100, whichever is lower
-     */
-    private function calculateCancellationFee(Booking $booking): int
-    {
-        $price = (int) $booking->price;
-        $createdAt = $booking->created_at ?? now();
-        $hoursSinceBooking = $createdAt->diffInHours(now());
-
-        // More than 24 hours since booking → no fee
-        if ($hoursSinceBooking > 24) {
-            return 0;
-        }
-
-        // Within 24 hours of booking → min(20% of price, AED 100)
-        $percentFee = (int) round($price * 0.2);
-        $cappedFee = min($percentFee, 100);
-
-        return max($cappedFee, 0);
-    }
-
-    private function handleCancellationPayment(Booking $booking): void
-    {
-        $authTransaction = \App\Models\AuthTransaction::query()
-            ->where('booking_id', $booking->id)
-            ->first();
-
-        if (! $authTransaction) {
-            return; // No payment to process
-        }
-
-        $fee = $this->calculateCancellationFee($booking);
-        $enbdpay = app(EnbdpayService::class);
-
-        try {
-            if ($authTransaction->status === 'AUTHORIZED') {
-                // Just void — can't do partial voids with ENBDpay AUTH
-                $enbdpay->voidAuthorization([
-                    'transactionUtr' => $authTransaction->transaction_utr,
-                    'appUtr' => $authTransaction->app_utr,
-                    'orderId' => $authTransaction->order_id,
-                ]);
-                $authTransaction->update([
-                    'status' => 'VOIDED',
-                    'voided_at' => now(),
-                    'notes' => $fee > 0 ? 'Cancellation fee AED ' . $fee : 'Full void',
-                ]);
-
-                if ($fee > 0) {
-                    \Log::warning("Booking {$booking->id} cancelled within 24h. Fee AED {$fee} not collectable — payment was only AUTHORIZED.");
-                }
-            } elseif ($authTransaction->status === 'CAPTURED') {
-                $refundAmount = max((float) $authTransaction->captured_amount - $fee, 0);
-
-                $enbdpay->refundTransaction([
-                    'transactionUtr' => $authTransaction->transaction_utr,
-                    'appUtr' => $authTransaction->app_utr,
-                    'amount' => $refundAmount,
-                    'orderId' => $authTransaction->order_id,
-                ]);
-
-                $authTransaction->update([
-                    'status' => 'REFUNDED',
-                    'notes' => $fee > 0 ? 'Cancellation fee AED ' . $fee . ' deducted from refund' : 'Full refund',
-                ]);
-
-                $booking->update(['payment_status' => 'Refunded']);
-            }
-        } catch (\Throwable $e) {
-            \Log::error("Failed to process cancellation payment for booking {$booking->id}: " . $e->getMessage());
-        }
-    }
-
-    // ── Revenue Reports ──────────────────────────────────────────────
-
-    public function getRevenueReport(?string $from = null, ?string $to = null): array
-    {
-        $query = Booking::query()->where('payment_status', 'Paid');
-
-        if ($from) $query->whereDate('created_at', '>=', $from);
-        if ($to) $query->whereDate('created_at', '<=', $to);
-
-        $bookings = $query->get();
-        $totalRevenue = 0;
-        $totalCost = 0;
-        $lineItems = [];
-
-        // Batch-load all vendor assignments in one query to avoid N+1
-        $vendorServicePairs = $bookings->map(fn ($b) => ['vendor_id' => $b->vendor_id, 'service_id' => $b->service_id])
-            ->filter(fn ($p) => $p['vendor_id'] && $p['service_id'])
-            ->unique(fn ($p) => $p['vendor_id'] . '|' . $p['service_id']);
-        $assignments = \App\Models\VendorServiceAssignment::query()
-            ->where(function ($q) use ($vendorServicePairs) {
-                foreach ($vendorServicePairs as $pair) {
-                    $q->orWhere(fn ($w) => $w->where('vendor_id', $pair['vendor_id'])->where('service_id', $pair['service_id']));
-                }
-            })
-            ->when($vendorServicePairs->isEmpty(), fn ($q) => $q->whereRaw('1=0'))
-            ->get()
-            ->keyBy(fn ($a) => $a->vendor_id . '|' . $a->service_id);
-
-        foreach ($bookings as $booking) {
-            $revenue = (int) $booking->price;
-            $cost = 0;
-
-            if ($booking->service_id && $booking->vendor_id) {
-                $key = $booking->vendor_id . '|' . $booking->service_id;
-                $assignment = $assignments->get($key);
-                if ($assignment && $assignment->vendor_price !== null) {
-                    $cost = $assignment->vendor_price;
-                }
-            }
-
-            $totalRevenue += $revenue;
-            $totalCost += $cost;
-            $lineItems[] = [
-                'bookingId' => $booking->id,
-                'service' => $booking->service_title,
-                'date' => $booking->date,
-                'revenue' => $revenue,
-                'cost' => $cost,
-                'profit' => $revenue - $cost,
-            ];
-        }
-
-        return [
-            'totalRevenue' => $totalRevenue,
-            'totalCost' => $totalCost,
-            'totalProfit' => $totalRevenue - $totalCost,
-            'count' => count($lineItems),
-            'items' => $lineItems,
-        ];
-    }
-
-    private function calculateBookingExpiry(?string $serviceId, ?string $bookingDate): ?\DateTime
-    {
-        if (! $serviceId) {
-            return now()->addHours(2);
-        }
-
-        $now = now();
-        $targetDate = $bookingDate ? \Carbon\Carbon::parse($bookingDate) : $now;
-        $dayOfWeek = $targetDate->dayOfWeek;
-
-        // Find all active vendors with this service enabled
-        $vendorIds = \App\Models\VendorServiceAssignment::query()
-            ->where('service_id', $serviceId)
-            ->where('enabled', true)
-            ->pluck('vendor_id')
-            ->all();
-
-        if ($vendorIds === []) {
-            return $now->copy()->addHours(2);
-        }
-
-        // Get their working hours for this day of week
-        $workingHours = \App\Models\VendorWorkingHour::query()
-            ->whereIn('vendor_id', $vendorIds)
-            ->where('day_of_week', $dayOfWeek)
-            ->where('is_active', true)
-            ->get();
-
-        if ($workingHours->isEmpty()) {
-            return $now->copy()->addHours(2);
-        }
-
-        // Find the earliest working hour start that is after (or at) now,
-        // OR the earliest start today if all starts have passed
-        $earliestStart = null;
-        foreach ($workingHours as $wh) {
-            $start = \Carbon\Carbon::parse($wh->start_time)->setDateFrom($now);
-            // If this start has already passed today, try tomorrow
-            if ($start->lt($now)) {
-                $start->addDay();
-            }
-            if ($earliestStart === null || $start->lt($earliestStart)) {
-                $earliestStart = $start;
-            }
-        }
-
-        // If all vendor working hours are in the past and no booking date was set,
-        // fall back to now + 2 hours
-        if (! $earliestStart) {
-            return $now->copy()->addHours(2);
-        }
-
-        return $earliestStart->addHours(2);
-    }
-
     private function sendBookingConfirmationEmail(Booking $booking): void
     {
         try {
@@ -1247,13 +958,6 @@ class CatalogService
         } catch (\Throwable $e) {
             \Log::error('Failed to send booking confirmation email: ' . $e->getMessage());
         }
-
-        $this->sendCustomerWhatsApp($booking, 'booking_confirmed', [
-            $booking->service_title,
-            $booking->date,
-            $booking->time_slot,
-            (string) $booking->price,
-        ]);
     }
 
     private function sendPaymentConfirmationEmail(Booking $booking): void
@@ -1268,11 +972,6 @@ class CatalogService
         } catch (\Throwable $e) {
             \Log::error('Failed to send payment confirmation email: ' . $e->getMessage());
         }
-
-        $this->sendCustomerWhatsApp($booking, 'payment_received', [
-            $booking->service_title,
-            (string) $booking->price,
-        ]);
     }
 
     private function notifyEligibleVendors(Booking $booking): void
@@ -1318,17 +1017,6 @@ class CatalogService
                 'booking:new',
                 ['message' => 'New booking available: ' . $booking->service_title, 'booking' => $bookingData]
             );
-
-            // Send WhatsApp notification
-            try {
-                app(WhatsAppService::class)->sendTemplate(
-                    $vendor->contact ?? $vendor->phone ?? '',
-                    'new_booking_vendor',
-                    [$booking->service_title, $booking->customer_name ?? 'Customer', $booking->date, $booking->time_slot]
-                );
-            } catch (\Throwable $e) {
-                \Log::warning('Vendor WhatsApp notification skipped: ' . $e->getMessage());
-            }
         }
     }
 
@@ -1344,70 +1032,8 @@ class CatalogService
                 CaseKeys::camelize($booking->toArray()),
                 $vendor->name
             ));
-
-            $this->sendVendorWhatsApp($vendor, 'new_booking_vendor', [
-                $booking->service_title,
-                $booking->customer_name,
-                $booking->date,
-                $booking->time_slot,
-            ]);
         } catch (\Throwable $e) {
             \Log::error('Failed to send vendor new booking email: ' . $e->getMessage());
-        }
-    }
-
-    private function sendVendorAcceptanceEmail(Booking $booking): void
-    {
-        if (! $booking->vendor_id) {
-            return;
-        }
-
-        try {
-            $vendor = Vendor::query()->find($booking->vendor_id);
-            if (! $vendor || ! $vendor->email) {
-                return;
-            }
-
-            \Mail::to($vendor->email)->send(new \App\Mail\VendorNewBooking(
-                CaseKeys::camelize($booking->toArray()),
-                $vendor->name
-            ));
-
-            $this->sendVendorWhatsApp($vendor, 'booking_accepted_vendor', [
-                $booking->service_title,
-                $booking->customer_name,
-                $booking->date,
-                $booking->time_slot,
-            ]);
-        } catch (\Throwable $e) {
-            \Log::error('Failed to send vendor acceptance email: ' . $e->getMessage());
-        }
-    }
-
-    private function sendVendorCancellationEmail(Booking $booking): void
-    {
-        if (! $booking->vendor_id) {
-            return;
-        }
-
-        try {
-            $vendor = Vendor::query()->find($booking->vendor_id);
-            if (! $vendor || ! $vendor->email) {
-                return;
-            }
-
-            \Mail::to($vendor->email)->send(new \App\Mail\VendorBookingCancelled(
-                CaseKeys::camelize($booking->toArray()),
-                $vendor->name
-            ));
-
-            $this->sendVendorWhatsApp($vendor, 'booking_cancelled_vendor', [
-                $booking->service_title,
-                $booking->customer_name,
-                $booking->date,
-            ]);
-        } catch (\Throwable $e) {
-            \Log::error('Failed to send vendor cancellation email: ' . $e->getMessage());
         }
     }
 
@@ -1426,159 +1052,5 @@ class CatalogService
         } catch (\Throwable $e) {
             \Log::error('Failed to send booking status update email: ' . $e->getMessage());
         }
-
-        $this->sendCustomerWhatsApp(
-            $booking,
-            'booking_status_update',
-            [$booking->service_title, $booking->status]
-        );
-    }
-
-    // ── WhatsApp Notifications ──────────────────────────────────────────
-
-    /**
-     * Send a WhatsApp notification to the customer for a booking event.
-     * Gracefully fails if WhatsApp is not configured.
-     */
-    private function sendCustomerWhatsApp(Booking $booking, string $templateName, array $parameters = []): void
-    {
-        if (! $booking->customer_phone) {
-            return;
-        }
-
-        try {
-            app(WhatsAppService::class)->sendTemplate(
-                $booking->customer_phone,
-                $templateName,
-                $parameters
-            );
-        } catch (\Throwable $e) {
-            \Log::warning('WhatsApp customer notification skipped: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Send a WhatsApp notification to a vendor.
-     */
-    private function sendVendorWhatsApp(Vendor $vendor, string $templateName, array $parameters = []): void
-    {
-        if (! $vendor->contact) {
-            return;
-        }
-
-        try {
-            app(WhatsAppService::class)->sendTemplate(
-                $vendor->contact,
-                $templateName,
-                $parameters
-            );
-        } catch (\Throwable $e) {
-            \Log::warning('WhatsApp vendor notification skipped: ' . $e->getMessage());
-        }
-    }
-
-    // ── Vendor Working Hours ──────────────────────────────────────────
-
-    public function getVendorWorkingHours(string $vendorId): array
-    {
-        $vendor = Vendor::query()->find($vendorId)
-            ?? throw new HttpException(404, 'Vendor not found');
-
-        return $vendor->workingHours()->orderBy('day_of_week')->orderBy('start_time')->get()
-            ->map(fn ($wh) => [
-                'id' => $wh->id,
-                'vendorId' => $wh->vendor_id,
-                'dayOfWeek' => $wh->day_of_week,
-                'startTime' => $wh->start_time,
-                'endTime' => $wh->end_time,
-                'isActive' => $wh->is_active,
-            ])
-            ->all();
-    }
-
-    public function updateVendorWorkingHours(string $vendorId, array $payload): array
-    {
-        $vendor = Vendor::query()->find($vendorId)
-            ?? throw new HttpException(404, 'Vendor not found');
-
-        $hours = $payload['hours'] ?? [];
-
-        // Delete existing hours for this vendor
-        $vendor->workingHours()->delete();
-
-        // Insert new hours
-        $results = [];
-        foreach ($hours as $entry) {
-            $dayOfWeek = (int) ($entry['dayOfWeek'] ?? -1);
-            $startTime = $entry['startTime'] ?? '';
-            $endTime = $entry['endTime'] ?? '';
-            $isActive = $entry['isActive'] ?? true;
-
-            if ($dayOfWeek < 0 || $dayOfWeek > 6 || ! $startTime || ! $endTime) {
-                continue;
-            }
-
-            $wh = $vendor->workingHours()->create([
-                'id' => SequentialId::next(\App\Models\VendorWorkingHour::class, 'vwh'),
-                'vendor_id' => $vendorId,
-                'day_of_week' => $dayOfWeek,
-                'start_time' => $startTime,
-                'end_time' => $endTime,
-                'is_active' => $isActive,
-            ]);
-
-            $results[] = [
-                'id' => $wh->id,
-                'vendorId' => $wh->vendor_id,
-                'dayOfWeek' => $wh->day_of_week,
-                'startTime' => $wh->start_time,
-                'endTime' => $wh->end_time,
-                'isActive' => $wh->is_active,
-            ];
-        }
-
-        return $results;
-    }
-
-    // ── Available Time Slots ──────────────────────────────────────────
-
-    public function getAvailableTimeSlots(string $serviceId, ?string $date = null, ?string $region = null): array
-    {
-        return $this->timeSlotCalculator->getAvailableSlots($serviceId, $date, $region);
-    }
-
-    // ── Vendor Catalog CSV ──────────────────────────────────────────
-
-    public function exportVendorCatalog(string $vendorId): string
-    {
-        Vendor::query()->find($vendorId) ?? throw new HttpException(404, 'Vendor not found');
-        $services = Service::query()->where('active', true)->where('status', 'active')
-            ->orderBy('category')->orderBy('title')->get();
-        $csv = fopen('php://temp', 'r+');
-        fputcsv($csv, ['Service ID', 'Name', 'Category', 'Subcategory', 'Description', 'MRP (AED)', 'Available? (Yes/No)']);
-        foreach ($services as $s) {
-            fputcsv($csv, [$s->id, $s->title, $s->category, $s->subcategory, strip_tags($s->description ?? $s->short_description ?? ''), $s->price, '']);
-        }
-        rewind($csv); $content = stream_get_contents($csv); fclose($csv);
-        return $content;
-    }
-
-    public function importVendorCatalog(string $vendorId, string $filePath): array
-    {
-        $vendor = Vendor::query()->find($vendorId) ?? throw new HttpException(404, 'Vendor not found');
-        $csv = fopen($filePath, 'r'); fgetcsv($csv);
-        $enabled = 0; $errors = [];
-        while (($row = fgetcsv($csv)) !== false) {
-            $serviceId = $row[0] ?? '';
-            if (! $serviceId || ! Service::query()->find($serviceId)) continue;
-            $isEnabled = in_array(strtolower(trim($row[6] ?? '')), ['yes', 'y', 'true', '1']);
-            \App\Models\VendorServiceAssignment::updateOrCreate(
-                ['vendor_id' => $vendorId, 'service_id' => $serviceId],
-                ['id' => \App\Support\SequentialId::next(\App\Models\VendorServiceAssignment::class, 'vsa'), 'enabled' => $isEnabled],
-            );
-            if ($isEnabled) $enabled++;
-        }
-        fclose($csv);
-        return ['success' => true, 'vendor' => $vendor->name, 'enabled' => $enabled, 'errors' => $errors];
     }
 }

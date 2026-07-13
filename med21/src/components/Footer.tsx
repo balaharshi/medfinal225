@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send, MessageCircle, Heart, CheckCircle } from 'lucide-react';
 import { api } from '../lib/api';
+import SafeImage from './SafeImage';
 
 const newlogo = '/log.png';
 
@@ -32,7 +33,6 @@ export default function Footer({ onNavigationClick }: FooterProps) {
         setSubscribed(true);
         setTimeout(() => setEmail(''), 3000);
       } catch {
-        // Newsletter subscription is best-effort; don't block UI
       }
     }
   };
@@ -89,7 +89,7 @@ export default function Footer({ onNavigationClick }: FooterProps) {
           {/* Brand Info */}
           <div className="lg:col-span-3 space-y-4">
             <div className="flex items-center gap-2">
-              <img src={newlogo} alt="MedZiva" className="h-20 w-auto object-contain" />
+              <SafeImage src={newlogo} alt="MedZiva" className="h-20 w-auto" />
             </div>
             <p className="text-gray-400 text-[12.5px] leading-relaxed font-normal">
               Premium Healthcare Marketplace delivering DHA compliant healthcare, elite home medical assistance, and hospital equipment rentals across all residences of Dubai.

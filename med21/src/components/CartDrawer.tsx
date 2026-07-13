@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 import { api } from '../lib/api';
 import PhoneInput from './PhoneInput';
 import LocationPicker, { SelectedLocation } from './LocationPicker';
+import SafeImage from './SafeImage';
 import { CartItem } from '../types';
 import ConfirmDialog from './ConfirmDialog';
 import { createEnbdpayCheckout } from '../services/enbdpay';

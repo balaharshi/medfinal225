@@ -8,6 +8,8 @@ import { X, Mail, Lock, User, Sparkles, Phone } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
 import PhoneInput from './PhoneInput';
 import toast from 'react-hot-toast';
+import SafeImage from './SafeImage';
+import { api } from '../lib/api';
 import { trackEvent, AnalyticsEvents } from '../services/analytics';
 
 const newlogo = '/newlogo.png';
@@ -151,28 +153,21 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     setAuthError(null);
 
     try {
-      const response = await fetch(isSignUp ? '/api/auth/register' : '/api/auth/login', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(
-          isSignUp
-            ? {
-                fullName: values.fullName.trim(),
-                email: values.email.trim(),
-                phone: values.phone.trim(),
-                password: values.password,
-              }
-            : {
-                email: values.email.trim(),
-                password: values.password,
-              }
-        ),
+      const data = await api.post<{ success?: boolean; accessToken?: string; user?: { fullName?: string; email?: string } }>(isSignUp ? '/api/auth/register' : '/api/auth/login', {
+        body: isSignUp
+          ? {
+              fullName: values.fullName.trim(),
+              email: values.email.trim(),
+              phone: values.phone.trim(),
+              password: values.password,
+            }
+          : {
+              email: values.email.trim(),
+              password: values.password,
+            },
       });
 
-      const data = await response.json();
-
-      if (response.ok && data?.success) {
+      if (data?.success) {
         if (data.accessToken) {
           localStorage.setItem('medziva_user_token', data.accessToken);
         }
@@ -190,8 +185,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
         setAuthError(friendlyError);
         toast.error(friendlyError);
       }
-    } catch {
-      const friendlyError = 'We could not connect to the secure login service. Please try again in a moment.';
+    } catch (error) {
+      const friendlyError = error instanceof Error ? error.message : 'We could not connect to the secure login service. Please try again in a moment.';
       setAuthError(friendlyError);
       toast.error(friendlyError);
     } finally {
@@ -204,15 +199,9 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     setAuthError(null);
 
     try {
-      const response = await fetch('/api/auth/google', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json();
+      const data = await api.post<{ success?: boolean; accessToken?: string; user?: { fullName?: string; email?: string } }>('/api/auth/google', { body: payload });
 
-      if (!response.ok || !data?.success) {
+      if (!data?.success) {
         const friendlyError = getFriendlyAuthError(data, false);
         setAuthError(friendlyError);
         toast.error(friendlyError);
@@ -227,8 +216,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
       trackEvent(AnalyticsEvents.GOOGLE_LOGIN, { method: 'google' });
       onSuccess(user.fullName || user.email || 'MedZiva Customer', user.email || '');
       closeModal();
-    } catch {
-      const friendlyError = 'We could not connect to the secure login service. Please try again in a moment.';
+    } catch (error) {
+      const friendlyError = error instanceof Error ? error.message : 'We could not connect to the secure login service. Please try again in a moment.';
       setAuthError(friendlyError);
       toast.error(friendlyError);
     } finally {
@@ -242,15 +231,11 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     setAuthError(null);
 
     try {
-      const response = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: forgotEmail.trim() }),
+      const data = await api.post<{ success?: boolean; error?: string }>('/api/auth/forgot-password', {
+        body: { email: forgotEmail.trim() },
       });
-      const data = await response.json();
 
-      if (response.ok && data?.success) {
+      if (data?.success) {
         toast.success('If your email is registered, you\'ll receive a reset code.');
         setResetEmail(forgotEmail.trim());
         setAuthView('reset');
@@ -259,8 +244,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
         setAuthError(msg);
         toast.error(msg);
       }
-    } catch {
-      const msg = 'We could not connect to the secure login service. Please try again in a moment.';
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'We could not connect to the secure login service. Please try again in a moment.';
       setAuthError(msg);
       toast.error(msg);
     } finally {
@@ -290,19 +275,15 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     }
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const data = await api.post<{ success?: boolean; error?: string }>('/api/auth/reset-password', {
+        body: {
           email: resetEmail.trim(),
           code: resetCode.trim(),
           newPassword: resetNewPassword,
-        }),
+        },
       });
-      const data = await response.json();
 
-      if (response.ok && data?.success) {
+      if (data?.success) {
         toast.success('Password has been reset successfully. Please sign in.');
         setAuthView('login');
         setResetCode('');
@@ -313,8 +294,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
         setAuthError(msg);
         toast.error(msg);
       }
-    } catch {
-      const msg = 'We could not connect to the secure login service. Please try again in a moment.';
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'We could not connect to the secure login service. Please try again in a moment.';
       setAuthError(msg);
       toast.error(msg);
     } finally {
@@ -326,7 +307,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-2 sm:p-4 backdrop-blur-xs">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl h-[96vh] md:h-[min(760px,94vh)] relative overflow-hidden transition-all text-left grid md:grid-cols-[0.95fr_1.05fr]">
         <div className="hidden md:flex relative min-h-0 bg-slate-950 overflow-hidden">
-          <img
+          <SafeImage
             src="/b1.png"
             alt="MedZiva healthcare service"
             className="absolute inset-0 h-full w-full object-cover opacity-80"
@@ -334,7 +315,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
           />
           <div className="absolute inset-0 bg-linear-to-br from-blue-950/80 via-emerald-950/55 to-slate-950/80" />
           <div className="relative z-10 flex h-full flex-col justify-between gap-6 p-8 text-white">
-            <img
+            <SafeImage
               src={newlogo}
               alt="MedZiva Logo"
               className="h-28 w-fit max-w-[260px] rounded-2xl bg-white/95 p-4 object-contain shadow-xl"
@@ -364,7 +345,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
           </button>
 
           <div className="bg-white px-5 pt-6 pb-3 sm:px-8 sm:pt-8 relative flex flex-col gap-3">
-            <img
+            <SafeImage
               src={newlogo}
               alt="MedZiva Logo"
               className="h-28 w-auto mx-auto object-contain md:hidden"

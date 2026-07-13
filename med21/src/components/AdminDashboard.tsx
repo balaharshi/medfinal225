@@ -6,6 +6,8 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
+import { api } from "../lib/api";
+import SafeImage from '../components/SafeImage';
 import { 
   Lock, 
   Unlock, 
@@ -14,7 +16,8 @@ import {
   HeartPulse, 
   Layers, 
   Building2, 
-  TrendingUp, 
+  TrendingUp,
+  TrendingDown, 
   Settings, 
   Trash2, 
   Plus, 
@@ -52,8 +55,7 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import ConfirmDialog from "./ConfirmDialog";
 import SocialAuthButtons from "./SocialAuthButtons";
 import PhoneInput from "./PhoneInput";
-import SafeImage from "./SafeImage";
-import { DEFAULT_HEALTHCARE_SERVICE_IMAGE } from "../data";
+import { HEALTHCARE_SERVICES, DEFAULT_HEALTHCARE_SERVICE_IMAGE } from "../data";
 import { subscribeToNotifications } from "../services/pusherClient";
 
 interface AdminDashboardProps {
@@ -133,20 +135,6 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const [reportStartDate, setReportStartDate] = useState("");
   const [reportEndDate, setReportEndDate] = useState("");
 
-  const getAdminRequestInit = (init: RequestInit = {}) => {
-    const token = localStorage.getItem("medziva_admin_token");
-    const headers = new Headers(init.headers || {});
-
-    if (token) {
-      headers.set("Authorization", `Bearer ${token}`);
-    }
-
-    return {
-      ...init,
-      credentials: "include" as const,
-      headers,
-    };
-  };
 
   // Filtered vendors list
   const filteredVendors = vendorsList.filter((v) => {
@@ -213,7 +201,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       .replace(/[^a-z0-9]+/g, "")
       .trim();
   const frontendServiceImageByKey = useMemo(() => {
-    const entries = (db.services || []).flatMap((service: any) => {
+    const entries = HEALTHCARE_SERVICES.flatMap((service) => {
       const normalizedTitle = normalizeServiceImageKey(service.title || "");
       return [
         [String(service.id || ""), service.image],
@@ -224,7 +212,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       ];
     });
     return new Map(entries.filter(([key]) => Boolean(key)) as Array<[string, string]>);
-  }, [db.services]);
+  }, []);
   const getServiceRecordImage = (service: any) =>
     frontendServiceImageByKey.get(String(service.id || "")) ||
     frontendServiceImageByKey.get(String(service.title || "").trim().toLowerCase()) ||
@@ -329,7 +317,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     siteName: "MedZiva Home Healthcare",
     vatPercent: 5,
     defaultCurrency: "AED",
-    supportEmail: "support@medzivahealthcare.com",
+    supportEmail: "support@medziva.ae",
     serviceRegions: ["Dubai", "Sharjah"],
     maintenanceMode: false,
     adminUsername: "admin"
@@ -418,7 +406,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     siteName: "",
     vatPercent: 5,
     defaultCurrency: "AED",
-    supportEmail: "support@medzivahealthcare.com",
+    supportEmail: "support@medziva.ae",
     serviceRegions: [] as string[],
     maintenanceMode: false,
     adminPassword: ""
@@ -432,14 +420,11 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       );
 
       try {
-        const response = await fetch('/api/auth/session', getAdminRequestInit());
-        if (response.ok) {
-          const data = await response.json();
-          if (data?.user?.role === 'admin' || data?.user?.role === 'super_admin') {
-            setIsAuthenticated(true);
-            localStorage.setItem("medziva_admin_auth", "true");
-            return;
-          }
+        const data = await api.get<{ user?: { role?: string } }>('/api/auth/session');
+        if (data?.user?.role === 'admin' || data?.user?.role === 'super_admin') {
+          setIsAuthenticated(true);
+          localStorage.setItem("medziva_admin_auth", "true");
+          return;
         }
 
         if (hasStoredSession) {
@@ -464,12 +449,8 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const fetchAdminData = async () => {
     setIsLoadingData(true);
     try {
-      const loadJson = async (url: string) => {
-        const response = await fetch(url, getAdminRequestInit());
-        if (!response.ok) {
-          throw new Error(`${url} failed with ${response.status}`);
-        }
-        return response.json();
+      const loadJson = async <T = any>(url: string): Promise<T> => {
+        return api.get<T>(url);
       };
 
       const [vendorsResult, usersResult, bookingsResult, settingsResult, enquiriesResult, categoriesResult, vendorChangeRequestsResult, pendingPaymentsResult] = await Promise.allSettled([
@@ -514,7 +495,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
           siteName: data.siteName || "MedZiva Home Healthcare",
           vatPercent: Number(data.vatPercent) || 5,
           defaultCurrency: data.defaultCurrency || "AED",
-          supportEmail: data.supportEmail || "support@medzivahealthcare.com",
+          supportEmail: data.supportEmail || "support@medziva.ae",
           serviceRegions: data.serviceRegions || ["Dubai", "Sharjah"],
           maintenanceMode: !!data.maintenanceMode,
           adminPassword: ""
@@ -560,11 +541,8 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const fetchVendorSlaMetrics = async () => {
     setVendorSlaLoading(true);
     try {
-      const response = await fetch("/api/admin/vendor-sla", getAdminRequestInit());
-      if (response.ok) {
-        const data = await response.json();
-        setVendorSlaMetrics(Array.isArray(data) ? data : []);
-      }
+      const data = await api.get("/api/admin/vendor-sla");
+      setVendorSlaMetrics(Array.isArray(data) ? data : []);
     } catch (e) {
       // silent
     } finally {
@@ -631,10 +609,8 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     if (!vendorId) return;
 
     try {
-      const response = await fetch(`/api/vendors/${vendorId}/service-assignments`, getAdminRequestInit());
-      if (response.ok) {
-        setVendorServiceAssignments(await response.json());
-      }
+      const data = await api.get(`/api/vendors/${vendorId}/service-assignments`);
+      setVendorServiceAssignments(data);
     } catch (error) {
 
     }
@@ -683,15 +659,10 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     if (!selectedVendorDetails) return;
     const nextActive = !selectedVendorDetails.active;
     try {
-      const response = await fetch(
+      await api.patch(
         `/api/vendor/${selectedVendorDetails.id}`,
-        getAdminRequestInit({
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ active: nextActive }),
-        })
+        { body: { active: nextActive } }
       );
-      if (!response.ok) throw new Error("Unable to update vendor status");
       triggerToast(`Vendor ${nextActive ? "activated" : "deactivated"} successfully.`);
       await fetchAdminData();
     } catch (error) {
@@ -714,19 +685,10 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     );
 
     try {
-      const response = await fetch(
+      await api.patch(
         `/api/vendors/${selectedVendorServiceVendorId}/service-assignments/${serviceId}`,
-        getAdminRequestInit({
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ enabled }),
-        })
+        { body: { enabled } }
       );
-
-      if (!response.ok) {
-        await fetchVendorServiceAssignments();
-        throw new Error("Assignment update failed");
-      }
     } catch (error) {
 
       toast.error("Unable to update service assignment.");
@@ -745,19 +707,10 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     );
 
     try {
-      const response = await fetch(
+      await api.post(
         `/api/vendors/${selectedVendorServiceVendorId}/service-assignments/bulk`,
-        getAdminRequestInit({
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ serviceIds, enabled }),
-        })
+        { body: { serviceIds, enabled } }
       );
-
-      if (!response.ok) {
-        await fetchVendorServiceAssignments();
-        throw new Error("Bulk assignment update failed");
-      }
       triggerToast(`${enabled ? "Enabled" : "Disabled"} ${serviceIds.length} service${serviceIds.length === 1 ? "" : "s"} for ${selectedServiceVendor?.name || "vendor"}.`);
     } catch (error) {
 
@@ -773,15 +726,11 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     setAuthError(null);
     
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: values.username, password: values.password })
+      const data = await api.post<{ success?: boolean; accessToken?: string; user?: { role?: string }; error?: string }>("/api/auth/login", {
+        body: { username: values.username, password: values.password },
       });
-      const data = await response.json();
 
-      if (response.ok && data?.success) {
+      if (data?.success) {
         const role = data?.user?.role;
         if (role !== "admin" && role !== "super_admin") {
           const message = "Admin access requires an admin account. Please sign in with admin credentials.";
@@ -841,7 +790,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     setIsAuthenticated(false);
     localStorage.removeItem("medziva_admin_auth");
     localStorage.removeItem("medziva_admin_token");
-    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => undefined);
+    api.post('/api/auth/logout').catch(() => undefined);
     triggerToast("Logged out of session. Data sealed console-wide.");
   };
 
@@ -977,17 +926,14 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     const nextActive = service.active === false || service.status === "inactive";
     const nextStatus = nextActive ? "active" : "inactive";
     try {
-      const response = await fetch(`/api/services/${service.id}`, getAdminRequestInit({
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      await api.patch(`/api/services/${service.id}`, {
+        body: {
           title: service.title,
           price: service.price,
           active: nextActive,
           status: nextStatus,
-        }),
-      }));
-      if (!response.ok) throw new Error("Unable to update service status");
+        },
+      });
       triggerToast(`${service.title} marked ${nextStatus}.`);
       onRefresh();
     } catch (error) {
@@ -998,16 +944,13 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const handleToggleServicePopular = async (service: any) => {
     const nextPopular = !service.popular;
     try {
-      const response = await fetch(`/api/services/${service.id}`, getAdminRequestInit({
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      await api.patch(`/api/services/${service.id}`, {
+        body: {
           title: service.title,
           price: service.price,
           popular: nextPopular,
-        }),
-      }));
-      if (!response.ok) throw new Error("Unable to update popular status");
+        },
+      });
       triggerToast(`${service.title} ${nextPopular ? "marked as Popular" : "removed from Popular"}.`);
       onRefresh();
     } catch (error) {
@@ -1130,57 +1073,52 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       const url = isEdit ? `/api/services/${editingServiceId}` : "/api/services";
       const method = isEdit ? "PATCH" : "POST";
       
-      const response = await fetch(
-        url,
-        getAdminRequestInit({
-          method,
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: srvTitle,
-            slug: srvSlug || slugifyServiceTitle(srvTitle),
-            category: srvCategory || "home-healthcare",
-            subcategory: srvSubcategory,
-            status: srvStatus,
-            active: srvActive && srvStatus === "active",
-            price: Number(srvPrice),
-            salePrice: Number(srvPrice),
-            originalPrice: Number(srvOriginalPrice || srvPrice),
-            currency: "AED",
-            homeVisitFeeIncluded: srvVisitFeeIncluded,
-            duration: srvDuration,
-            estimatedVisitTime: srvEstimatedVisitTime,
-            image: srvImage || "",
-            shortDescription: srvShortDesc || srvDesc,
-            description: srvDesc || "No description provided.",
-            fullDescription: srvFullDesc || srvDesc || "No description provided.",
-            inclusions: parseLines(srvInclusions),
-            preparationInstructions: srvPreparation,
-            whoIsItFor: srvWhoFor,
-            serviceLocation: srvLocation,
-            availability: srvAvailability,
-            tags: parseLines(srvTags),
-            displayPriority: Number(srvDisplayPriority || 100),
-            seoTitle: srvSeoTitle,
-            seoDescription: srvSeoDescription,
-            popular: srvPopular,
-            attributes: cleanedAttrs,
-            vendorPrices: cleanedVendors
-          })
-        })
-      );
+      const body = {
+        title: srvTitle,
+        slug: srvSlug || slugifyServiceTitle(srvTitle),
+        category: srvCategory || "home-healthcare",
+        subcategory: srvSubcategory,
+        status: srvStatus,
+        active: srvActive && srvStatus === "active",
+        price: Number(srvPrice),
+        salePrice: Number(srvPrice),
+        originalPrice: Number(srvOriginalPrice || srvPrice),
+        currency: "AED",
+        homeVisitFeeIncluded: srvVisitFeeIncluded,
+        duration: srvDuration,
+        estimatedVisitTime: srvEstimatedVisitTime,
+        image: srvImage || DEFAULT_HEALTHCARE_SERVICE_IMAGE,
+        shortDescription: srvShortDesc || srvDesc,
+        description: srvDesc || "No description provided.",
+        fullDescription: srvFullDesc || srvDesc || "No description provided.",
+        inclusions: parseLines(srvInclusions),
+        preparationInstructions: srvPreparation,
+        whoIsItFor: srvWhoFor,
+        serviceLocation: srvLocation,
+        availability: srvAvailability,
+        tags: parseLines(srvTags),
+        displayPriority: Number(srvDisplayPriority || 100),
+        seoTitle: srvSeoTitle,
+        seoDescription: srvSeoDescription,
+        popular: srvPopular,
+        attributes: cleanedAttrs,
+        vendorPrices: cleanedVendors
+      };
 
-      if (response.ok) {
-        triggerToast(`Service "${srvTitle}" ${isEdit ? 'updated' : 'added'} successfully!`);
-        if (isEdit) {
-          handleCancelServiceEdit();
-        } else {
-          handleCancelEdit();
-        }
-        onRefresh();
-        fetchAdminData();
+      if (isEdit) {
+        await api.patch(url, { body });
       } else {
-        toast.error(`Failed to ${isEdit ? 'update' : 'create'} service on server database.`);
+        await api.post(url, { body });
       }
+
+      triggerToast(`Service "${srvTitle}" ${isEdit ? 'updated' : 'added'} successfully!`);
+      if (isEdit) {
+        handleCancelServiceEdit();
+      } else {
+        handleCancelEdit();
+      }
+      onRefresh();
+      fetchAdminData();
     } catch (err) {
     } finally {
       setIsSubmitting(false);
@@ -1193,14 +1131,10 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       `This will permanently remove "${name}" from the service catalog and admin records.`,
       async () => {
         try {
-          const response = await fetch(`/api/services/${id}`, getAdminRequestInit({ method: "DELETE" }));
-          if (response.ok) {
-            triggerToast(`${name} deleted from active catalog.`);
-            onRefresh();
-            fetchAdminData();
-          } else {
-            toast.error("Failed to complete record purge.");
-          }
+          await api.delete(`/api/services/${id}`);
+          triggerToast(`${name} deleted from active catalog.`);
+          onRefresh();
+          fetchAdminData();
         } catch (err) {
           toast.error("Unable to delete service right now.");
         }
@@ -1243,38 +1177,29 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       const url = isEdit 
         ? `/api/category/${editingCategoryId}`
         : "/api/categories";
-      const method = isEdit ? "PATCH" : "POST";
-      
-      const response = await fetch(
-        url,
-        getAdminRequestInit({
-          method,
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: catName,
-            image: catImage || DEFAULT_HEALTHCARE_SERVICE_IMAGE,
-            description: catDesc,
-            type: "service"
-          })
-        })
-      );
+      const body = {
+        title: catName,
+        image: catImage || DEFAULT_HEALTHCARE_SERVICE_IMAGE,
+        description: catDesc,
+        type: "service"
+      };
 
-      if (response.ok) {
-        const newCategory = await response.json();
-        triggerToast(`Category "${catName}" ${isEdit ? 'updated' : 'declared'} successfully!`);
-        if (isEdit) {
-          handleCancelCategoryEdit();
-        } else {
-          setCatName("");
-          setCatDesc("");
-          setCatImage("");
-        }
-        onRefresh();
-        fetchAdminData();
+      if (isEdit) {
+        await api.patch(url, { body });
       } else {
-        const errorText = await response.text();
-        toast.error(`Failed to submit category. ${errorText}`);
+        await api.post(url, { body });
       }
+
+      triggerToast(`Category "${catName}" ${isEdit ? 'updated' : 'declared'} successfully!`);
+      if (isEdit) {
+        handleCancelCategoryEdit();
+      } else {
+        setCatName("");
+        setCatDesc("");
+        setCatImage("");
+      }
+      onRefresh();
+      fetchAdminData();
     } catch (err) {
       toast.error("Failed to submit category. Network error.");
     } finally {
@@ -1288,14 +1213,10 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       `Scrub Category "${label}"? This deletes child elements of metadata.`,
       async () => {
         try {
-          const res = await fetch(`/api/category/${id}`, getAdminRequestInit({ method: "DELETE" }));
-          if (res.ok) {
-            triggerToast(`Category "${label}" deleted.`);
-            onRefresh();
-            fetchAdminData();
-          } else {
-            toast.error("Failed to complete action.");
-          }
+          await api.delete(`/api/category/${id}`);
+          triggerToast(`Category "${label}" deleted.`);
+          onRefresh();
+          fetchAdminData();
         } catch (err) {
           toast.error("Unable to delete category right now.");
         }
@@ -1317,24 +1238,16 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(
+      await api.post(
         `/api/subcategories/${parentCatId}`,
-        getAdminRequestInit({
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: subName, image: subImage || null })
-        })
+        { body: { title: subName, image: subImage || null } }
       );
 
-      if (response.ok) {
-        triggerToast(`Subcategory "${subName}" bound perfectly!`);
-        setSubName("");
-        setSubImage("");
+      triggerToast(`Subcategory "${subName}" bound perfectly!`);
+      setSubName("");
+      setSubImage("");
         onRefresh();
         fetchAdminData();
-      } else {
-        toast.error("Failed to assign subcategory.");
-      }
     } catch (err) {
     } finally {
       setIsSubmitting(false);
@@ -1347,14 +1260,10 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       `Delete subcategory "${subName}"?`,
       async () => {
         try {
-          const res = await fetch(`/api/subcategory/${catId}/${subId}`, getAdminRequestInit({ method: "DELETE" }));
-          if (res.ok) {
-            triggerToast(`Specialty subcategory cleared.`);
-            onRefresh();
-            fetchAdminData();
-          } else {
-            toast.error("Delete request failed.");
-          }
+          await api.delete(`/api/subcategory/${catId}/${subId}`);
+          triggerToast(`Specialty subcategory cleared.`);
+          onRefresh();
+          fetchAdminData();
         } catch (err) {
           toast.error("Unable to delete subcategory right now.");
         }
@@ -1407,34 +1316,26 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       const url = isEdit 
         ? `/api/vendor/${editingVendorId}`
         : "/api/vendors";
-      const method = isEdit ? "PATCH" : "POST";
-      
-      const response = await fetch(
-        url,
-        getAdminRequestInit({
-          method,
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: vendorName,
-            contact: vendorContact,
-            address: vendorAddress,
-            logo: vendorLogo || null,
-            commission: Number(vendorCommission),
-            active: vendorActive,
-            email: vendorEmail || null,
-            password: vendorPassword || null
-          })
-        })
-      );
+      const body = {
+        name: vendorName,
+        contact: vendorContact,
+        address: vendorAddress,
+        logo: vendorLogo || null,
+        commission: Number(vendorCommission),
+        active: vendorActive,
+        email: vendorEmail || null,
+        password: vendorPassword || null
+      };
 
-      if (response.ok) {
-        triggerToast(`Vendor "${vendorName}" ${isEdit ? 'updated' : 'committed'} successfully!`);
-        handleCancelVendorEdit();
-        fetchAdminData();
+      if (isEdit) {
+        await api.patch(url, { body });
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        toast.error(`Failed to ${isEdit ? 'update' : 'create'} vendor: ${errorData.error || response.statusText}`);
+        await api.post(url, { body });
       }
+
+      triggerToast(`Vendor "${vendorName}" ${isEdit ? 'updated' : 'committed'} successfully!`);
+      handleCancelVendorEdit();
+      fetchAdminData();
     } catch (err) {
       toast.error(`Failed to ${isEdit ? 'update' : 'create'} vendor. Please check your connection.`);
     } finally {
@@ -1448,16 +1349,12 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       `Sever vendor relationship with "${name}"?`,
       async () => {
         try {
-          const res = await fetch(`/api/vendors/${id}`, getAdminRequestInit({ method: "DELETE" }));
-          if (res.ok) {
-            triggerToast(`Vendor relationship deactivated and cleared.`);
-            if (selectedVendorDetailsId === id) {
-              setSelectedVendorDetailsId(null);
-            }
-            fetchAdminData();
-          } else {
-            toast.error("Delete query rejected.");
+          await api.delete(`/api/vendors/${id}`);
+          triggerToast(`Vendor relationship deactivated and cleared.`);
+          if (selectedVendorDetailsId === id) {
+            setSelectedVendorDetailsId(null);
           }
+          fetchAdminData();
         } catch (err) {
           toast.error("Unable to delete vendor right now.");
         }
@@ -1493,21 +1390,13 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         payload.adminPassword = settingsForm.adminPassword.trim();
       }
       
-      const response = await fetch(
+      await api.post(
         "/api/settings",
-        getAdminRequestInit({
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        })
+        { body: payload }
       );
 
-      if (response.ok) {
-        triggerToast(`Operational variables updated and persisted successfully.`);
-        fetchAdminData();
-      } else {
-        toast.error("Database refused settings commit.");
-      }
+      triggerToast(`Operational variables updated and persisted successfully.`);
+      fetchAdminData();
     } catch (error) {
     } finally {
       setIsSubmitting(false);
@@ -1536,13 +1425,9 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       "Are you sure you want to mark this scheduled customer visit as CANCELED?",
       async () => {
         try {
-          const res = await fetch(`/api/booking/${id}`, getAdminRequestInit({ method: "DELETE" }));
-          if (res.ok) {
-            triggerToast("Calendar visit logged as canceled.");
-            fetchAdminData();
-          } else {
-            toast.error("Unable to cancel the booking.");
-          }
+          await api.delete(`/api/booking/${id}`);
+          triggerToast("Calendar visit logged as canceled.");
+          fetchAdminData();
         } catch (err) {
           toast.error("Unable to cancel the booking right now.");
         }
@@ -1553,13 +1438,8 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
   const handleViewBooking = async (booking: any) => {
     try {
-      const res = await fetch(`/api/booking/${booking.id}`, getAdminRequestInit());
-      if (res.ok) {
-        const freshBooking = await res.json();
-        setViewingBooking(freshBooking);
-      } else {
-        setViewingBooking(booking);
-      }
+      const freshBooking = await api.get(`/api/booking/${booking.id}`);
+      setViewingBooking(freshBooking);
     } catch {
       setViewingBooking(booking);
     }
@@ -1574,18 +1454,12 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const handleUpdateEnquiryStatus = async (id: string, currentStatus: string) => {
     const targetStatus = currentStatus === "Pending Response" ? "Answered" : "Closed";
     try {
-      const res = await fetch(
-        `/api/enquiries/${id}/status`,
-        getAdminRequestInit({
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: targetStatus })
-        })
+      await api.post(
+        `/api/enquiryStatus/${id}`,
+        { body: { status: targetStatus } }
       );
-      if (res.ok) {
-        triggerToast(`Inquiry marked as ${targetStatus} successfully!`);
-        fetchAdminData();
-      }
+      triggerToast(`Inquiry marked as ${targetStatus} successfully!`);
+      fetchAdminData();
     } catch (err) {
     }
   };
@@ -1596,13 +1470,9 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       "Are you sure you want to delete this enquiry from records?",
       async () => {
         try {
-          const res = await fetch(`/api/enquiries/${id}`, getAdminRequestInit({ method: "DELETE" }));
-          if (res.ok) {
-            triggerToast("Enquiry deleted.");
-            fetchAdminData();
-          } else {
-            toast.error("Unable to delete enquiry.");
-          }
+          await api.delete(`/api/enquiry/${id}`);
+          triggerToast("Enquiry deleted.");
+          fetchAdminData();
         } catch (err) {
           toast.error("Unable to delete enquiry right now.");
         }
@@ -1613,18 +1483,11 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const handleReviewVendorChangeRequest = async (id: string, status: "approved" | "rejected", remarks?: string) => {
     setIsReviewingChangeRequest(id);
     try {
-      const res = await fetch(`/api/vendorProfileChangeRequests/${id}/review`, getAdminRequestInit({
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, remarks: remarks || null }),
-      }));
-      if (res.ok) {
-        triggerToast(`Change request ${status === "approved" ? "approved" : "rejected"} successfully.`);
-        fetchAdminData();
-      } else {
-        const err = await res.json().catch(() => ({}));
-        toast.error(`Failed: ${err.error || res.statusText}`);
-      }
+      await api.patch(`/api/vendorProfileChangeRequests/${id}/review`, {
+        body: { status, remarks: remarks || null },
+      });
+      triggerToast(`Change request ${status === "approved" ? "approved" : "rejected"} successfully.`);
+      fetchAdminData();
     } catch {
       toast.error("Unable to review change request right now.");
     } finally {
@@ -1635,7 +1498,10 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   // --- REPORT METRIC ANALYTICS CALCULATIONS ---
   const reportMetrics = useMemo(() => {
     const totalBookings = bookingsList.length;
-    const completedVal = bookingsList.reduce((acc, curr) => acc + (curr.price || 0), 0);
+    const completed = bookingsList.filter(b => b.status === 'Completed');
+    const completedVal = completed.reduce((acc, curr) => acc + (curr.price || 0), 0);
+    const completedCost = completed.reduce((acc, curr) => acc + ((curr as any).cost || 0), 0);
+    const totalProfit = completedVal - completedCost;
     const completedCount = bookingsList.filter(b => b.status === "Completed").length;
     const activeCount = bookingsList.filter(b => b.status === "Active").length;
     const pendingCount = bookingsList.filter(b => b.status === "Pending" || !b.status).length;
@@ -1776,6 +1642,8 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       fulfillmentRate,
       dubaiRev,
       shjRev,
+      completedCost,
+      totalProfit,
       activeVendorsCount,
       inactiveVendorsCount,
       userRoleCounts,
@@ -1912,7 +1780,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
           <div className="relative text-center space-y-6">
             <div className="w-20 h-20 bg-white mx-auto rounded-2xl flex items-center justify-center border border-slate-100 shadow-sm p-3">
-              <img src="/newlogo.png" alt="MedZiva Logo" className="h-full w-full object-contain" referrerPolicy="no-referrer" />
+              <SafeImage src="/newlogo.png" alt="MedZiva Logo" className="h-full w-full object-contain" referrerPolicy="no-referrer" />
             </div>
 
             <div>
@@ -2012,7 +1880,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       {/* Mobile Header Bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 z-20 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <img src="/newlogo.png" alt="Logo" className="h-8 w-auto" />
+          <SafeImage src="/newlogo.png" alt="Logo" className="h-8 w-auto" />
           <span className="text-sm font-black text-blue-950">Admin</span>
         </div>
         <button
@@ -2039,7 +1907,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 mb-0">
-              <img src="/newlogo.png" alt="Logo" className="h-16 w-auto" />
+              <SafeImage src="/newlogo.png" alt="Logo" className="h-16 w-auto" />
             </div>
             <button
               onClick={() => setIsMobileSidebarOpen(false)}
@@ -2438,6 +2306,33 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                   />
                   {adminFormErrors.srvPrice && <p className="text-red-600 text-xs mt-1">{adminFormErrors.srvPrice}</p>}
                 </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-500 mb-2">Vendor Pricing</label>
+                  {srvVendors.map((v: any, idx: number) => (
+                    <div key={idx} className="flex items-center gap-2 mb-2">
+                      <input
+                        type="text"
+                        placeholder="Vendor name"
+                        value={v.vendorName || ''}
+                        onChange={(e) => handleVendorChangeInSrv(idx, 'vendorName', e.target.value)}
+                        className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-xs"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Price (AED)"
+                        value={v.price || ''}
+                        onChange={(e) => handleVendorChangeInSrv(idx, 'price', Number(e.target.value))}
+                        className="w-28 border border-slate-200 rounded-lg px-3 py-2 text-xs"
+                      />
+                      <button type="button" onClick={() => handleRemoveVendorFromSrv(idx)} className="text-red-500 hover:text-red-700 p-1 cursor-pointer">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => handleAddVendorToSrv()} className="flex items-center gap-1 text-xs text-medical-green hover:text-emerald-700 font-bold cursor-pointer mt-1">
+                    <Plus className="w-3 h-3" /> Add Vendor Price
+                  </button>
+                </div>
                 <div className="space-y-1">
                   <label className="text-[11px] font-bold text-slate-500 uppercase">Original Price (AED)</label>
                   <input
@@ -2508,15 +2403,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                     <input type="file" accept="image/*" className="hidden" onChange={e => handleServiceImageUpload(e.target.files?.[0])} />
                   </label>
                 </div>
-                {srvImage && (
-                  <SafeImage
-                    src={srvImage}
-                    alt="Service preview"
-                    containerClassName="mt-2 h-24 w-full rounded-lg border border-slate-150 overflow-hidden bg-slate-50 flex items-center justify-center"
-                    className="h-full w-full object-cover"
-                    fallback={<div className="mt-2 h-24 w-full rounded-lg border border-slate-150 bg-slate-50 flex items-center justify-center text-[10px] text-slate-400">Image unavailable</div>}
-                  />
-                )}
+                {srvImage && <SafeImage src={srvImage} alt="Service preview" className="mt-2 h-24 w-full object-cover rounded-lg border border-slate-150" />}
               </div>
 
               <div className="space-y-1">
@@ -2665,13 +2552,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                   return (
                     <div key={srv.id} className="p-3 border border-slate-150 rounded-xl flex items-center justify-between gap-3 bg-slate-50/50 hover:bg-slate-50 transition-colors">
                       <div className="flex items-center gap-2.5 overflow-hidden">
-                        <SafeImage
-                          src={getServiceRecordImage(srv)}
-                          alt="srv"
-                          containerClassName="w-10 h-10 bg-white border border-slate-150 rounded-lg shrink-0 flex items-center justify-center overflow-hidden"
-                          className="w-full h-full object-cover"
-                          referrerPolicy="no-referrer"
-                        />
+                        <SafeImage src={getServiceRecordImage(srv)} className="w-10 h-10 object-cover bg-white border border-slate-150 rounded-lg shrink-0" alt="srv" referrerPolicy="no-referrer" />
                         <div className="text-left overflow-hidden">
                           <h4 className="text-xs font-extrabold text-blue-950 truncate leading-snug">{srv.title}</h4>
                           <span className="text-[10px] text-slate-400 block truncate font-medium">Department: {srv.category} • Cost: {srv.price} AED</span>
@@ -2822,13 +2703,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                   categoriesList.map(c => (
                     <div key={c.id} className="p-3 border border-slate-150 rounded-xl flex items-center justify-between gap-3 bg-slate-50/50 hover:bg-slate-50">
                       <div className="flex items-start gap-2.5 overflow-hidden">
-                        <SafeImage
-                          src={c.image}
-                          alt="cat"
-                          containerClassName="w-11 h-11 rounded-lg bg-white border border-slate-150 shrink-0 overflow-hidden flex items-center justify-center"
-                          className="w-full h-full object-cover"
-                          referrerPolicy="no-referrer"
-                        />
+                        <SafeImage src={c.image} className="w-11 h-11 object-cover rounded-lg bg-white border border-slate-150 shrink-0" alt="cat" referrerPolicy="no-referrer" />
                         <div className="text-left overflow-hidden">
                           <div className="flex items-center gap-2">
                             <h5 className="font-extrabold text-blue-950 text-xs">{c.title}</h5>
@@ -2917,13 +2792,9 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                   className="w-full text-xs p-2.5 border border-slate-200 rounded-lg"
                 />
                 {subImage && (
-                  <SafeImage
-                    src={subImage}
-                    alt="Preview"
-                    containerClassName="mt-2 rounded-lg overflow-hidden border border-slate-100 h-20 bg-slate-50 flex items-center justify-center"
-                    className="w-full h-full object-cover"
-                    fallback={<span className="text-[10px] text-slate-400">Image unavailable</span>}
-                  />
+                  <div className="mt-2 rounded-lg overflow-hidden border border-slate-100 h-20 bg-slate-50 flex items-center justify-center">
+                    <SafeImage src={subImage} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
                 )}
               </div>
 
@@ -2959,13 +2830,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                       <div key={cat.id} className="border border-slate-150 rounded-xl p-3 bg-slate-50/40">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <SafeImage
-                              src={cat.image}
-                              alt=""
-                              containerClassName="w-7 h-7 rounded-md bg-white border border-slate-150 shrink-0 overflow-hidden flex items-center justify-center"
-                              className="w-full h-full object-cover"
-                              referrerPolicy="no-referrer"
-                            />
+                            <SafeImage src={cat.image} className="w-7 h-7 object-cover rounded-md bg-white border border-slate-150 shrink-0" alt="" referrerPolicy="no-referrer" />
                             <span className="font-extrabold text-blue-950 text-xs">{cat.title}</span>
                             <span className="text-[9px] bg-slate-150 text-slate-600 font-bold px-1.5 py-0.2 rounded">{cat.type || "service"}</span>
                           </div>
@@ -2979,18 +2844,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                               <div key={sub.id} className="bg-white p-2 border border-slate-100 rounded-lg flex justify-between items-center text-xs">
                                 <div className="flex items-center gap-2 min-w-0">
                                   {sub.image ? (
-                                    <SafeImage
-                                      src={sub.image}
-                                      alt=""
-                                      containerClassName="w-6 h-6 rounded border border-slate-100 shrink-0 overflow-hidden flex items-center justify-center"
-                                      className="w-full h-full object-cover"
-                                      referrerPolicy="no-referrer"
-                                      fallback={(
-                                        <div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center shrink-0">
-                                          <ImageIcon className="w-3 h-3 text-slate-400" />
-                                        </div>
-                                      )}
-                                    />
+                                    <SafeImage src={sub.image} alt="" className="w-6 h-6 rounded object-cover border border-slate-100 shrink-0" referrerPolicy="no-referrer" />
                                   ) : (
                                     <div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center shrink-0">
                                       <ImageIcon className="w-3 h-3 text-slate-400" />
@@ -3724,14 +3578,34 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
           <div className="space-y-8">
             
             {/* Quick stats grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
               <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs flex items-center gap-4 text-left">
                 <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
                   <DollarSign className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-extrabold text-slate-400 block uppercase">Indexed Tax Revenue</span>
-                  <span className="text-lg font-black text-blue-950 mt-0.5">{reportMetrics.completedVal} {settingsData.defaultCurrency || 'AED'}</span>
+                  <span className="text-[10px] font-extrabold text-slate-400 block uppercase">Gross Revenue</span>
+                  <span className="text-lg font-black text-blue-950 mt-0.5">AED {reportMetrics.completedVal}</span>
+                </div>
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs flex items-center gap-4 text-left">
+                <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                  <TrendingDown className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-extrabold text-slate-400 block uppercase">Total Cost</span>
+                  <span className="text-lg font-black text-blue-950 mt-0.5">AED {reportMetrics.completedCost}</span>
+                </div>
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs flex items-center gap-4 text-left">
+                <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                  <TrendingUp className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-extrabold text-slate-400 block uppercase">Net Profit</span>
+                  <span className="text-lg font-black text-blue-950 mt-0.5">AED {reportMetrics.totalProfit}</span>
                 </div>
               </div>
 
@@ -3740,18 +3614,8 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                   <HeartPulse className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-extrabold text-slate-400 block uppercase">Completed Procedures</span>
-                  <span className="text-lg font-black text-blue-950 mt-0.5">{reportMetrics.completedCount} Scheduled Visits</span>
-                </div>
-              </div>
-
-              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs flex items-center gap-4 text-left">
-                <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
-                  <MapPin className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-extrabold text-slate-400 block uppercase">Regional Revenue Split</span>
-                  <span className="text-xs font-black text-slate-500 mt-0.5 block">DXB: {reportMetrics.dubaiRev} AED · SHJ: {reportMetrics.shjRev} AED</span>
+                  <span className="text-[10px] font-extrabold text-slate-400 block uppercase">Completed</span>
+                  <span className="text-lg font-black text-blue-950 mt-0.5">{reportMetrics.completedCount} Visits</span>
                 </div>
               </div>
             </div>
@@ -4387,8 +4251,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                   onClick={async () => {
                     setPendingPaymentsLoading(true);
                     try {
-                      const res = await fetch("/api/admin/payments/pending", getAdminRequestInit());
-                      const data = await res.json();
+                      const data = await api.get<{ payments?: any[] }>("/api/admin/payments/pending");
                       setPendingPaymentsList(Array.isArray(data?.payments) ? data.payments : Array.isArray(data) ? data : []);
                     } catch (e) {
                       toast.error("Failed to refresh");
@@ -4464,13 +4327,9 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                                       return;
                                     }
                                     try {
-                                      const res = await fetch("/api/admin/payments/capture", {
-                                        ...getAdminRequestInit(),
-                                        method: "POST",
-                                        headers: { ...getAdminRequestInit().headers, "Content-Type": "application/json" },
-                                        body: JSON.stringify({ id: payment.id, amount }),
+                                      const data = await api.post<{ success?: boolean; error?: string }>("/api/admin/payments/capture", {
+                                        body: { id: payment.id, amount },
                                       });
-                                      const data = await res.json();
                                       if (data.success) {
                                         toast.success(`Captured AED ${amount}`);
                                         setPendingPaymentsList((prev) => prev.map((p) => p.id === payment.id ? { ...p, status: 'CAPTURED', captured_amount: amount } : p));
@@ -4489,13 +4348,9 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                                   onClick={async () => {
                                     if (!confirm("Void this authorization? Customer will not be charged.")) return;
                                     try {
-                                      const res = await fetch("/api/admin/payments/void", {
-                                        ...getAdminRequestInit(),
-                                        method: "POST",
-                                        headers: { ...getAdminRequestInit().headers, "Content-Type": "application/json" },
-                                        body: JSON.stringify({ id: payment.id }),
+                                      const data = await api.post<{ success?: boolean; error?: string }>("/api/admin/payments/void", {
+                                        body: { id: payment.id },
                                       });
-                                      const data = await res.json();
                                       if (data.success) {
                                         toast.success("Authorization voided");
                                         setPendingPaymentsList((prev) => prev.map((p) => p.id === payment.id ? { ...p, status: 'VOIDED' } : p));
@@ -5008,13 +4863,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl relative overflow-hidden max-h-[90vh] overflow-y-auto">
             <div className="relative h-56 bg-slate-100">
-              <SafeImage
-                src={getServiceRecordImage(previewingService)}
-                alt={previewingService.title}
-                containerClassName="w-full h-full"
-                className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
-              />
+              <SafeImage src={getServiceRecordImage(previewingService)} alt={previewingService.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               <button onClick={() => setPreviewingService(null)} className="absolute top-3 right-3 p-2 bg-white/90 text-slate-600 hover:text-slate-900 rounded-full shadow cursor-pointer">
                 <X className="w-5 h-5" />
               </button>

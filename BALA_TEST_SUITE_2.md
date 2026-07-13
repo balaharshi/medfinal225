@@ -1,36 +1,60 @@
 # MedZiva — Advanced QA Test Suite
 
-> **Branch**: `feature/repo-improvements`  
+> **Branch to test**: `feature/repo-improvements`  
 > **Estimated time**: 4–6 hours for thorough testing (27 tests)  
 > **Report**: PASS / FAIL per test + screenshots of any errors
 
 ---
 
-## Staging Setup — DO THIS FIRST
+## IMPORTANT — Read Before You Touch Anything
 
-We have changed a lot — 46 files, schema changes, new components, new commands. You must start fresh. Do NOT reuse old files.
+The repo has 3 branches. You MUST use the correct one or nothing will work:
 
-### Step 1: Delete old staging files
+| Branch | Purpose | Do NOT use for testing |
+|--------|---------|----------------------|
+| `main` | Production (live at medzivahealthcare.com) | ❌ DO NOT TOUCH |
+| `develop` | Old staging code | ❌ DO NOT USE |
+| **`feature/repo-improvements`** | **The new code with all fixes** | **✅ USE THIS BRANCH** |
+
+Every command below assumes you are on `feature/repo-improvements`. Double-check with `git branch` before doing anything. If it says `main` or `develop`, you are on the wrong branch and nothing will work.
+
+---
+
+## Staging Setup — DO THIS FIRST (copy-paste each command exactly)
+
+We have changed a LOT — 46 files, new database columns, new components, new console commands. You MUST start completely fresh. Do NOT reuse any old files or databases.
+
+### Step 1: Delete EVERYTHING from staging server
 ```bash
 ssh rvdkqh1z30zk@92.204.28.237
 cd /home/rvdkqh1z30zk/public_html/staging.medzivahealthcare.com
 rm -rf * .* 2>/dev/null
 cd /home/rvdkqh1z30zk/staging/api
 rm -rf * .* 2>/dev/null
+exit
 ```
 
-### Step 2: Clone fresh and checkout this branch
+### Step 2: Clone the repo and switch to the RIGHT branch
 ```bash
+ssh rvdkqh1z30zk@92.204.28.237
 cd /home/rvdkqh1z30zk/staging/api
 git clone https://github.com/balaharshi/medfinal225.git .
 git checkout feature/repo-improvements
+# Verify — should say: * feature/repo-improvements
+git branch
 ```
 
-### Step 3: Backend setup
+### Step 3: Backend setup (on the server)
 ```bash
 cd /home/rvdkqh1z30zk/staging/api/med21-laravel
 cp .env.staging .env
-# Edit .env with staging DB credentials
+nano .env
+# Edit these lines with staging credentials:
+#   DB_DATABASE=medziva_staging
+#   DB_USERNAME=your_staging_db_user
+#   DB_PASSWORD=your_staging_db_password
+# Save and exit (Ctrl+X, Y, Enter)
+
 composer install --no-dev --optimize-autoloader
 php artisan key:generate
 php artisan migrate:fresh --seed
@@ -38,31 +62,45 @@ php artisan config:cache
 php artisan route:cache
 ```
 
-### Step 4: Frontend — BUILD LOCALLY (GoDaddy can't run Vite)
+### Step 4: Frontend build — THIS MUST BE DONE ON YOUR LOCAL MACHINE
+
+GoDaddy shared hosting CANNOT run `npm run build` (Vite requires too much memory). Build on your laptop:
+
 ```bash
-# On YOUR local machine:
-cd medfinal225
+# On YOUR LOCAL MACHINE (MacBook), open Terminal and run:
+cd ~/Documents/GitHub/medfinal225
 git checkout feature/repo-improvements
+git pull origin feature/repo-improvements
 cd med21
 npm install
 cp .env.staging .env
 npm run build
-# This produces a dist/ folder
+ls dist/
+# You should see: dist/index.html  dist/assets/  and many image files
 ```
-Then upload the entire `dist/` folder contents to the staging frontend directory on the server:
-```
-/home/rvdkqh1z30zk/public_html/staging.medzivahealthcare.com/
-```
-Upload via cPanel File Manager → delete old files → upload `dist/` contents → keep `.htaccess` if present.
 
-### Step 5: Verify it loads
-Open https://staging.medzivahealthcare.com in a browser. The MedZiva homepage should load with all services, products, and images.
+Now upload the `dist/` folder to the server:
+1. On your Mac, the `dist/` folder is at: `~/Documents/GitHub/medfinal225/med21/dist/`
+2. Open cPanel File Manager → go to `/home/rvdkqh1z30zk/public_html/staging.medzivahealthcare.com/`
+3. Delete everything inside this folder
+4. Upload ALL contents of `dist/` into this folder (drag the FILES inside dist/, not the dist folder itself)
+5. Keep `.htaccess` if it exists — do not delete it
 
-### Step 6: Set up cron (if not already running)
+### Step 5: Verify it loaded correctly
+Open https://staging.medzivahealthcare.com in a browser. You should see:
+- MedZiva homepage with hero banner
+- Navigation menu with Home, Services, Lab Tests, Products tabs
+- Service images loading (not broken)
+
+If you see errors, STOP and fix before continuing. Do not run tests on a broken site.
+
+### Step 6: Set up cron (one-time setup)
 ```bash
+ssh rvdkqh1z30zk@92.204.28.237
 crontab -e
-# Add:
+# Add this line if not already there:
 * * * * * cd /home/rvdkqh1z30zk/staging/api/med21-laravel && php artisan schedule:run >> /dev/null 2>&1
+# Save and exit
 ```
 
 ---

@@ -8,13 +8,13 @@ import { MessageCircle } from 'lucide-react';
 import medicalTourismImg from '../assets/images/services/medical-tourism.jpg';
 import shippingCrewImg from '../assets/images/services/shipping-crew.jpg';
 
-interface WellnessPageProps {
+interface OtherServicesPageProps {
   activeSectionId: string | null;
   handleTabChange: (tab: any, sectionId?: string) => void;
   triggerServiceEnquiry: (title: string) => void;
 }
 
-export default function WellnessPage({
+export default function OtherServicesPage({
   activeSectionId,
   handleTabChange,
   triggerServiceEnquiry,

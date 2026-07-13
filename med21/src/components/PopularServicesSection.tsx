@@ -31,7 +31,7 @@ const hasExtraDetails = (srv: HealthcareService) =>
   Boolean(srv.whoIsItFor) ||
   Boolean(srv.availability);
 
-interface ProductsSectionProps {
+interface PopularServicesSectionProps {
   onServiceSelect: (title: string, price: number) => void;
   onServiceEnquire?: (title: string) => void;
   onAddToCart?: (service: HealthcareService) => void;
@@ -40,14 +40,14 @@ interface ProductsSectionProps {
   servicesList?: HealthcareService[];
 }
 
-export default function ProductsSection({ 
+export default function PopularServicesSection({ 
   onServiceSelect, 
   onServiceEnquire, 
   onAddToCart,
   onViewDetails,
   onExploreMore, 
   servicesList = [] 
-}: ProductsSectionProps) {
+}: PopularServicesSectionProps) {
   const [favorites, setFavorites] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 

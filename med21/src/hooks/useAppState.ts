@@ -171,7 +171,7 @@ export const IV_THERAPY_ALLOWED_IDS = new Set([
   'srv-iv-gut-cleanse-acne-cure',
   'srv-iv-memory-boost',
   'srv-iv-surgery-recovery',
-  'srv-iv-women-health-fertilty',
+  'srv-iv-women-health-fertility',
   'srv-iv-men-power-drip',
   'srv-iv-liver-detox-after-party',
   'srv-iv-nad-100',

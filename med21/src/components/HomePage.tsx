@@ -6,7 +6,7 @@
 import { motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, ShoppingCart, CalendarClock, MessageCircle } from 'lucide-react';
 import SafeImage from './SafeImage';
-import ProductsSection from './ProductsSection';
+import PopularServicesSection from './PopularServicesSection';
 import ServicesSection from './ServicesSection';
 import PromotionalBanners from './PromotionalBanners';
 import TrustFeatures from './TrustFeatures';
@@ -69,7 +69,7 @@ export default function HomePage({
       </section>
 
       {/* Popular Healthcare Services carousel */}
-      <ProductsSection
+      <PopularServicesSection
         onServiceSelect={triggerServiceBooking}
         onServiceEnquire={triggerServiceEnquiry}
         onAddToCart={handleAddToCart}

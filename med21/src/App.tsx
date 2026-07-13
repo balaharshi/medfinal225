@@ -38,12 +38,13 @@ import ServicesPage from './components/ServicesPage';
 import LabTestsPage from './components/LabTestsPage';
 import ProductsPage from './components/ProductsPage';
 import SearchResultsPage from './components/SearchResultsPage';
-import WellnessPage from './components/WellnessPage';
+import OtherServicesPage from './components/OtherServicesPage';
 import HealthPackagesPage from './components/HealthPackagesPage';
 import OffersPage from './components/OffersPage';
 import ProvidersPage from './components/ProvidersPage';
 import SupportPage from './components/SupportPage';
 import LegalPages from './components/LegalPages';
+import AboutPage from './components/AboutPage';
 
 import { useAppState } from './hooks/useAppState';
 import {
@@ -431,7 +432,7 @@ function MainApp() {
 
         {/* Dedicated view: WELLNESS Page */}
         {app.activeTab === 'wellness' && (
-          <WellnessPage
+          <OtherServicesPage
             activeSectionId={app.activeSectionId}
             handleTabChange={app.handleTabChange}
             triggerServiceEnquiry={app.triggerServiceEnquiry}
@@ -479,8 +480,11 @@ function MainApp() {
         )}
 
         {/* Legal pages: privacy, terms, about */}
-        {(app.activeTab === 'privacy' || app.activeTab === 'terms' || app.activeTab === 'about') && (
+        {(app.activeTab === 'privacy' || app.activeTab === 'terms') && (
           <LegalPages activeTab={app.activeTab} />
+        )}
+        {app.activeTab === 'about' && (
+          <AboutPage />
         )}
 
         <AnimatePresence>

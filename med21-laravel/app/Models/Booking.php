@@ -9,7 +9,7 @@ class Booking extends BaseModel
     protected $fillable = [
         'id',
         'customer_name', 'customer_email', 'customer_phone', 'service_title',
-        'vendor_name', 'vendor_id', 'service_id', 'price', 'date', 'time_slot',
+        'vendor_name', 'vendor_id', 'service_id', 'category', 'subcategory', 'price', 'date', 'time_slot',
         'region', 'status', 'payment_status', 'payment_provider', 'payment_app_utr',
         'payment_order_id', 'payment_transaction_utr', 'payment_response_status',
         'paid_at', 'notes', 'accepted_at', 'completed_at', 'expires_at',

@@ -82,6 +82,12 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        $this->call(HomeHealthcareSeeder::class);
         $this->call(IVTherapySeeder::class);
+        $this->call(LabTestSeeder::class);
+        $this->call(BiomarkerSeeder::class);
+        $this->call(HealthPackageSeeder::class);
+        $this->call(VendorWorkingHoursSeeder::class);
+        $this->call(ProductSeeder::class);
     }
 }

@@ -5,6 +5,7 @@
 
 import { ShieldCheck, CalendarRange, UserCheck, Headphones, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
+import SafeImage from './SafeImage';
 
 
 interface HeroSectionProps {
@@ -135,7 +136,7 @@ export default function HeroSection({ onBookServiceClick, onExploreProductsClick
             transition={{ duration: 0.7, delay: 0.2 }}
             className="flex-1 flex items-center justify-center lg:justify-end"
           >
-            <img 
+            <SafeImage 
               src="/b23.png"
               alt="Healthcare Banner"
               className="w-full max-w-md lg:max-w-lg xl:max-w-xl h-auto object-contain"

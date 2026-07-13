@@ -546,10 +546,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
         price: 200
-      },
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 300
       }
     ]
   },
@@ -568,10 +564,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
         price: 300
-      },
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 400
       }
     ]
   },
@@ -589,10 +581,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
-        price: 500
-      },
-      {
-        vendorName: "Doctor Plus Home Healthcare",
         price: 500
       }
     ]
@@ -612,10 +600,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
         price: 750
-      },
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 700
       }
     ]
   },
@@ -634,10 +618,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
         price: 650
-      },
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 500
       }
     ]
   },
@@ -655,10 +635,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
-        price: 500
-      },
-      {
-        vendorName: "Doctor Plus Home Healthcare",
         price: 500
       }
     ]
@@ -678,10 +654,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
         price: 18000
-      },
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 19500
       }
     ]
   },
@@ -718,10 +690,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
         price: 23000
-      },
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 25500
       }
     ]
   },
@@ -740,10 +708,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
         price: 13000
-      },
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 12000
       }
     ]
   },
@@ -776,12 +740,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 11000
-      }
-    ]
+    vendorPrices: []
   },
   {
     id: "srv-longterm-dha-nurse-rn-an-live-in-per-day",
@@ -798,10 +757,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
         price: 800
-      },
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 1300
       }
     ]
   },
@@ -820,10 +775,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
         price: 1250
-      },
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 1800
       }
     ]
   },
@@ -842,10 +793,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
         price: 850
-      },
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 700
       }
     ]
   },
@@ -860,12 +807,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 450
-      }
-    ],
+    vendorPrices: [],
     remarks: "AED 125/hour"
   },
   {
@@ -879,12 +821,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 15000
-      }
-    ]
+    vendorPrices: []
   },
   {
     id: "srv-longterm-caregiver-24-hours-30-days-1-plus-1",
@@ -897,12 +834,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 20000
-      }
-    ]
+    vendorPrices: []
   },
   {
     id: "srv-longterm-caregiver-12-hours-30-days",
@@ -915,12 +847,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 9000
-      }
-    ]
+    vendorPrices: []
   },
   {
     id: "srv-longterm-caregiver-less-than-12-hours-30-days",
@@ -933,12 +860,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 8000
-      }
-    ]
+    vendorPrices: []
   },
   {
     id: "srv-longterm-caregiver-live-in-per-day",
@@ -951,12 +873,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 650
-      }
-    ]
+    vendorPrices: []
   },
   {
     id: "srv-longterm-caregiver-24-hours-per-day-1-plus-1",
@@ -969,12 +886,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 800
-      }
-    ]
+    vendorPrices: []
   },
   {
     id: "srv-longterm-caregiver-12-hours-per-day",
@@ -987,12 +899,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 500
-      }
-    ]
+    vendorPrices: []
   },
   {
     id: "srv-longterm-caregiver-less-than-12-hours-per-day",
@@ -1005,12 +912,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 450
-      }
-    ]
+    vendorPrices: []
   },
   {
     id: "srv-physiotherapy",
@@ -1026,10 +928,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     vendorPrices: [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
-        price: 300
-      },
-      {
-        vendorName: "Doctor Plus Home Healthcare",
         price: 300
       }
     ]
@@ -1049,10 +947,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
         price: 1500
-      },
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 1620
       }
     ]
   },
@@ -1070,10 +964,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
         price: 400
-      },
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 250
       }
     ]
   },
@@ -1091,10 +981,6 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
       {
         vendorName: "Olives Al Noor Home Healthcare LLC",
         price: 800
-      },
-      {
-        vendorName: "Doctor Plus Home Healthcare",
-        price: 250
       }
     ]
   },
@@ -1145,8 +1031,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: true,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-    ],
+    vendorPrices: [],
     attributes: {
       key_ingredients: "Alpha Lipoic Acid\nZinc Sulphate\nSelenium\nVitamin C",
       clinical_benefits: "● Brightens skin and improves tone\n● Reduces signs of aging and oxidative stress\n● Promotes collagen synthesis and skin elasticity",
@@ -1164,8 +1049,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-    ],
+    vendorPrices: [],
     attributes: {
       key_ingredients: "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nBiotin\nZinc Sulphate\nMagnesium Chloride",
       clinical_benefits: "● Promotes healthy hair growth and nail strength\n● Enhances skin hydration and elasticity\n● Reduces inflammation and supports skin healing",
@@ -1183,8 +1067,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-    ],
+    vendorPrices: [],
     attributes: {
       key_ingredients: "Vitamin B1\nVitamin B6\nVitamin B12\nCarnitine\nAlpha Lipoic Acid\nZinc Sulphate\nMagnesium Chloride",
       clinical_benefits: "● Boosts energy and endurance\n● Enhances fat metabolism\n● Reduces exercise-related fatigue and muscle cramps",
@@ -1202,8 +1085,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-    ],
+    vendorPrices: [],
     attributes: {
       key_ingredients: "Vitamin C\nZinc Sulphate\nMagnesium Chloride\nN-Acetylcysteine (NAC)\nSelenium",
       clinical_benefits: "● Supports immune system function\n● Enhances hydration and recovery\n● Reduces oxidative stress and inflammation",
@@ -1221,8 +1103,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-    ],
+    vendorPrices: [],
     attributes: {
       key_ingredients: "Vitamin B1\nVitamin B6\nVitamin B12\nCarnitine\nAlpha Lipoic Acid\nZinc Sulphate\nMagnesium Chloride",
       clinical_benefits: "● Supports neurotransmitter function for sharper focus\n● Promotes better concentration and focus\n● Promotes relaxation and reduces stress\n● Magnesium and B vitamins help soothe the nervous system, leading to a more relaxed state of mind",
@@ -1240,8 +1121,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-    ],
+    vendorPrices: [],
     attributes: {
       key_ingredients: "Vitamin B Complex (B1, B5, B6, B12)\nMagnesium Chloride\nZinc Sulphate\nN-Acetylcysteine (NAC)\nL-Glutamine\nAlpha Lipoic Acid (ALA)\nAscorbic Acid (Vitamin C)",
       clinical_benefits: "● Sebum Regulation: Vitamins and zinc decrease oil production\n● Anti Inflammatory Effects: Magnesium, NAC, ALA and Vitamin C minimizes inflammation\n● Anti Oxidant Support: NAC, ALA and Vitamin C combat oxidative stress\n● Gut Health Improvement: L-Glutamine enhances gut health, reducing systemic inflammation",
@@ -1259,8 +1139,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-    ],
+    vendorPrices: [],
     attributes: {
       key_ingredients: "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nNiacinamide\nVitamin B2\nMagnesium Chloride\nZinc Sulphate\nIron III Hydroxide Sucrose\nL-Glutamine\nFolic Acid\nAscorbic Acid",
       clinical_benefits: "● Enhances Healing: Vitamins and amino acids promote tissue repair and recovery\n● Reduced Inflammation: Ingredients like Niacinamide and Vitamin C help mitigate inflammation\n● Support for immune function: Zinc and Vitamin B6 boost immune response\n● Energy production: B vitamins facilitate energy metabolism to support recovery",
@@ -1278,8 +1157,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-    ],
+    vendorPrices: [],
     attributes: {
       key_ingredients: "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nVitamin B2\nMagnesium Chloride\nZinc Sulphate\nAscorbic Acid\nN-Acetylcysteine\nSelenium",
       clinical_benefits: "● Enhances women's fertility and health by improving egg quality, regulating hormones and reducing oxidative stress\n● Boosts energy and balances hormones\n● Provides antioxidant protection, promoting reproductive wellness",
@@ -1297,8 +1175,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-    ],
+    vendorPrices: [],
     attributes: {
       key_ingredients: "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nMagnesium Chloride\nZinc Sulphate\nL-Glutamine\nL-Arginine\nAscorbic Acid\nTaurine\nSelenium",
       clinical_benefits: "● Supports men's sexual performance by boosting energy, improving blood flow and enhancing overall vitality\n● Stimulates nitric oxide production promoting better circulation and erectile function\n● Zinc Sulphate aids testosterone synthesis",
@@ -1316,8 +1193,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-    ],
+    vendorPrices: [],
     attributes: {
       key_ingredients: "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nCarnitine\nAlpha Lipoic Acid\nZinc Sulphate\nMagnesium Chloride",
       clinical_benefits: "● Supports detoxification and liver function\n● Reduces oxidative stress on the liver\n● Enhances fat metabolism and energy production",
@@ -1335,8 +1211,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-    ],
+    vendorPrices: [],
     attributes: {
       key_ingredients: "NAD+ 100mg",
       clinical_benefits: "● Enhances cellular repair and regeneration\n● Boosts energy and combats fatigue\n● Supports anti-aging and overall vitality",
@@ -1354,8 +1229,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: false,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-    ],
+    vendorPrices: [],
     attributes: {
       key_ingredients: "NAD+ 250mg",
       clinical_benefits: "● Enhances cellular repair and regeneration\n● Boosts energy and combats fatigue\n● Supports anti-aging and overall vitality",
@@ -1373,8 +1247,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     popular: true,
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
-    vendorPrices: [
-    ],
+    vendorPrices: [],
     attributes: {
       key_ingredients: "NAD+ 500mg",
       clinical_benefits: "● Enhances cellular repair and regeneration\n● Boosts energy and combats fatigue\n● Supports anti-aging and overall vitality",

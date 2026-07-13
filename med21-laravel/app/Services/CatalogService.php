@@ -25,8 +25,10 @@ class CatalogService
 {
     private string $defaultImage = 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400';
 
-    public function __construct(private readonly VendorServiceAssignmentService $assignmentService)
-    {
+    public function __construct(
+        private readonly VendorServiceAssignmentService $assignmentService,
+        private readonly PusherService $pusherService,
+    ) {
     }
 
     public function getDatabase(): array
@@ -304,6 +306,16 @@ class CatalogService
             }
         }
 
+        $vendorCost = 0;
+        $vendorId = $payload['vendorId'] ?? null;
+        if ($vendorId && isset($payload['serviceId'])) {
+            $assignment = \App\Models\VendorServiceAssignment::query()
+                ->where('vendor_id', $vendorId)
+                ->where('service_id', $payload['serviceId'])
+                ->first();
+            $vendorCost = $assignment?->vendor_price ?? 0;
+        }
+
         $booking = Booking::query()->create([
             'id' => SequentialId::next(Booking::class, 'b'),
             'customer_name' => $payload['customerName'],
@@ -311,11 +323,12 @@ class CatalogService
             'customer_phone' => $payload['customerPhone'] ?? '',
             'service_title' => $payload['serviceTitle'],
             'vendor_name' => $payload['vendorName'] ?? 'Unassigned',
-            'vendor_id' => $payload['vendorId'] ?? null,
+            'vendor_id' => $vendorId,
             'service_id' => $payload['serviceId'] ?? null,
             'category' => $category,
             'subcategory' => $subcategory,
             'price' => (int) ($payload['price'] ?? 150),
+            'cost' => $vendorCost,
             'date' => $payload['date'] ?? now()->toDateString(),
             'time_slot' => $payload['timeSlot'] ?? 'Flexible',
             'region' => $payload['region'] ?? 'Dubai',
@@ -327,6 +340,7 @@ class CatalogService
             'payment_transaction_utr' => $payload['paymentTransactionUtr'] ?? null,
             'payment_response_status' => $payload['paymentResponseStatus'] ?? null,
             'paid_at' => isset($payload['paidAt']) ? new \DateTime($payload['paidAt']) : null,
+            'expires_at' => now()->addHours(2),
             'notes' => $payload['notes'] ?? '',
         ]);
 
@@ -464,6 +478,13 @@ class CatalogService
         }
 
         $this->assignmentService->ensureVendorServiceEnabled($vendorId, $booking->service_id);
+        $vendorCost = 0;
+        $assignment = \App\Models\VendorServiceAssignment::query()
+            ->where('vendor_id', $vendorId)
+            ->where('service_id', $booking->service_id)
+            ->first();
+        $vendorCost = $assignment?->vendor_price ?? 0;
+
         $updated = Booking::query()
             ->whereKey($bookingId)
             ->whereNull('vendor_id')
@@ -473,6 +494,8 @@ class CatalogService
                 'vendor_name' => $vendor->name,
                 'status' => AppConstants::BOOKING_STATUSES['ACTIVE'],
                 'accepted_at' => now(),
+                'cost' => $vendorCost,
+                'expires_at' => null,
                 'updated_at' => now(),
             ]);
 

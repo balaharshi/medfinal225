@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
+import { api } from "../lib/api";
 import { 
   Lock, 
   Unlock, 
@@ -37,6 +38,7 @@ import {
 } from "lucide-react";
 import ConfirmDialog from './ConfirmDialog';
 import SocialAuthButtons from './SocialAuthButtons';
+import SafeImage from './SafeImage';
 import { subscribeToVendorChannel } from '../services/pusherClient';
 
 interface VendorDashboardProps {
@@ -93,33 +95,15 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     localStorage.removeItem("medziva_vendor_data");
   }, []);
 
-  const getVendorRequestInit = (options?: RequestInit): RequestInit => {
-    const token = localStorage.getItem("medziva_vendor_token");
-    return {
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...options?.headers,
-      },
-      ...options,
-    };
-  };
+
 
   useEffect(() => {
     const hydrateSession = async () => {
       try {
-        const token = localStorage.getItem("medziva_vendor_token");
-        const response = await fetch('/api/auth/session', {
-          credentials: 'include',
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
-        if (response.ok) {
-          const data = await response.json();
-          if (data?.user?.role === 'vendor' && data?.vendor) {
-            setIsAuthenticated(true);
-            setVendorData(data.vendor);
-          }
+        const data = await api.get<{ user?: { role?: string }; vendor?: unknown }>('/api/auth/session');
+        if (data?.user?.role === 'vendor' && data?.vendor) {
+          setIsAuthenticated(true);
+          setVendorData(data.vendor);
         }
       } catch (error) {
 
@@ -140,18 +124,12 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     setIsLoadingData(true);
     try {
       const [resBookings, resServices] = await Promise.all([
-        fetch(`/api/vendorBookings/${vendorData.id}`, getVendorRequestInit()),
-        fetch(`/api/vendorServices/${vendorData.id}`, getVendorRequestInit())
+        api.get<any[]>(`/api/vendorBookings/${vendorData.id}`),
+        api.get<any[]>(`/api/vendorServices/${vendorData.id}`)
       ]);
-      
-      if (resBookings.ok) {
-        const list = await resBookings.json();
-        setBookingsList(list);
-      }
-      if (resServices.ok) {
-        const list = await resServices.json();
-        setServicesList(list);
-      }
+
+      setBookingsList(resBookings);
+      setServicesList(resServices);
     } catch (e) {
 
     } finally {
@@ -187,14 +165,10 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     setAuthLoading(true);
     setAuthError(null);
     try {
-      const response = await fetch("/api/vendorLogin", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: values.email, password: values.password })
+      const data = await api.post<{ success?: boolean; accessToken?: string; vendor?: unknown; error?: string }>("/api/vendorLogin", {
+        body: { email: values.email, password: values.password },
       });
-      const data = await response.json();
-      if (response.ok && data.success) {
+      if (data.success) {
         if (data.accessToken) {
           localStorage.setItem("medziva_vendor_token", data.accessToken);
         }
@@ -229,12 +203,8 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
       localStorage.setItem("medziva_vendor_token", data.accessToken);
     }
 
-    const sessionResponse = await fetch('/api/auth/session', {
-      credentials: 'include',
-      headers: data.accessToken ? { Authorization: `Bearer ${data.accessToken}` } : undefined,
-    });
-    const sessionData = await sessionResponse.json();
-    if (!sessionResponse.ok || !sessionData?.vendor) {
+    const sessionData = await api.get<{ vendor?: unknown }>('/api/auth/session');
+    if (!sessionData?.vendor) {
       const message = "Vendor account is not linked to a provider profile.";
       setAuthError(message);
       toast.error(message);
@@ -256,7 +226,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
   // Perform logout
   const handleLogout = () => {
     localStorage.removeItem("medziva_vendor_token");
-    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => undefined);
+    api.post('/api/auth/logout').catch(() => undefined);
     setIsAuthenticated(false);
     setVendorData(null);
     triggerToast("Logged out successfully.");
@@ -272,37 +242,28 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     }
 
     try {
-      const response = await fetch(`/api/vendorProfile/${vendorData.id}/change-requests`, getVendorRequestInit({
-        method: "POST",
-        body: JSON.stringify({
+      const response = await api.post<{ error?: string }>(`/api/vendorProfile/${vendorData.id}/change-requests`, {
+        body: {
           fieldName: profileChangeField,
           requestedValue: profileChangeValue.trim(),
           reason: profileChangeReason.trim() || undefined,
-        }),
-      }));
+        },
+      });
 
-      if (response.ok) {
-        toast.success("Change request submitted. Admin will review it.");
-        setProfileChangeValue("");
-        setProfileChangeReason("");
-        loadProfileChangeRequests();
-      } else {
-        const data = await response.json();
-        toast.error(data?.error || "Failed to submit request.");
-      }
-    } catch {
-      toast.error("Failed to submit request.");
+      toast.success("Change request submitted. Admin will review it.");
+      setProfileChangeValue("");
+      setProfileChangeReason("");
+      loadProfileChangeRequests();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to submit request.");
     }
   };
 
   const loadProfileChangeRequests = async () => {
     if (!vendorData?.id) return;
     try {
-      const response = await fetch(`/api/vendorProfile/${vendorData.id}/change-requests`, getVendorRequestInit());
-      if (response.ok) {
-        const data = await response.json();
-        setProfileChangeRequests(Array.isArray(data) ? data : []);
-      }
+      const data = await api.get<any[]>(`/api/vendorProfile/${vendorData.id}/change-requests`);
+      setProfileChangeRequests(Array.isArray(data) ? data : []);
     } catch {}
   };
 
@@ -311,14 +272,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
     setAcceptingBookingId(bookingId);
     try {
-      const response = await fetch(`/api/vendorBookings/${vendorData.id}/${bookingId}/accept`, getVendorRequestInit({
-        method: "POST",
-      }));
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data.error || "This booking is no longer available.");
-      }
+      await api.post(`/api/vendorBookings/${vendorData.id}/${bookingId}/accept`);
 
       triggerToast("Booking accepted successfully.");
       await fetchVendorData();
@@ -336,15 +290,9 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
     setUpdatingBookingStatus(bookingId);
     try {
-      const response = await fetch(`/api/vendorBookings/${vendorData.id}/${bookingId}/status`, getVendorRequestInit({
-        method: "PATCH",
-        body: JSON.stringify({ status: newStatus }),
-      }));
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to update status.");
-      }
+      await api.patch(`/api/vendorBookings/${vendorData.id}/${bookingId}/status`, {
+        body: { status: newStatus },
+      });
 
       setBookingsList(prev =>
         prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b)
@@ -415,6 +363,15 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     return `${Math.floor(hours / 24)}d ago`;
   };
 
+  const formatExpiryCountdown = (expiresAt: string | null) => {
+    if (!expiresAt) return null;
+    const diff = new Date(expiresAt).getTime() - Date.now();
+    if (diff <= 0) return { text: 'Expired', urgent: true };
+    const hours = Math.floor(diff / 3600000);
+    const minutes = Math.floor((diff % 3600000) / 60000);
+    return { text: `Expires in ${hours}h ${minutes}m`, urgent: hours < 1 };
+  };
+
   const pendingBookingsCount = bookingsList.filter(b => b.status === "Pending" || !b.status).length;
 
   if (isSessionChecking) {
@@ -438,7 +395,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
           <div className="relative text-center space-y-6">
             <div className="w-20 h-20 bg-white mx-auto rounded-2xl flex items-center justify-center border border-slate-100 shadow-sm p-3">
-              <img src="/newlogo.png" alt="MedZiva Logo" className="h-full w-full object-contain" referrerPolicy="no-referrer" />
+              <SafeImage src="/newlogo.png" alt="MedZiva Logo" className="h-full w-full object-contain" referrerPolicy="no-referrer" />
             </div>
 
             <div>
@@ -566,7 +523,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center shrink-0 shadow-lg shadow-purple-200">
               {vendorData?.logo ? (
-                <img src={vendorData.logo} alt={vendorData.name} className="w-full h-full object-cover rounded-2xl" referrerPolicy="no-referrer" />
+                <SafeImage src={vendorData.logo} alt={vendorData.name} className="w-full h-full object-cover rounded-2xl" referrerPolicy="no-referrer" />
               ) : (
                 <span className="text-2xl font-black text-white">{(vendorData?.name || "V").charAt(0)}</span>
               )}
@@ -777,6 +734,17 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                         <div className="flex items-center justify-between gap-3 mt-2">
                           <p className="text-[10px] text-slate-400">{book.date} • {book.price} AED</p>
                           <div className="flex items-center gap-1.5">
+                            {(() => {
+                              const expiry = formatExpiryCountdown(book.expires_at);
+                              if (expiry && (book.status === "Pending" || !book.status)) {
+                                return (
+                                  <span className={`text-[9px] font-bold ${expiry.urgent ? 'text-red-600' : 'text-amber-600'}`}>
+                                    {expiry.text}
+                                  </span>
+                                );
+                              }
+                              return null;
+                            })()}
                             {book.customerPhone && (
                               <a
                                 href={`tel:${book.customerPhone}`}
@@ -925,6 +893,17 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                         )}
                         {!book.customerPhone && <span>No phone</span>}
                       </div>
+                      {(() => {
+                        const expiry = formatExpiryCountdown(book.expires_at);
+                        if (expiry && (book.status === "Pending" || !book.status)) {
+                          return (
+                            <span className={`text-[9px] font-bold ${expiry.urgent ? 'text-red-600' : 'text-amber-600'}`}>
+                              {expiry.text}
+                            </span>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
                     <div className="flex flex-col sm:items-end gap-2">
                       <span className="text-sm font-black text-medical-green">{book.price} AED</span>

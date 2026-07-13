@@ -4,10 +4,9 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\Service;
-use App\Models\Vendor;
-use App\Models\VendorServiceAssignment;
 use App\Support\SequentialId;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
 class IVTherapySeeder extends Seeder
@@ -16,28 +15,6 @@ class IVTherapySeeder extends Seeder
 
     public function run(): void
     {
-        $doctorPlus = Vendor::firstOrCreate(
-            ['email' => 'doctorplus@medziva.ae'],
-            [
-                'id' => SequentialId::next(Vendor::class, 'v'),
-                'name' => 'Doctor Plus Home Healthcare',
-                'type' => 'Healthcare Provider',
-                'address' => 'Dubai',
-                'active' => true,
-            ]
-        );
-
-        $pegasus = Vendor::firstOrCreate(
-            ['email' => 'pegasus@medziva.ae'],
-            [
-                'id' => SequentialId::next(Vendor::class, 'v'),
-                'name' => 'Pegasus',
-                'type' => 'Healthcare Provider',
-                'address' => 'Dubai',
-                'active' => true,
-            ]
-        );
-
         $category = Category::firstOrCreate(
             ['slug' => 'service'],
             [
@@ -59,11 +36,6 @@ class IVTherapySeeder extends Seeder
             ]
         );
 
-        $vendorMap = [
-            'Doctor Plus Home Healthcare' => $doctorPlus,
-            'Pegasus' => $pegasus,
-        ];
-
         $services = $this->getServiceData();
 
         foreach ($services as $index => $data) {
@@ -73,11 +45,6 @@ class IVTherapySeeder extends Seeder
             $hasContentColumns = true;
 
             $vendorPrices = [];
-            foreach ($data['vendor_prices'] as $vendorName => $price) {
-                if ($price !== null) {
-                    $vendorPrices[$vendorName] = $price;
-                }
-            }
 
             $attributes = [];
             if ($hasContentColumns && !empty($data['key_ingredients'])) {
@@ -101,6 +68,8 @@ class IVTherapySeeder extends Seeder
                 $service->id = SequentialId::next(Service::class, 'srv');
             }
 
+            $image = $this->resolveImage($slug, $data['name']);
+
             $service->fill([
                 'title' => $data['name'],
                 'slug' => $slug,
@@ -115,7 +84,7 @@ class IVTherapySeeder extends Seeder
                 'home_visit_fee_included' => true,
                 'duration' => $duration,
                 'estimated_visit_time' => '',
-                'image' => 'https://images.unsplash.com/photo-1631563016585-64a1e38db6b1?auto=format&fit=crop&q=80&w=400',
+                'image' => $image,
                 'short_description' => $description,
                 'full_description' => $description,
                 'description' => $description,
@@ -136,26 +105,31 @@ class IVTherapySeeder extends Seeder
                     'clinical_benefits' => $attributes['clinical_benefits'] ?? null,
                 ]) : [],
                 'vendor_prices' => $vendorPrices,
-                'booking_notice' => '',
+                'booking_notice' => '24 hours prior booking',
+                'lead_time_minutes' => 1440,
+                'booking_notice_minutes' => 1440,
                 'remarks' => '',
             ]);
             $service->save();
-
-            foreach ($data['vendor_prices'] as $vendorName => $price) {
-                $vendor = $vendorMap[$vendorName] ?? null;
-                if ($vendor) {
-                    VendorServiceAssignment::firstOrCreate(
-                        ['vendor_id' => $vendor->id, 'service_id' => $service->id],
-                        [
-                            'id' => SequentialId::next(VendorServiceAssignment::class, 'vsa'),
-                            'enabled' => true,
-                        ]
-                    );
-                }
-            }
         }
 
         $this->command->info('Synced ' . count($services) . ' IV Therapy services.');
+    }
+
+    private function resolveImage(string $slug, string $name): string
+    {
+        $registry = config('medziva.images.services.iv-therapy', []);
+        $filename = $registry[$slug] ?? null;
+
+        if ($filename) {
+            $path = '/images/services/' . $filename;
+            $fullPath = config('medziva.frontend_public_path') . $path;
+            if (File::exists($fullPath)) {
+                return $path;
+            }
+        }
+
+        return config('medziva.images.defaults.iv-therapy', 'https://images.unsplash.com/photo-1631563016585-64a1e38db6b1?auto=format&fit=crop&q=80&w=400');
     }
 
     private function getServiceData(): array
@@ -165,7 +139,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Skin Glow IV Therapy',
                 'mrp' => 850,
                 'sale_price' => 699,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'This powerful blend of antioxidants and vitamins promotes a radiant complexion by reducing oxidative stress and improving skin health.',
                 'key_ingredients' => "Alpha Lipoic Acid\nZinc Sulphate\nSelenium\nVitamin C",
                 'clinical_benefits' => "● Brightens skin and improves tone\n● Reduces signs of aging and oxidative stress\n● Promotes collagen synthesis and skin elasticity",
@@ -176,7 +150,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Hair, Skin & Nail Care IV Therapy',
                 'mrp' => 850,
                 'sale_price' => 699,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'For those looking to improve the appearance and health of their hair, nails and skin, this drip delivers essential nutrients to promote regeneration and hydration.',
                 'key_ingredients' => "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nBiotin\nZinc Sulphate\nMagnesium Chloride",
                 'clinical_benefits' => "● Promotes healthy hair growth and nail strength\n● Enhances skin hydration and elasticity\n● Reduces inflammation and supports skin healing",
@@ -187,7 +161,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Energy & Weight Loss IV Therapy',
                 'mrp' => 900,
                 'sale_price' => 749,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'Supports your metabolism and energy levels with its potent blend of vitamins, minerals and amino acids. Ideal for patients dealing with fatigue, weight management issues or those seeking enhanced athletic performance.',
                 'key_ingredients' => "Vitamin B1\nVitamin B6\nVitamin B12\nCarnitine\nAlpha Lipoic Acid\nZinc Sulphate\nMagnesium Chloride",
                 'clinical_benefits' => "● Boosts energy and endurance\n● Enhances fat metabolism\n● Reduces exercise-related fatigue and muscle cramps",
@@ -198,7 +172,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Immune & Hydration Drip',
                 'mrp' => 799,
                 'sale_price' => 649,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'Strengthen your immune defenses and ensure optimal hydration with this drip, formulated to help fight infections and promote recovery from illness.',
                 'key_ingredients' => "Vitamin C\nZinc Sulphate\nMagnesium Chloride\nN-Acetylcysteine (NAC)\nSelenium",
                 'clinical_benefits' => "● Supports immune system function\n● Enhances hydration and recovery\n● Reduces oxidative stress and inflammation",
@@ -209,7 +183,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Antistress / Relax IV Therapy',
                 'mrp' => 899,
                 'sale_price' => 749,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'Reduces mental fatigue and sharpens focus while promoting relaxation and reducing stress.',
                 'key_ingredients' => "Vitamin B1\nVitamin B6\nVitamin B12\nCarnitine\nAlpha Lipoic Acid\nZinc Sulphate\nMagnesium Chloride",
                 'clinical_benefits' => "● Supports neurotransmitter function for sharper focus\n● Promotes better concentration\n● Magnesium and B vitamins help soothe the nervous system, leading to a more relaxed state of mind",
@@ -220,7 +194,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Gut Cleanse & Acne Cure IV Therapy',
                 'mrp' => 899,
                 'sale_price' => 699,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'This IV drip is designed to improve skin health and reduce acne through a blend of vitamins, minerals and antioxidants that support both skin and gut health.',
                 'key_ingredients' => "Vitamin B Complex (B1, B5, B6, B12)\nMagnesium Chloride\nZinc Sulphate\nN-Acetylcysteine (NAC)\nL-Glutamine\nAlpha Lipoic Acid (ALA)\nAscorbic Acid (Vitamin C)",
                 'clinical_benefits' => "● Sebum Regulation: Vitamins and zinc decrease oil production\n● Anti Inflammatory Effects: Magnesium, NAC, ALA and Vitamin C minimizes inflammation\n● Anti Oxidant Support: NAC, ALA and Vitamin C combat oxidative stress\n● Gut Health Improvement: L-Glutamine enhances gut health, reducing systemic inflammation",
@@ -231,7 +205,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Memory Boost and Focus IV Therapy',
                 'mrp' => 899,
                 'sale_price' => 699,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'Designed for those seeking improved cognitive function, this drip supports brain health, reduces mental fatigue and sharpens focus.',
                 'key_ingredients' => "Vitamin B1\nVitamin B6\nVitamin B12\nCarnitine\nAlpha Lipoic Acid\nZinc Sulphate\nMagnesium Chloride",
                 'clinical_benefits' => "● Enhances memory and cognitive function\n● Reduces mental fatigue and brain fog\n● Supports neurotransmitter function for sharper focus",
@@ -242,7 +216,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Surgery Recovery IV Therapy',
                 'mrp' => 899,
                 'sale_price' => 749,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'This drip is specifically designed to support recovery following surgery by providing essential vitamins and amino acids that enhance healing, reduce inflammation and boost overall recovery.',
                 'key_ingredients' => "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nNiacinamide\nVitamin B2\nMagnesium Chloride\nZinc Sulphate\nIron III Hydroxide Sucrose\nL-Glutamine\nFolic Acid\nAscorbic Acid",
                 'clinical_benefits' => "● Enhances Healing: Vitamins and amino acids promote tissue repair and recovery\n● Reduced Inflammation: Ingredients like Niacinamide and Vitamin C help mitigate inflammation\n● Support for immune function: Zinc and Vitamin B6 boost immune response\n● Energy production: B vitamins facilitate energy metabolism to support recovery",
@@ -253,7 +227,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Women Health / Fertility IV Therapy',
                 'mrp' => 899,
                 'sale_price' => 749,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'This drip is designed to support women\'s fertility and reproductive health by improving egg quality, balancing hormones, reducing oxidative stress, and promoting overall reproductive wellness.',
                 'key_ingredients' => "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nVitamin B2\nMagnesium Chloride\nZinc Sulphate\nAscorbic Acid\nN-Acetylcysteine\nSelenium",
                 'clinical_benefits' => "● Enhances women's fertility and health by improving egg quality, regulating hormones and reducing oxidative stress\n● Boosts energy and balances hormones\n● Provides antioxidant protection, promoting reproductive wellness",
@@ -264,7 +238,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Men Power IV Drip',
                 'mrp' => 839,
                 'sale_price' => 699,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'This drip is designed to support men\'s sexual health and vitality by enhancing energy levels, promoting healthy blood flow, supporting testosterone production, and improving overall performance and wellness.',
                 'key_ingredients' => "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nMagnesium Chloride\nZinc Sulphate\nL-Glutamine\nL-Arginine\nAscorbic Acid\nTaurine\nSelenium",
                 'clinical_benefits' => "● Supports men's sexual performance by boosting energy, improving blood flow and enhancing overall vitality\n● Stimulates nitric oxide production promoting better circulation and erectile function\n● Zinc Sulphate aids testosterone synthesis",
@@ -275,7 +249,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Liver Detox Drip / After Party',
                 'mrp' => 899,
                 'sale_price' => 699,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'Promotes liver health and detoxification with this formula, ideal for those exposed to environmental toxins, medications or poor dietary habits.',
                 'key_ingredients' => "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nCarnitine\nAlpha Lipoic Acid\nZinc Sulphate\nMagnesium Chloride",
                 'clinical_benefits' => "● Supports detoxification and liver function\n● Reduces oxidative stress on the liver\n● Enhances fat metabolism and energy production",
@@ -286,7 +260,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Antiaging with NAD 100mg IV Therapy',
                 'mrp' => 999,
                 'sale_price' => 799,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'Perfect for those seeking anti aging benefits. This NAD+ drip supports cellular regeneration, improves energy levels and promotes overall longevity.',
                 'key_ingredients' => 'NAD+ 100mg',
                 'clinical_benefits' => "● Enhances cellular repair and regeneration\n● Boosts energy and combats fatigue\n● Supports anti-aging and overall vitality",
@@ -297,7 +271,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Antiaging with NAD 250mg IV Therapy',
                 'mrp' => 1199,
                 'sale_price' => 999,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'Perfect for those seeking anti aging benefits. This NAD+ drip supports cellular regeneration, improves energy levels and promotes overall longevity.',
                 'key_ingredients' => 'NAD+ 250mg',
                 'clinical_benefits' => "● Enhances cellular repair and regeneration\n● Boosts energy and combats fatigue\n● Supports anti-aging and overall vitality",
@@ -308,7 +282,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Antiaging with NAD 500mg IV Therapy',
                 'mrp' => 1699,
                 'sale_price' => 1399,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'Perfect for those seeking anti aging benefits. This NAD+ drip supports cellular regeneration, improves energy levels and promotes overall longevity.',
                 'key_ingredients' => 'NAD+ 500mg',
                 'clinical_benefits' => "● Enhances cellular repair and regeneration\n● Boosts energy and combats fatigue\n● Supports anti-aging and overall vitality",
@@ -319,7 +293,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Liver Detox IV Drip - 50 ML',
                 'mrp' => 899,
                 'sale_price' => 719,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => 719, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Active ingredients:\nAscorbic Acid, L-Carnitine, Folic Acid (Vit B9), Hydroxocobalamin (Vit B12), Inositol, Magnesium Chloride, Pyridoxine HCl (Vit B6)",
                 'clinical_benefits' => "Benefits: Supports liver function, hydration, detoxification, energy boost and hangover relief",
@@ -330,7 +304,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Immune Booster IV Drip - 50 ML',
                 'mrp' => 899,
                 'sale_price' => 719,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => 719, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Active ingredients:\nAlpha Lipoic acid, Ascorbic acid, Folic acid (Vit B9), L-Glutamine, Magnesium Chloride, N-Acetylcysteine, Selenium, Taurine, Zinc sulfate, Hydroxocobalamin (Vit B12), Pyridoxine HCL (Vit B6), L-Carnitine, Thiamine HCL (Vit B1)",
                 'clinical_benefits' => "Benefits: Enhanced immune response, reduced illness severity, improved energy levels, quicker recovery from intense physical activity or periods of high stress",
@@ -341,7 +315,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Multivitamin Drip - 50 ML',
                 'mrp' => 600,
                 'sale_price' => 449,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => 449, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Active ingredients:\nAlpha Lipoic Acid, Ascorbic Acid, Dexpanthenol (Vit B5), Iron III Hydroxide Sucrose, Hydroxocobalamin (Vit B12), Pyridoxine HCl (Vit B6), Thiamine HCl (Vit B1)",
                 'clinical_benefits' => "Benefits:\nNutrient repletion, boosting energy levels, immune support, hydration, improved",
@@ -352,7 +326,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'NAD+ IV Drip - 100mg',
                 'mrp' => 600,
                 'sale_price' => 449,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => 449, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => 'NAD+ - 100mg',
                 'clinical_benefits' => "Benefits:\nBoosting energy levels and combat fatigue, cellular repair, anti-aging effects, longevity, mood enhancement, neuroprotection and detoxification",
@@ -363,7 +337,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'NAD+ IV Drip - 250mg',
                 'mrp' => 850,
                 'sale_price' => 674,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => 674, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => 'NAD+ - 250mg',
                 'clinical_benefits' => "Benefits:\nBoosting energy levels and combat fatigue, cellular repair, anti-aging effects, longevity, mood enhancement, neuroprotection and detoxification",
@@ -374,7 +348,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'NAD+ IV Drip - 500mg',
                 'mrp' => 1129,
                 'sale_price' => 899,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => 899, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => 'NAD+ - 500mg',
                 'clinical_benefits' => "Benefits:\nBoosting energy levels and combat fatigue, cellular repair, anti-aging effects, longevity, mood enhancement, neuroprotection and detoxification",
@@ -385,7 +359,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Anti Hair Loss Drip - 50 ML',
                 'mrp' => 899,
                 'sale_price' => 719,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => 719, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Active ingredients:\nBiotin (Vit B7), Ascorbic acid, Folic acid (Vit B9), Magnesium Chloride, Zinc sulfate, Pyridoxine HCl (Vit B6)",
                 'clinical_benefits' => "Benefits:\nPromotion of hair growth, strengthening of hair strands, scalp health, reduction of hair shedding, anti-hair loss, reduce hair breakage",
@@ -396,7 +370,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Skin Glowing Drip - 50 ML',
                 'mrp' => 899,
                 'sale_price' => 719,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => 719, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Active ingredients:\nAlpha Lipoic acid, Ascorbic acid, Selenium, Zinc Sulfate",
                 'clinical_benefits' => "Benefits:\nHydration, skin brightening, youth-looking skin, skin repair, anti-aging, collagen support",
@@ -407,7 +381,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Anti-Aging Vitamins Drip - 50 ML',
                 'mrp' => 899,
                 'sale_price' => 719,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => 719, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Active ingredients:\nAscorbic acid, Hydroxocobalamin (Vit B12), Lutein, Magnesium Chloride, Folic acid, Pyridoxine HCl, Selenium, Thiamine HCl (Vit B1), Zinc Sulfate",
                 'clinical_benefits' => "Benefits:\nReduced wrinkles and fine lines, improved skin elasticity and firmness, brighter and more radiant skin, increased energy and vitality, enhanced cognitive function",
@@ -418,7 +392,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Antistress and Antioxidant 50ml',
                 'mrp' => 1199,
                 'sale_price' => 975,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => 975],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Ascorbic Acid (Vit C)\nL-glutamine\nMagnesium\nThiamine HCl (Vit B1)\nRiboflavin (Vit B2)\nDexpanthenol (Vit B5)\nPyridoxine (Vit B6)\nHydroxocobalamin (Vit B12)\nTrimethylglycine\nZinc",
                 'clinical_benefits' => null,
@@ -429,7 +403,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Immune Boost 50ml',
                 'mrp' => 1199,
                 'sale_price' => 975,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => 975],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Ascorbic Acid (Vit C)\nL-glutamine\nTrimethylglycine\nMSM\nThiamine HCl (Vit B1)\nPyridoxine (Vit B6)\nCalcium L-5-methyltetrahydrofolate\nHydroxocobalamin (Vit B12)\nMagnesium\nZinc\nN-acetylcysteine\nTaurine\nL-carnitine",
                 'clinical_benefits' => "Benefits:\nNutrient repletion, boosting energy levels, immune support, hydration, improved",
@@ -440,7 +414,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Energy Boost 50ml',
                 'mrp' => 1199,
                 'sale_price' => 975,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => 975],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Ascorbic Acid (Vit C)\nThiamine HCl (Vit B1)\nRiboflavin (Vit B2)\nNiacinamide (Vit B3)\nDexpanthenol (Vit B5)\nPyridoxine (Vit B6)\nHydroxocobalamin (Vit B12)\nInositol\nL-glutamine\nL-carnitine\nMagnesium\nN-acetylcysteine\nNAD\nTaurine\nTrimethylglycine\nZinc",
                 'clinical_benefits' => null,
@@ -451,7 +425,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Hair Loss Support 50ml',
                 'mrp' => 1199,
                 'sale_price' => 975,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => 975],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Vitamin D3, Ascorbic Acid (Vit C)\nBiotin\nThiamine HCl (Vit B1)\nPyridoxine (Vit B6)\nHydroxocobalamin (Vit B12)\nMagnesium\nMSM\nZinc",
                 'clinical_benefits' => "Benefits:\nPromotion of hair growth, strengthening of hair strands, scalp health, reduction of hair shedding, anti-hair loss, reduce hair breakage",
@@ -462,7 +436,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Glowing and Radiant Skin 50ml',
                 'mrp' => 1199,
                 'sale_price' => 975,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => 975],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Ascorbic Acid (Vit C)\nZinc\nPyridoxine (Vit B6)\nProline\nMSM\nN-acetylcysteine",
                 'clinical_benefits' => "Benefits:\nHydration, skin brightening, youth-looking skin, skin repair, anti-aging, collagen support",
@@ -473,7 +447,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Gut Support 50ml',
                 'mrp' => 1199,
                 'sale_price' => 975,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => 975],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Ascorbic Acid (Vit C)\nL-glutamine\nThiamine HCl (Vit B1)\nDexpanthenol (Vit B5)\nPyridoxine (Vit B6)\nCalcium L-5-methyltetrahydrofolate\nHydroxocobalamin (Vit B12)\nDMSO\nMSM\nMagnesium\nZinc",
                 'clinical_benefits' => null,
@@ -484,7 +458,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Liver Detox (Hangover) 50ml',
                 'mrp' => 1199,
                 'sale_price' => 975,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => 975],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Vitamin D3\nAscorbic Acid (Vit C)\nDMSO\nPyridoxine (Vit B6)\nDexpanthenol (Vit B5)\nCalcium L-5-methyltetrahydrofolate\nHydroxocobalamin (Vit B12)\nMagnesium\nN-acetylcysteine\nTrimethylglycine\nZinc",
                 'clinical_benefits' => "Benefits: Supports liver function, hydration, detoxification, energy boost and hangover relief",
@@ -495,7 +469,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Female Balance 50ml',
                 'mrp' => 1199,
                 'sale_price' => 975,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => 975],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Vitamin D3\nAscorbic Acid (Vit C)\nThiamine HCl (Vit B1)\nDexpanthenol (Vit B5)\nPyridoxine (Vit B6)\nCalcium L-5-methyltetrahydrofolate\nHydroxocobalamin (Vit B12)\nInositol\nMSM\nMagnesium Chloride\nTrimethylglycine\nZinc Chloride",
                 'clinical_benefits' => null,
@@ -506,7 +480,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Iron Boost 50ml',
                 'mrp' => 1199,
                 'sale_price' => 975,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => 975],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Iron III hydroxide sucrose complex\nAscorbic Acid (Vit C)\nHydroxocobalamin (Vit B12)\nPyridoxine (Vit B6)\nThiamine HCl (Vit B1)\nCalcium L-5-methyltetrahydrofolate",
                 'clinical_benefits' => null,
@@ -517,7 +491,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Diabetic Support 50ml',
                 'mrp' => 1199,
                 'sale_price' => 975,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => 975],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Vitamin D3\nAscorbic Acid (Vit C)\nL-glutamine\nThiamine HCl (Vit B1)\nRiboflavin (Vit B2)\nDexpanthenol (Vit B5)\nPyridoxine (Vit B6)\nHydroxocobalamin (Vit B12)\nMagnesium chloride\nZinc Chloride\nMSM\nTrimethylglycine\nNAD",
                 'clinical_benefits' => null,
@@ -528,7 +502,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Memory Boost 50ml',
                 'mrp' => 1199,
                 'sale_price' => 975,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => 975],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Ascorbic Acid (Vit C)\nThiamine HCl (Vit B1)\nPyridoxine (Vit B6)\nCalcium L-5-methyltetrahydrofolate\nHydroxocobalamin (Vit B12)\nL-glutamine\nMagnesium\nTryptophan\nZinc",
                 'clinical_benefits' => null,
@@ -539,7 +513,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Vitamin Mix 50ml',
                 'mrp' => 1199,
                 'sale_price' => 975,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => 975],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Iron III hydroxide sucrose complex\nVitamin D3\nAscorbic Acid (Vit C)\nThiamine HCl (Vit B1)\nDexpanthenol (Vit B5)\nPyridoxine (Vit B6)\nHydroxocobalamin (Vit B12)",
                 'clinical_benefits' => "Benefits:\nNutrient repletion, boosting energy levels, immune support, hydration, improved",
@@ -550,7 +524,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'EDTA Chelation 50ml',
                 'mrp' => 1500,
                 'sale_price' => 1185,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => 1185],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Ascorbic Acid (Vit C)\nProcaine\nThiamine HCl (Vit B1)\nRiboflavin (Vit B2)\nNiacinamide (Vit B3)\nDexpanthenol (Vit B5)\nPyridoxine (Vit B6)\nMagnesium\nDisodium EDTA dihydrate (Edetate Disodium)",
                 'clinical_benefits' => null,
@@ -561,7 +535,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Wellness for VIP (with NAD) 50ml',
                 'mrp' => 1650,
                 'sale_price' => 1350,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => 1350],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => "Vitamin D3, Ascorbic Acid (Vit C)\nThiamine HCl (Vit B1)\nRiboflavin (Vit B2)\nDexpanthenol (Vit B5)\nPyridoxine (Vit B6)\nCalcium L-5-methyltetrahydrofolate\nHydroxocobalamin (Vit B12)\nBiotin\nL-lysine\nMagnesium\nMSM\nNAD\nProline\nTrimethylglycine\nZinc",
                 'clinical_benefits' => null,
@@ -572,7 +546,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'NAD 100mg / 10ml',
                 'mrp' => 800,
                 'sale_price' => 570,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => 570],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => null,
                 'clinical_benefits' => "Benefits:\nNutrient repletion, boosting energy levels, immune support, hydration, improved",
@@ -583,7 +557,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'NAD 250mg / 10ml',
                 'mrp' => 1190,
                 'sale_price' => 975,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => 975],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => null,
                 'clinical_benefits' => "Benefits:\nBoosting energy levels and combat fatigue, cellular repair, anti-aging effects, longevity, mood enhancement, neuroprotection and detoxification",
@@ -594,7 +568,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'NAD 500mg / 10ml',
                 'mrp' => 2000,
                 'sale_price' => 1614,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => 1614],
+                'vendor_prices' => [],
                 'description' => null,
                 'key_ingredients' => null,
                 'clinical_benefits' => "Benefits:\nBoosting energy levels and combat fatigue, cellular repair, anti-aging effects, longevity, mood enhancement, neuroprotection and detoxification",
@@ -605,7 +579,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Amino Acid Drip 50ml- 39185',
                 'mrp' => 1199,
                 'sale_price' => 1199,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'Amino acid drip 50ml IV therapy.',
                 'key_ingredients' => null,
                 'clinical_benefits' => null,
@@ -616,7 +590,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'B Complex (81,82,83,85,86,812) 10ml',
                 'mrp' => 650,
                 'sale_price' => 650,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'B Complex 10ml IV therapy.',
                 'key_ingredients' => null,
                 'clinical_benefits' => null,
@@ -627,7 +601,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Biotin 5mg / 2ml (IM/IV)',
                 'mrp' => 500,
                 'sale_price' => 500,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'Biotin 5mg / 2ml IM/IV therapy.',
                 'key_ingredients' => null,
                 'clinical_benefits' => null,
@@ -638,7 +612,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'CoQ10 100mg / 2ml (IM)',
                 'mrp' => 625,
                 'sale_price' => 625,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'CoQ10 100mg / 2ml IM therapy.',
                 'key_ingredients' => null,
                 'clinical_benefits' => null,
@@ -649,7 +623,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Energy Boost Express 10ml - 13778',
                 'mrp' => 725,
                 'sale_price' => 725,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'Energy Boost Express 10ml IV therapy.',
                 'key_ingredients' => null,
                 'clinical_benefits' => null,
@@ -660,7 +634,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Immune Boost Express 10ml - 13777',
                 'mrp' => 725,
                 'sale_price' => 725,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'Immune Boost Express 10ml IV therapy.',
                 'key_ingredients' => null,
                 'clinical_benefits' => null,
@@ -671,7 +645,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Iron 100mg / 5ml',
                 'mrp' => 475,
                 'sale_price' => 475,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'Iron 100mg / 5ml IV therapy.',
                 'key_ingredients' => null,
                 'clinical_benefits' => null,
@@ -682,7 +656,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'MIC Fat Burning 2ml (IM)',
                 'mrp' => 475,
                 'sale_price' => 475,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'MIC Fat Burning 2ml IM therapy.',
                 'key_ingredients' => null,
                 'clinical_benefits' => null,
@@ -693,7 +667,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'NAC 1000mg / 10ml',
                 'mrp' => 650,
                 'sale_price' => 650,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'NAC 1000mg / 10ml IV therapy.',
                 'key_ingredients' => null,
                 'clinical_benefits' => null,
@@ -704,7 +678,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Vitamin C 25000mg / 50ml',
                 'mrp' => 1400,
                 'sale_price' => 1400,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'Vitamin C 25000mg / 50ml IV therapy.',
                 'key_ingredients' => null,
                 'clinical_benefits' => null,
@@ -715,7 +689,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Vitamin C 5000mg / 10ml',
                 'mrp' => 525,
                 'sale_price' => 525,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'Vitamin C 5000mg / 10ml IV therapy.',
                 'key_ingredients' => null,
                 'clinical_benefits' => null,
@@ -726,7 +700,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Vitamin D3 10,000IU / 1ml',
                 'mrp' => 300,
                 'sale_price' => 300,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'Vitamin D3 10,000IU / 1ml IV therapy.',
                 'key_ingredients' => null,
                 'clinical_benefits' => null,
@@ -737,7 +711,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Vitamin D3 30,000IU / 3ml',
                 'mrp' => 400,
                 'sale_price' => 400,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'Vitamin D3 30,000IU / 3ml IV therapy.',
                 'key_ingredients' => null,
                 'clinical_benefits' => null,
@@ -748,7 +722,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Vitamin D3 50,000IU / 5ml',
                 'mrp' => 500,
                 'sale_price' => 500,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'Vitamin D3 50,000IU / 5ml IV therapy.',
                 'key_ingredients' => null,
                 'clinical_benefits' => null,
@@ -759,7 +733,7 @@ class IVTherapySeeder extends Seeder
                 'name' => 'Weight Loss 50ml - 37099',
                 'mrp' => 1199,
                 'sale_price' => 1199,
-                'vendor_prices' => ['Doctor Plus Home Healthcare' => null, 'Pegasus' => null],
+                'vendor_prices' => [],
                 'description' => 'Weight Loss 50ml IV therapy.',
                 'key_ingredients' => null,
                 'clinical_benefits' => null,

@@ -8,6 +8,7 @@ import { ChevronRight, ChevronLeft, CalendarClock, Heart, Send, Eye } from 'luci
 import { DEFAULT_HEALTHCARE_SERVICE_IMAGE, resolveHealthcareServiceImage } from '../data';
 import { HealthcareService } from '../types';
 import { formatAedWhole } from '../utils/money';
+import SafeImage from './SafeImage';
 
 const getServiceAttributeValue = (srv: HealthcareService, label: string) => {
   const attributes = srv.attributes;
@@ -175,7 +176,7 @@ export default function ProductsSection({
 
                     {/* Service Image Stage */}
                     <div className="h-28 w-full flex items-center justify-center overflow-hidden relative">
-                      <img
+                      <SafeImage
                         src={getServiceImage(srv)}
                         alt={srv.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"

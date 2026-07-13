@@ -105,12 +105,14 @@ npm run build         # Verify build succeeds
 medfinal225/
 ├── med21/                          # React frontend
 │   ├── src/
-│   │   ├── App.tsx                 # Main app (routing, state)
-│   │   ├── components/             # UI components
+│   │   ├── App.tsx                 # Layout, routing, shared modals (778 lines)
+│   │   ├── components/             # UI components + page-level pages
+│   │   ├── hooks/
+│   │   │   └── useAppState.ts      # Shared state, handlers, computed data
 │   │   ├── lib/
 │   │   │   └── api.ts             # Centralized API client
 │   │   ├── services/               # Feature-specific API calls
-│   │   ├── data.ts                 # Service/category data
+│   │   ├── content/                # Legal/FAQ content
 │   │   └── types.ts               # TypeScript types
 │   ├── public/                     # Static assets (images)
 │   ├── .env                        # Frontend secrets (git-ignored)

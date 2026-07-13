@@ -15,6 +15,7 @@ import {
 } from '../data';
 import { ServiceCategory, HealthcareService } from '../types';
 import { formatAedWhole } from '../utils/money';
+import SafeImage from './SafeImage';
 
 const getServiceAttributeValue = (srv: HealthcareService, label: string) => {
   const attributes = srv.attributes;
@@ -175,7 +176,7 @@ export default function ServicesSection({
                   <div>
                     {/* Category Image (Rectangular, high-quality, as per mockup) */}
                     <div className="w-full aspect-[3/2] rounded-xl overflow-hidden mb-2.5 border border-slate-100/50 bg-[#EBF3FE] shrink-0">
-                      <img 
+                      <SafeImage 
                         src={cat.image} 
                         alt={cat.title} 
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -263,7 +264,7 @@ export default function ServicesSection({
                       <div 
                         className="h-20 sm:h-24 w-full flex items-center justify-center rounded-xl overflow-hidden mb-2 sm:mb-2.5 bg-[#F8FAFC] relative"
                       >
-                        <img
+                        <SafeImage
                           src={getServiceImage(srv)}
                           alt={srv.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
@@ -397,7 +398,7 @@ export default function ServicesSection({
 
               {/* Image Section */}
               <div className="relative h-44 sm:h-52 overflow-hidden shrink-0 bg-slate-100">
-                <img
+                <SafeImage
                   src={getServiceImage(quickViewService)}
                   className="w-full h-full object-cover object-center"
                   alt={quickViewService?.title}

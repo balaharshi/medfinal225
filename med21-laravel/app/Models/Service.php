@@ -14,7 +14,8 @@ class Service extends BaseModel
         'preparation_instructions', 'who_is_it_for', 'service_location',
         'availability', 'tags', 'display_priority', 'seo_title',
         'seo_description', 'popular', 'enquiry_only', 'attributes',
-        'vendor_prices', 'booking_notice', 'remarks',
+        'vendor_prices', 'booking_notice', 'lead_time_minutes',
+        'booking_notice_minutes', 'remarks',
     ];
 
     protected function casts(): array
@@ -24,6 +25,8 @@ class Service extends BaseModel
             'home_visit_fee_included' => 'boolean',
             'popular' => 'boolean',
             'enquiry_only' => 'boolean',
+            'lead_time_minutes' => 'integer',
+            'booking_notice_minutes' => 'integer',
             'inclusions' => 'array',
             'tags' => 'array',
             'attributes' => 'array',

@@ -38,7 +38,7 @@ class DatabaseSeeder extends Seeder
             'active' => true,
         ]);
 
-        User::query()->updateOrCreate(['email' => 'admin@medziva.ae'], [
+        User::query()->updateOrCreate(['email' => 'admin@medzivahealthcare.com'], [
             'id' => 'u-admin-login',
             'username' => 'admin',
             'full_name' => 'Admin User',
@@ -47,15 +47,7 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        User::query()->updateOrCreate(['email' => 'admin@gmail.com'], [
-            'id' => 'u-primary-admin',
-            'full_name' => 'Admin',
-            'password_hash' => Hash::make('admin123'),
-            'role' => AppConstants::USER_ROLES['ADMIN'],
-            'is_active' => true,
-        ]);
-
-        User::query()->updateOrCreate(['email' => 'vendor@medziva.ae'], [
+        User::query()->updateOrCreate(['email' => 'vendor@medzivahealthcare.com'], [
             'id' => 'u-vendor-login',
             'username' => 'vendor',
             'full_name' => 'Demo Vendor',
@@ -65,7 +57,7 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        User::query()->updateOrCreate(['email' => 'customer@medziva.ae'], [
+        User::query()->updateOrCreate(['email' => 'customer@medzivahealthcare.com'], [
             'id' => 'u-customer-login',
             'username' => 'customer',
             'full_name' => 'Customer User',

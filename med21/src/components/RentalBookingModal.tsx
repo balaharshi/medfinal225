@@ -8,6 +8,7 @@ import { X, Calendar, Check, User, Phone, Mail, ShieldAlert, Clock } from 'lucid
 import toast from 'react-hot-toast';
 import { createEnbdpayCheckout } from '../services/enbdpay';
 import PhoneInput from './PhoneInput';
+import SafeImage from './SafeImage';
 import { createBooking } from '../services/bookings';
 import { formatAedWhole } from '../utils/money';
 import { trackEvent, AnalyticsEvents } from '../services/analytics';
@@ -40,6 +41,7 @@ export default function RentalBookingModal({
   const [date, setDate] = useState('');
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
+  const [duration, setDuration] = useState<'weekly' | 'monthly'>('weekly');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isPaymentStarting, setIsPaymentStarting] = useState(false);
   const [backendServices, setBackendServices] = useState<BackendService[]>([]);
@@ -54,12 +56,16 @@ export default function RentalBookingModal({
       setAddress(loggedInUserAddress || '');
       setDate('');
       setNotes('');
+      setDuration('weekly');
       setFormErrors({});
       setIsPaymentStarting(false);
     }
   }, [isOpen, loggedInUser, loggedInUserEmail, loggedInUserPhone, loggedInUserAddress]);
 
   if (!isOpen || !product) return null;
+
+  const multiplier = duration === 'monthly' ? 4 : 1;
+  const displayPrice = product.price * multiplier;
 
   const handleBook = async () => {
     const newErrors: Record<string, string> = {};
@@ -106,15 +112,15 @@ export default function RentalBookingModal({
           serviceId: backendService?.id || null,
           category: backendService?.category || 'devices-for-rent',
           subcategory: backendService?.subcategory || 'rent-medical-equipments',
-          price: product.price,
+          price: displayPrice,
           date,
           region: 'Dubai',
           status: 'Pending',
           paymentStatus: 'Unpaid',
-          notes: notes ? `Address: ${address}\nRental product: ${product.name}\n${notes}` : `Address: ${address}\nRental product: ${product.name}`,
+          notes: notes ? `Address: ${address}\nRental product: ${product.name}\nDuration: ${duration}\n${notes}` : `Address: ${address}\nRental product: ${product.name}\nDuration: ${duration}`,
         });
         const checkout = await createEnbdpayCheckout({
-          amount: product.price,
+          amount: displayPrice,
           description: `MedZiva rental booking ${product.name}`,
           source: 'booking',
           category: 'Rental',
@@ -127,8 +133,8 @@ export default function RentalBookingModal({
           },
         });
       toast.dismiss('enbdpay-rental');
-      trackEvent(AnalyticsEvents.SUBMIT_RENTAL_BOOKING, { product: product.name, price: product.price });
-      trackEvent(AnalyticsEvents.PAYMENT_INITIATED, { source: 'rental', amount: product.price });
+      trackEvent(AnalyticsEvents.SUBMIT_RENTAL_BOOKING, { product: product.name, price: displayPrice, duration });
+      trackEvent(AnalyticsEvents.PAYMENT_INITIATED, { source: 'rental', amount: displayPrice });
       onSuccessToast?.(`Rental booking confirmed for ${product.name}!`);
       window.location.assign(checkout.redirectUri);
       return;
@@ -163,7 +169,7 @@ export default function RentalBookingModal({
         {/* Product Summary */}
         <div className="px-5 pt-4 pb-3 border-b border-slate-100 bg-gradient-to-r from-emerald-50 to-white">
           <div className="flex items-center gap-3">
-            <img
+            <SafeImage
               src={product.image}
               alt={product.name}
               className="w-14 h-14 rounded-xl object-cover border border-slate-200"
@@ -173,7 +179,8 @@ export default function RentalBookingModal({
               <h4 className="text-sm font-extrabold text-blue-950 truncate">{product.name}</h4>
               <p className="text-[11px] text-slate-500 truncate">{product.subtitle}</p>
               <div className="flex items-center gap-1.5 mt-1">
-                <span className="text-xs font-black text-medical-green">AED {formatAedWhole(product.price)}</span>
+                <span className="text-xs font-black text-medical-green">AED {formatAedWhole(displayPrice)}</span>
+                <span className="text-[9px] text-slate-400 font-bold">({duration})</span>
                 {product.attributes?.find?.((a: any) => a.label === 'Security Deposit') && (
                   <span className="text-[10px] text-slate-400 font-bold">+ Security Deposit</span>
                 )}
@@ -252,6 +259,21 @@ export default function RentalBookingModal({
             {formErrors.date && <p className="text-[10px] text-red-500 mt-0.5">{formErrors.date}</p>}
           </div>
 
+          {/* Rental Duration */}
+          <div className="space-y-1">
+            <p className="text-xs font-bold text-slate-600">Rental Duration</p>
+            <div className="flex gap-3">
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" name="duration" checked={duration === 'weekly'} onChange={() => setDuration('weekly')} />
+                <span className="text-xs">Weekly</span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" name="duration" checked={duration === 'monthly'} onChange={() => setDuration('monthly')} />
+                <span className="text-xs">Monthly</span>
+              </label>
+            </div>
+          </div>
+
           {/* Delivery Address */}
           <div>
             <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Delivery Address</label>
@@ -301,7 +323,7 @@ export default function RentalBookingModal({
             ) : (
               <>
                 <Check className="w-4 h-4" />
-                Confirm & Pay AED {formatAedWhole(product.price)}
+                Confirm & Pay AED {formatAedWhole(displayPrice)}
               </>
             )}
           </button>

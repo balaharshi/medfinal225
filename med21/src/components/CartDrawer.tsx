@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 import { api } from '../lib/api';
 import PhoneInput from './PhoneInput';
 import LocationPicker, { SelectedLocation } from './LocationPicker';
+import SafeImage from './SafeImage';
 import { CartItem } from '../types';
 import ConfirmDialog from './ConfirmDialog';
 import { createEnbdpayCheckout } from '../services/enbdpay';
@@ -325,7 +326,7 @@ export default function CartDrawer({
                             key={item.product.id}
                             className="flex items-center gap-3 bg-white border border-slate-150 rounded-2xl p-3 shadow-2xs hover:shadow-xs transition-shadow"
                           >
-                            <img
+                            <SafeImage
                               src={item.product.image}
                               alt={'name' in item.product ? item.product.name : item.product.title}
                               className="w-16 h-16 rounded-xl object-contain bg-slate-50 border border-slate-100 p-1.5"

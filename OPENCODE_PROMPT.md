@@ -23,6 +23,10 @@ RULES I MUST FOLLOW:
 6. Use American English spelling (Color not Colour, Center not Centre)
 7. Never commit secrets (passwords, API keys, tokens)
 8. Never push directly to main branch
+9. Never use image filenames with spaces or mixed case — always lowercase slugs
+10. Always use the SafeImage component for images, never raw <img>
+11. Never hardcode vendor names — vendor data comes from the database
+12. After changing images or seeders, run php artisan images:verify
 
 BRANCHING:
 - main = production (live website)
@@ -35,9 +39,8 @@ DEPLOYMENT:
 - Always test on staging before production
 
 READ THESE FILES FIRST:
-- BALA_START_HERE.md (project overview and setup)
-- DEPLOYMENT.md (how deployment works)
 - CONTRIBUTING.md (full contribution guidelines)
+- DEPLOYMENT.md (how deployment works)
 ```
 
 ---

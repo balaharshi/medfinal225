@@ -5,6 +5,7 @@
 
 import { Flame, Sparkles, Heart, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
+import SafeImage from './SafeImage';
 import bloodTestImage from '../assets/images/lab-tests-at-home/srv-lab-home-complete-blood-count-cbc-with-differential.jpg';
 
 interface PromoProps {
@@ -64,7 +65,7 @@ export default function PromotionalBanners({
               
               {/* Promo image alignment */}
               <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-white/20">
-                <img 
+                <SafeImage 
                   src={bloodTestImage}
                   alt="Blood Vial Drawing Lab"
                   className="w-full h-full object-cover"
@@ -90,7 +91,7 @@ export default function PromotionalBanners({
               
               {/* Promo image alignment */}
               <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-white/20">
-                <img 
+                <SafeImage 
                   src="/src/assets/images/services/long-term-care.jpg" 
                   alt="Smiling Nurses Consultation"
                   className="w-full h-full object-cover"
@@ -117,7 +118,7 @@ export default function PromotionalBanners({
               
               {/* Promo image alignment */}
               <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-white/20">
-                <img 
+                <SafeImage 
                   src="/src/assets/images/services/medical-devices.jpg" 
                   alt="Wheelchair Devices for Rent"
                   className="w-full h-full object-cover"

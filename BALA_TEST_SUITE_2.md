@@ -94,6 +94,10 @@ Open https://staging.medzivahealthcare.com in a browser. You should see:
 
 If you see errors, STOP and fix before continuing. Do not run tests on a broken site.
 
+All 27 tests below must be run against the staging URL: **https://staging.medzivahealthcare.com**
+
+Do NOT test on localhost. Do NOT test on the production URL (medzivahealthcare.com). Only staging.
+
 ### Step 6: Set up cron (one-time setup)
 ```bash
 ssh rvdkqh1z30zk@92.204.28.237

@@ -1,10 +1,69 @@
 # MedZiva — Advanced QA Test Suite
 
 > **Branch**: `feature/repo-improvements`  
-> **Before testing**: `cd med21-laravel && php artisan migrate:fresh --seed` (fresh DB required — schema changed)  
-> **Build frontend**: `cd med21 && npm run build`  
 > **Estimated time**: 4–6 hours for thorough testing (27 tests)  
 > **Report**: PASS / FAIL per test + screenshots of any errors
+
+---
+
+## Staging Setup — DO THIS FIRST
+
+We have changed a lot — 46 files, schema changes, new components, new commands. You must start fresh. Do NOT reuse old files.
+
+### Step 1: Delete old staging files
+```bash
+ssh rvdkqh1z30zk@92.204.28.237
+cd /home/rvdkqh1z30zk/public_html/staging.medzivahealthcare.com
+rm -rf * .* 2>/dev/null
+cd /home/rvdkqh1z30zk/staging/api
+rm -rf * .* 2>/dev/null
+```
+
+### Step 2: Clone fresh and checkout this branch
+```bash
+cd /home/rvdkqh1z30zk/staging/api
+git clone https://github.com/balaharshi/medfinal225.git .
+git checkout feature/repo-improvements
+```
+
+### Step 3: Backend setup
+```bash
+cd /home/rvdkqh1z30zk/staging/api/med21-laravel
+cp .env.staging .env
+# Edit .env with staging DB credentials
+composer install --no-dev --optimize-autoloader
+php artisan key:generate
+php artisan migrate:fresh --seed
+php artisan config:cache
+php artisan route:cache
+```
+
+### Step 4: Frontend — BUILD LOCALLY (GoDaddy can't run Vite)
+```bash
+# On YOUR local machine:
+cd medfinal225
+git checkout feature/repo-improvements
+cd med21
+npm install
+cp .env.staging .env
+npm run build
+# This produces a dist/ folder
+```
+Then upload the entire `dist/` folder contents to the staging frontend directory on the server:
+```
+/home/rvdkqh1z30zk/public_html/staging.medzivahealthcare.com/
+```
+Upload via cPanel File Manager → delete old files → upload `dist/` contents → keep `.htaccess` if present.
+
+### Step 5: Verify it loads
+Open https://staging.medzivahealthcare.com in a browser. The MedZiva homepage should load with all services, products, and images.
+
+### Step 6: Set up cron (if not already running)
+```bash
+crontab -e
+# Add:
+* * * * * cd /home/rvdkqh1z30zk/staging/api/med21-laravel && php artisan schedule:run >> /dev/null 2>&1
+```
 
 ---
 

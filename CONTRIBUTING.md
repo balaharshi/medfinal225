@@ -216,10 +216,9 @@ ssh rvdkqh1z30zk@92.204.28.237
 cd /home/rvdkqh1z30zk/staging/api/med21-laravel
 git pull
 composer install --no-dev --optimize-autoloader
-php artisan migrate --force
+php artisan migrate:fresh --seed
 php artisan config:cache
 php artisan route:cache
-php artisan view:cache
 
 # Production
 ssh rvdkqh1z30zk@92.204.28.237
@@ -229,7 +228,6 @@ composer install --no-dev --optimize-autoloader
 php artisan migrate --force
 php artisan config:cache
 php artisan route:cache
-php artisan view:cache
 ```
 
 ### Scripted Deploy (automated)

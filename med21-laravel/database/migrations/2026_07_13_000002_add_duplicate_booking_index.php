@@ -10,7 +10,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bookings', function (Blueprint $table): void {
-            DB::statement('CREATE INDEX bookings_duplicate_check_idx ON bookings (customer_email(100), date, time_slot, service_id)');
+            DB::statement('CREATE INDEX bookings_duplicate_check_idx ON bookings (customer_email(100), date(20), time_slot(50), service_id(36))');
         });
     }
 

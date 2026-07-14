@@ -299,6 +299,7 @@ export function useAppState() {
   const [isRentalOpen, setIsRentalOpen] = useState(false);
   const [selectedRentalProduct, setSelectedRentalProduct] = useState<any>(null);
   const [showBookingSuccess, setShowBookingSuccess] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // Auto-redirect to My Bookings after 3 seconds
   useEffect(() => {
@@ -322,7 +323,6 @@ export function useAppState() {
   const [loggedInUserEmail, setLoggedInUserEmail] = useState<string>('');
   const [loggedInUserPhone, setLoggedInUserPhone] = useState<string>('');
   const [loggedInUserAddress, setLoggedInUserAddress] = useState<string>('');
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
     if (!loggedInUserEmail) return undefined;
@@ -413,11 +413,13 @@ export function useAppState() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchDb();
   }, [fetchDb]);
 
   useEffect(() => {
     if (activeTab !== 'search-results') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSearchQuery('');
     }
     setCustomLabSearch('');

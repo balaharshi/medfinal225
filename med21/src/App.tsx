@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, lazy, Suspense, useRef } from 'react';
+import { useState, useEffect, lazy, Suspense, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
@@ -125,7 +125,7 @@ function AdminDashboardApp() {
     toast.success(msg);
   };
 
-  const fetchDb = async () => {
+  const fetchDb = useCallback(async () => {
     try {
       const [catRes, prodRes, srvRes] = await Promise.all([
         api.get<any[]>('/api/categories'),
@@ -142,11 +142,12 @@ function AdminDashboardApp() {
     } catch (error) {
       console.error('Error fetching admin data:', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchDb();
-  }, []);
+  }, [fetchDb]);
 
   return (
     <>

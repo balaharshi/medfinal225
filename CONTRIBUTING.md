@@ -20,19 +20,19 @@ MedZiva is a healthcare services marketplace. Customers book medical services; v
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────────┐
-│                  GoDaddy Shared Hosting               │
-│                                                      │
-│  medzivahealthcare.com (production)                  │
-│  ├── /public_html/         → React (Vite build)     │
-│  └── /public_html/api/     → Laravel backend        │
-│                                                      │
-│  staging.medzivahealthcare.com (test)               │
-│  ├── /staging/             → React (Vite build)     │
-│  └── /staging/api/         → Laravel backend        │
-│                                                      │
-│  Databases: medziva (prod), medziva_staging (test)  │
-└──────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    GoDaddy Shared Hosting                    │
+│                                                             │
+│  medzivahealthcare.com (production)                         │
+│  ├── /public_html/medzivahealthcare.com/  → React build    │
+│  └── /public_html/api.medzivahealthcare.com/ → Laravel     │
+│                                                             │
+│  staging.medzivahealthcare.com (test)                      │
+│  ├── /public_html/staging.medzivahealthcare.com/ → React   │
+│  └── /staging/api/                     → Laravel           │
+│                                                             │
+│  Databases: medziva (prod), medziva_staging (test)         │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -81,7 +81,10 @@ feature/xyz  →  develop  →  main
 - **Language:** American English spelling (e.g., "Color" not "Colour")
 - **Formatting:** Use Prettier (config in `med21/.prettierrc`)
 - **Linting:** Fix all ESLint errors before committing
-- **API calls:** Use the centralized client at `src/lib/api.ts`
+- **API calls:** Use the centralized client at `src/lib/api.ts` — never raw `fetch()`
+- **Images:** Always use `<SafeImage>` component — never raw `<img>` tags. Pass `fallbackSrc` for a secondary URL to try on error.
+- **Vendors:** Never hardcode vendor names — they come from the database
+- **Image filenames:** Use lowercase slugs only — no spaces, no mixed case
 - **No hardcoded values:** Use environment variables for URLs, API keys, etc.
 - **No console.log in production:** Use `console.warn` or `console.error` only
 - **No comments:** Unless explicitly asked for
@@ -95,6 +98,15 @@ npm run lint          # Fix any ESLint errors
 npm run format        # Format code with Prettier
 npm run typecheck     # Verify TypeScript compiles
 npm run build         # Verify build succeeds
+```
+
+**Commit message format:** `type: short description` (e.g., `feat: add rental duration toggle`, `fix: booking date not saving`, `refactor: extract booking modal`). Types: `feat`, `fix`, `refactor`, `style`, `docs`, `chore`.
+
+### Rule 6: After Backend Changes
+
+```bash
+# After modifying migrations, seeders, or image paths:
+php artisan images:verify
 ```
 
 ---
@@ -138,10 +150,179 @@ medfinal225/
 │   └── composer.json               # PHP dependencies
 │
 ├── deploy.sh                       # Deployment script
-├── DEPLOYMENT.md                   # Deployment guide
-├── BALA_START_HERE.md              # Quick start for developers
-├── CONTRIBUTING.md                 # This file
+├── CONTRIBUTING.md                 # This file — single source of truth
 └── .github/workflows/build.yml    # CI/CD (auto-build on push)
+```
+
+---
+
+## Server Details
+
+| Item | Value |
+|------|-------|
+| Server IP | 92.204.28.237 |
+| SSH User | rvdkqh1z30zk |
+| Staging URL | https://staging.medzivahealthcare.com |
+| Production URL | https://medzivahealthcare.com |
+| Node.js | v20.20.2 (installed via nvm) |
+
+## Folder Structure on Server
+
+```
+Server (92.204.28.237)
+│
+├── /home/rvdkqh1z30zk/
+│   ├── public_html/
+│   │   ├── medzivahealthcare.com/        ← PRODUCTION frontend (built files)
+│   │   ├── staging.medzivahealthcare.com/ ← STAGING frontend (built files)
+│   │   └── api.medzivahealthcare.com/     ← PRODUCTION Laravel backend
+│   │
+│   └── staging/
+│       └── api/                           ← STAGING Laravel backend
+│
+└── Databases
+    ├── medziva                            ← Production database
+    └── medziva_staging                    ← Staging database
+```
+
+## Deployment
+
+### Frontend (React/Vite) — Manual via cPanel
+
+**⚠️ GoDaddy shared hosting cannot run Vite builds.** Build locally and upload.
+
+```bash
+# 1. Build locally
+cd med21
+npm run build
+
+# 2. Create zip
+cd ..
+zip -r staging-frontend.zip med21/dist/*
+
+# 3. Upload via cPanel File Manager
+#    - Navigate to target folder:
+#      Staging: /home/rvdkqh1z30zk/public_html/staging.medzivahealthcare.com/
+#      Production: /home/rvdkqh1z30zk/public_html/medzivahealthcare.com/
+#    - Delete old files (keep .well-known and .htaccess)
+#    - Upload zip → Extract → Delete zip
+```
+
+### Backend (Laravel) — Manual via SSH
+
+```bash
+# Staging
+ssh rvdkqh1z30zk@92.204.28.237
+cd /home/rvdkqh1z30zk/staging/api/med21-laravel
+git pull
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+# Production
+ssh rvdkqh1z30zk@92.204.28.237
+cd /home/rvdkqh1z30zk/public_html/api.medzivahealthcare.com
+git pull
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+### Scripted Deploy (automated)
+
+```bash
+./deploy.sh staging    # Deploys develop branch to staging
+./deploy.sh production # Deploys main branch to production
+```
+
+The script: builds frontend, runs `composer install`, rsyncs everything to server, and runs post-deploy commands (migrate, cache).
+
+## First-Time Server Setup
+
+### 1. Install Node.js (via nvm)
+
+```bash
+ssh rvdkqh1z30zk@92.204.28.237
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+source ~/.bashrc
+nvm install 20
+```
+
+### 2. Initialize Git on Server
+
+```bash
+# Staging backend
+cd /home/rvdkqh1z30zk/staging/api
+git init
+git remote add origin https://github.com/balaharshi/medfinal225.git
+git fetch origin
+git checkout develop
+git reset --hard origin/develop
+
+# Staging frontend
+cd /home/rvdkqh1z30zk/public_html/staging.medzivahealthcare.com
+git init
+git remote add origin https://github.com/balaharshi/medfinal225.git
+git fetch origin
+git checkout develop
+git reset --hard origin/develop
+# Then move files from med21/ subfolder to root
+cp -r med21/* .
+cp med21/.* . 2>/dev/null
+rm -rf med21 med21-laravel .git
+```
+
+### 3. Set Up Database
+
+1. cPanel → MySQL Databases
+2. Create database: `medziva_staging`
+3. Create user with password: `Healthcare@0909`
+4. Add user to database with ALL PRIVILEGES
+
+## Environment Variables
+
+### Staging Backend (.env)
+
+```
+APP_ENV=staging
+APP_DEBUG=true
+APP_URL=https://staging.medzivahealthcare.com
+DB_DATABASE=medziva_staging
+DB_USERNAME=medziva_staging
+DB_PASSWORD=Healthcare@0909
+ENBDPAY_BASE_URL=https://enbduat-acquiring-apigw.creditpluspinelabs.com
+ENBDPAY_TRANSACTION_TYPE=AUTH
+ENBDPAY_MOCK=true
+```
+
+### Production Backend (.env)
+
+```
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://medzivahealthcare.com
+DB_DATABASE=medziva
+DB_USERNAME=medziva
+DB_PASSWORD=PRODUCTION_PASSWORD
+ENBDPAY_BASE_URL=https://api.emiratesnbdpay.com
+ENBDPAY_TRANSACTION_TYPE=AUTH
+ENBDPAY_MOCK=true
+```
+
+---
+
+### Frontend (.env)
+
+```
+VITE_API_BASE_URL=https://staging.medzivahealthcare.com/api  (or your local backend URL)
+VITE_GOOGLE_CLIENT_ID=your-google-oauth-client-id
+VITE_PUSHER_KEY=f0c6b9b2061f5e146c3c
+VITE_PUSHER_CLUSTER=ap2
+VITE_PUSHER_CHANNEL=medziva-notifications-staging
 ```
 
 ---
@@ -314,16 +495,19 @@ try {
 
 ---
 
-## Common Issues & Fixes
+## Troubleshooting
 
 | Issue | Fix |
 |-------|-----|
 | Frontend can't reach API | Check `VITE_API_BASE_URL` in `.env` matches backend URL |
 | CORS errors | Add domain to `SANCTUM_STATEFUL_DOMAINS` in Laravel `.env` |
 | Google Sign-In fails | Check `GOOGLE_CLIENT_ID` matches the domain in Google Cloud Console |
-| Build fails | Delete `node_modules` and `package-lock.json`, run `npm install` |
+| Build fails locally | Delete `node_modules` and `package-lock.json`, run `npm install` |
+| Build fails on server | **Expected** — GoDaddy can't run Vite. Build locally and upload zip via cPanel |
 | Laravel returns HTML | Document root must point to `public/` folder, not project root |
 | Migration errors | Run `php artisan migrate:fresh --seed` on staging (never on production!) |
+| Changes not appearing on site | Rebuild frontend, upload dist, run `php artisan config:cache` on backend, hard refresh (Cmd+Shift+R) |
+| Git pull fails on server | Check `.git` folder exists: `ls -la /path/to/folder/.git`. If missing, re-init (see First-Time Server Setup) |
 
 ---
 
@@ -331,9 +515,8 @@ try {
 
 If you are an AI coding assistant (OpenCode, Cursor, Copilot, etc.) working on this project:
 
-1. **Read `BALA_START_HERE.md` first** — it explains the project structure
-2. **Read `DEPLOYMENT.md`** — it explains how deployment works
-3. **Always use `src/lib/api.ts`** for API calls — never use raw `fetch()`
+1. **Read this file — it is the single source of truth**
+2. **Always use `src/lib/api.ts`** for API calls — never use raw `fetch()`
 4. **Never modify `.env` files** — only `.env.staging` and `.env.production` templates
 5. **Run `npm run lint`, `npm run format`, `npm run typecheck`, `npm run build`** after changes
 6. **Never add comments** unless explicitly asked
@@ -375,5 +558,5 @@ DEPLOYMENT:
 - ./deploy.sh production = deploy to live site
 - Always test on staging before production
 
-Read BALA_START_HERE.md for full details.
+Read CONTRIBUTING.md for full details.
 ```

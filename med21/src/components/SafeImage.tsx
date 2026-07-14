@@ -5,6 +5,7 @@ interface SafeImageProps {
   alt: string;
   containerClassName?: string;
   className?: string;
+  fallbackSrc?: string;
   fallback?: ReactNode;
   children?: ReactNode;
   referrerPolicy?: HTMLImageElement['referrerPolicy'];
@@ -17,6 +18,7 @@ export default function SafeImage({
   alt,
   containerClassName,
   className,
+  fallbackSrc,
   fallback = null,
   children,
   referrerPolicy,
@@ -24,6 +26,7 @@ export default function SafeImage({
   onError,
 }: SafeImageProps) {
   const [visible, setVisible] = useState(true);
+  const [currentSrc, setCurrentSrc] = useState<string | null>(null);
 
   if (!src || src.trim() === '') {
     return <>{fallback}</>;
@@ -33,21 +36,26 @@ export default function SafeImage({
     return <>{fallback}</>;
   }
 
-  const safeSrc = src.replace(/ /g, '%20');
+  const displaySrc = (currentSrc || src).replace(/ /g, '%20');
+
+  const handleError = (event: SyntheticEvent<HTMLImageElement>) => {
+    if (fallbackSrc && (!currentSrc || currentSrc !== fallbackSrc)) {
+      setCurrentSrc(fallbackSrc);
+      onError?.(event);
+      return;
+    }
+    setVisible(false);
+    onError?.(event);
+  };
 
   const image = (
     <img
-      src={safeSrc}
+      src={displaySrc}
       alt={alt}
       className={className}
       referrerPolicy={referrerPolicy}
       loading={loading}
-      onError={(event) => {
-        setVisible(false);
-        if (onError) {
-          onError(event);
-        }
-      }}
+      onError={handleError}
     />
   );
 

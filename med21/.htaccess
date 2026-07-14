@@ -23,8 +23,10 @@
     </FilesMatch>
 
     # Security headers
+    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header set Content-Security-Policy "default-src 'self' https:; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; style-src 'self' https: 'unsafe-inline'; img-src 'self' https: data:; font-src 'self' https:; connect-src 'self' https: wss:"
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN"
-    Header set X-XSS-Protection "1; mode=block"
+    Header always unset X-XSS-Protection
     Header set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>

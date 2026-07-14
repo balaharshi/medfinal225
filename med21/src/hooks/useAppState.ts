@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useMemo, useEffect, useCallback, type SyntheticEvent } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { trackPageView, trackEvent, AnalyticsEvents } from '../services/analytics';
@@ -666,16 +666,6 @@ export function useAppState() {
   const getServiceImage = (srv: HealthcareService) =>
     resolveHealthcareServiceImage(srv).image || DEFAULT_HEALTHCARE_SERVICE_IMAGE;
 
-  const handleServiceImageError = (event: SyntheticEvent<HTMLImageElement>, srv: HealthcareService) => {
-    const image = event.currentTarget;
-    const fallback = getServiceImage(srv);
-    if (image.src.endsWith(fallback) || image.dataset.fallbackApplied === 'true') {
-      image.src = DEFAULT_HEALTHCARE_SERVICE_IMAGE;
-      return;
-    }
-    image.dataset.fallbackApplied = 'true';
-    image.src = fallback;
-  };
 
   // ── Cart Interactions ─────────────────────────────────────────────────
 
@@ -1060,7 +1050,6 @@ export function useAppState() {
     hasExtraDetails,
     getServiceImage,
     getServiceImageClassName,
-    handleServiceImageError,
 
     // Handlers
     handleAddToCart,

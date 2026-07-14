@@ -38,17 +38,26 @@ Both must be empty before we start fresh. Run these exact commands:
 ```bash
 ssh rvdkqh1z30zk@92.204.28.237
 
-# Delete frontend
+# ─── DELETE FRONTEND (but keep .htaccess) ───
 cd /home/rvdkqh1z30zk/public_html/staging.medzivahealthcare.com
-rm -rf * .* 2>/dev/null
-ls -la
-# Should show nothing (or just . and ..)
 
-# Delete backend
+# Step 1: Delete all NON-hidden files (images, html, js, etc.)
+rm -rf *
+
+# Step 2: Delete hidden files ONE BY ONE (skip .htaccess)
+rm -rf .well-known
+# If there are other hidden files, delete them manually:
+# rm -rf .git
+# rm -rf .env
+# DO NOT delete .htaccess
+
+# Step 3: Verify - only .htaccess and .well-known should remain
+ls -la
+
+# ─── DELETE BACKEND ───
 cd /home/rvdkqh1z30zk/staging/api
 rm -rf * .* 2>/dev/null
 ls -la
-# Should show nothing (or just . and ..)
 
 exit
 ```

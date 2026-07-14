@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
@@ -52,7 +52,6 @@ import {
   DEFAULT_LAB_TESTS_ROUTE,
   DEFAULT_PRODUCT_ROUTE,
   LAB_TESTS_AT_HOME_ROUTE_PREFIX,
-  PRODUCT_SECTION_ID_BY_ROUTE,
 } from './hooks/useAppState';
 
 import { api } from './lib/api';
@@ -61,6 +60,7 @@ import {
   PRODUCTS,
   HEALTHCARE_SERVICES,
   resolveHealthcareServiceImage,
+  DEFAULT_HEALTHCARE_SERVICE_IMAGE,
 } from './data';
 
 export default function AppWrapper() {
@@ -183,6 +183,7 @@ function PaymentReturnPage() {
   const normalizedStatus = effectiveStatus.toUpperCase();
   const isSuccess = ['CAPTURED', 'AUTHORIZED', 'PROCESSED', 'SUCCESS'].includes(normalizedStatus);
   const isFailure = ['FAILED', 'DECLINED', 'REJECTED', 'ERROR', 'AUTHORIZATION_DECLINED'].includes(normalizedStatus);
+  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     if (isSuccess) {
@@ -222,13 +223,13 @@ function PaymentReturnPage() {
         } else {
           retryCount++;
           setSyncState('syncing');
-          setTimeout(pollStatus, retryDelay);
+          pollTimeoutRef.current = setTimeout(pollStatus, retryDelay);
         }
       } catch {
         if (cancelled) return;
         if (retryCount < maxRetries) {
           retryCount++;
-          setTimeout(pollStatus, retryDelay);
+          pollTimeoutRef.current = setTimeout(pollStatus, retryDelay);
         } else {
           setSyncState('failed');
         }
@@ -239,6 +240,7 @@ function PaymentReturnPage() {
 
     return () => {
       cancelled = true;
+      if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
     };
   }, [appUtrParam, transactionUtrParam]);
 
@@ -491,6 +493,7 @@ function MainApp() {
           {app.serviceDetails && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-950/70 p-3 backdrop-blur-sm">
               <motion.div
+                key={app.serviceDetails.id}
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.96 }}
@@ -513,7 +516,7 @@ function MainApp() {
                     className="h-full w-full object-cover"
                     referrerPolicy="no-referrer"
                     loading="lazy"
-                    onError={(event) => app.handleServiceImageError(event, app.serviceDetails!)}
+                    fallbackSrc={DEFAULT_HEALTHCARE_SERVICE_IMAGE}
                   />
                 </div>
                 )}

@@ -131,7 +131,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
       setBookingsList(resBookings);
       setServicesList(resServices);
     } catch (e) {
-
+      toast.error("Failed to load vendor data. Please try again.");
     } finally {
       setIsLoadingData(false);
       setLastSyncTime(new Date());
@@ -264,7 +264,9 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     try {
       const data = await api.get<any[]>(`/api/vendorProfile/${vendorData.id}/change-requests`);
       setProfileChangeRequests(Array.isArray(data) ? data : []);
-    } catch {}
+    } catch {
+      toast.error("Failed to load profile change requests.");
+    }
   };
 
   const handleAcceptBooking = async (bookingId: string) => {
@@ -289,16 +291,23 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     if (!vendorData?.id) return;
 
     setUpdatingBookingStatus(bookingId);
+    const previousStatus = bookingsList.find(b => b.id === bookingId)?.status;
+
+    setBookingsList(prev =>
+      prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b)
+    );
+
     try {
       await api.patch(`/api/vendorBookings/${vendorData.id}/${bookingId}/status`, {
         body: { status: newStatus },
       });
-
-      setBookingsList(prev =>
-        prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b)
-      );
       toast.success(`Booking marked as ${newStatus}`);
     } catch (error) {
+      if (previousStatus) {
+        setBookingsList(prev =>
+          prev.map(b => b.id === bookingId ? { ...b, status: previousStatus } : b)
+        );
+      }
       const message = error instanceof Error ? error.message : "Failed to update booking status.";
       toast.error(message);
     } finally {

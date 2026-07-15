@@ -288,6 +288,7 @@ class IVTherapySeeder extends Seeder
                 'clinical_benefits' => "● Enhances cellular repair and regeneration\n● Boosts energy and combats fatigue\n● Supports anti-aging and overall vitality",
                 'disclaimer' => self::DEFAULT_DISCLAIMER,
                 'duration' => '',
+            ],
         ];
     }
 }

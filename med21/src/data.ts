@@ -6,8 +6,6 @@
 import { ServiceCategory, Product, HealthcareService } from './types';
 import { HOME_HEALTHCARE_CATEGORIES, HOME_HEALTHCARE_SERVICES } from '../../shared/homeHealthcareCatalog.js';
 import { LAB_TESTS_AT_HOME_SERVICES } from '../../shared/labTestsAtHomeCatalog.js';
-import customizeLabItemsRaw from './data/customize_lab_items.txt?raw';
-
 const mergeById = <T extends { id: string }>(base: T[], overrides: T[]) => {
   const merged = new Map<string, T>();
   base.forEach((item) => merged.set(item.id, item));
@@ -34,7 +32,6 @@ const getServiceImage = (name: string): string => {
   return serviceImages[key] || '';
 };
 
-const LAB_TEST_IMAGE = getServiceImage('lab-technicians');
 const labTestsAtHomeImages = import.meta.glob('./assets/images/lab-tests-at-home/*.jpg', {
   eager: true,
   query: '?url',
@@ -134,34 +131,6 @@ const withRentalEquipmentImages = (products: Product[]) =>
     const localImage = rentalEquipmentImages[`./assets/images/rentalimg/${imageName}.jpg`];
     return localImage ? { ...product, image: localImage } : product;
   });
-
-const normalizeLabId = (code: string) => `srv-custom-lab-${code.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
-
-const parseCustomizeLabItems = (raw: string): HealthcareService[] =>
-  raw
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const [code = '', title = '', priceText = ''] = line.split('|').map((part) => part.trim());
-      const price = Number((priceText.match(/\d+(?:\.\d+)?/) || ['0'])[0]);
-      return {
-        id: normalizeLabId(code),
-        title: title.replace(/\s+/g, ' ').trim(),
-        category: 'lab-tests',
-        subcategory: 'customize-lab-package',
-        price,
-        duration: '12 hours prior booking',
-        image: LAB_TEST_IMAGE,
-        description: `${code} | Available in Dubai and SHJ only.`,
-        popular: false,
-        bookingNotice: '12 hours prior booking slots',
-        attributes: [
-          { label: 'Test Code', value: code },
-          { label: 'Coverage', value: 'Dubai and SHJ only' },
-        ],
-      };
-    });
 
 const BASE_SERVICE_CATEGORIES: ServiceCategory[] = [
   {
@@ -1509,7 +1478,7 @@ const OTHER_SERVICES: HealthcareService[] = [
 const BASE_HEALTHCARE_SERVICES_WITHOUT_LEGACY_HOME = BASE_HEALTHCARE_SERVICES.filter(
   (service) => service.category !== 'home-healthcare' && !(service.category === 'lab-tests' && service.subcategory !== 'customize-lab-package'),
 );
-const CUSTOMIZE_LAB_SERVICES = parseCustomizeLabItems(customizeLabItemsRaw);
+const CUSTOMIZE_LAB_SERVICES: HealthcareService[] = [];
 
 export const SERVICE_CATEGORIES: ServiceCategory[] = mergeById(BASE_SERVICE_CATEGORIES, HOME_HEALTHCARE_CATEGORIES as ServiceCategory[]);
 export const HEALTHCARE_SERVICES: HealthcareService[] = withHomeHealthcareImages(

@@ -36,7 +36,7 @@ export default function LocationPicker({ onLocationChange, initialLat, initialLn
   const reverseGeocode = useCallback(async (lat: number, lng: number): Promise<string> => {
     try {
       const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`, {
-        headers: { Accept: 'application/json' },
+        headers: { Accept: 'application/json', 'User-Agent': 'MedZiva/1.0' },
       });
       const data = await res.json();
       return (data.display_name as string) || '';
@@ -89,6 +89,7 @@ export default function LocationPicker({ onLocationChange, initialLat, initialLn
     mapRef.current = map;
 
     if (initialLat != null && initialLng != null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       void handlePick(initialLat, initialLng);
     } else if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(

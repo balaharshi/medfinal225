@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
             'admin_username' => 'admin',
         ]);
 
-        $vendor = Vendor::query()->updateOrCreate(['email' => 'vendor@medziva.ae'], [
+        $vendor = Vendor::query()->updateOrCreate(['email' => 'vendor@medzivahealthcare.com'], [
             'id' => 'v-demo-login',
             'name' => 'Demo Vendor',
             'type' => 'Nursing Provider',

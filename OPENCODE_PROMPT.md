@@ -1,86 +1,98 @@
-# OpenCode Prompt — Copy This When You Start
+# OpenCode Guide for Bala
 
-> **Paste the text below into OpenCode every time you begin working on MedZiva.**
+> Copy-paste the prompts below. Replace text in `[brackets]` with your own words.
 
 ---
 
+## Start every session with this
+
+Paste this into OpenCode before doing anything:
+
 ```
-I am working on the MedZiva healthcare website.
+I am working on the MedZiva healthcare website (React + Laravel on GoDaddy).
 
-PROJECT STRUCTURE:
-- med21/ = React frontend (Vite + TypeScript + Tailwind)
-- med21-laravel/ = Laravel backend (PHP + MySQL)
-- Both hosted on GoDaddy shared hosting
-- Live site: https://medzivahealthcare.com
-- Test site: https://staging.medzivahealthcare.com
-
-RULES I MUST FOLLOW:
-1. Always use src/lib/api.ts for API calls (never use raw fetch)
-2. Run npm run lint, npm run format, npm run typecheck, npm run build after changes
-3. Never modify .env files (only edit .env.staging and .env.production templates)
-4. Never add comments to code unless I explicitly ask
+RULES:
+1. Use src/lib/api.ts for API calls, never raw fetch
+2. Run npm run lint, npm run format, npm run typecheck, npm run build after every change
+3. Never edit .env files — only .env.staging or .env.production templates
+4. Never add comments to code unless I say so
 5. Never add demo credentials or hardcoded passwords
-6. Use American English spelling (Color not Colour, Center not Centre)
+6. Use American English spelling (Color, Center)
 7. Never commit secrets (passwords, API keys, tokens)
-8. Never push directly to main branch
-9. Never use image filenames with spaces or mixed case — always lowercase slugs
-10. Always use the SafeImage component for images, never raw <img>
-11. Never hardcode vendor names — vendor data comes from the database
-12. After changing images or seeders, run php artisan images:verify
+8. Never push to main branch
+9. Always use SafeImage component, never raw <img>
+10. Never hardcode vendor names — they come from the database
+11. After changing images or seeders, run php artisan images:verify
+12. Read CONTRIBUTING.md — it has everything
 
-BRANCHING:
-- main = production (live website)
-- develop = staging (test website)
-- feature/* = individual features (branch off develop)
+BRANCHING: main = production, develop = staging, feature/* = new features
 
-DEPLOYMENT:
-- ./deploy.sh staging = deploy to test site
-- ./deploy.sh production = deploy to live site
-- Always test on staging before production
-
-READ THESE FILES FIRST:
-- CONTRIBUTING.md (full contribution guidelines)
-- DEPLOYMENT.md (how deployment works)
+DEPLOYMENT: ./deploy.sh staging = test, ./deploy.sh production = live
 ```
 
 ---
 
-## What to Say When...
+## Common tasks — just copy and paste
 
-### Starting a new feature:
+### Fix a bug
+
 ```
-I need to add [feature name]. 
+There is a bug: [describe what happens, what you expected instead, and steps to reproduce].
+Find the relevant code in med21/src/ or med21-laravel/app/.
+Fix the bug.
+Run lint, format, typecheck, and build.
+Do not commit unless I ask.
+```
 
-Read BALA_START_HERE.md first. 
+### Add a new feature
+
+```
+I need to add: [describe the feature].
 Create a feature branch from develop.
 Build the feature.
 Run lint, format, typecheck, and build.
-Do not commit unless I ask you to.
+Do not commit unless I ask.
 ```
 
-### Fixing a bug:
-```
-There's a bug: [describe the bug].
+### Deploy to staging
 
-Read the relevant files in med21/src/components/ or med21-laravel/app/.
-Fix the bug.
-Run lint, format, typecheck, and build.
-Do not commit unless I ask you to.
-```
-
-### Deploying:
 ```
 Deploy the latest changes to staging.
-Run ./deploy.sh staging
-Tell me when it's done.
+Run ./deploy.sh staging.
+Tell me when it is done.
 ```
 
-### Going live:
+### Deploy to production (only after testing on staging)
+
 ```
-I've tested on staging and it works.
-Deploy to production.
+I tested on staging and it works.
+Deploy to production:
 1. Merge develop into main
 2. Push to origin
 3. Run ./deploy.sh production
-Tell me when it's done.
+Tell me when it is done.
 ```
+
+### Explain something in the code
+
+```
+Explain how [feature name] works. Show me the relevant files and line numbers.
+```
+
+### Make changes to the database
+
+```
+I need to [describe the change]. Update the Laravel migration or seeder.
+Run php artisan migrate:fresh --seed after.
+Do not commit unless I ask.
+```
+
+---
+
+## OpenCode tips
+
+- **Be specific** — say exactly what you want, where you want it, and what it should look like
+- **If confused** — tell OpenCode "Read the relevant files first" before asking it to edit anything
+- **If something breaks** — paste the error message and say "Fix this error"
+- **Never approve a commit** unless you have reviewed the changes
+- **Run `npm run build`** before every commit to make sure nothing is broken

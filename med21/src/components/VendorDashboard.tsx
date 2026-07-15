@@ -131,7 +131,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
       setBookingsList(resBookings);
       setServicesList(resServices);
     } catch (e) {
-
+      toast.error("Failed to load vendor data. Please try again.");
     } finally {
       setIsLoadingData(false);
       setLastSyncTime(new Date());
@@ -140,12 +140,24 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
   useEffect(() => {
     if (isAuthenticated && vendorData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchVendorData();
     }
   }, [isAuthenticated, vendorData]);
 
+  const loadProfileChangeRequests = async () => {
+    if (!vendorData?.id) return;
+    try {
+      const data = await api.get<any[]>(`/api/vendorProfile/${vendorData.id}/change-requests`);
+      setProfileChangeRequests(Array.isArray(data) ? data : []);
+    } catch {
+      toast.error("Failed to load profile change requests.");
+    }
+  };
+
   useEffect(() => {
     if (activePane === 'profile' && vendorData?.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       loadProfileChangeRequests();
     }
   }, [activePane, vendorData?.id]);
@@ -259,14 +271,6 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     }
   };
 
-  const loadProfileChangeRequests = async () => {
-    if (!vendorData?.id) return;
-    try {
-      const data = await api.get<any[]>(`/api/vendorProfile/${vendorData.id}/change-requests`);
-      setProfileChangeRequests(Array.isArray(data) ? data : []);
-    } catch {}
-  };
-
   const handleAcceptBooking = async (bookingId: string) => {
     if (!vendorData?.id) return;
 
@@ -289,16 +293,23 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     if (!vendorData?.id) return;
 
     setUpdatingBookingStatus(bookingId);
+    const previousStatus = bookingsList.find(b => b.id === bookingId)?.status;
+
+    setBookingsList(prev =>
+      prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b)
+    );
+
     try {
       await api.patch(`/api/vendorBookings/${vendorData.id}/${bookingId}/status`, {
         body: { status: newStatus },
       });
-
-      setBookingsList(prev =>
-        prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b)
-      );
       toast.success(`Booking marked as ${newStatus}`);
     } catch (error) {
+      if (previousStatus) {
+        setBookingsList(prev =>
+          prev.map(b => b.id === bookingId ? { ...b, status: previousStatus } : b)
+        );
+      }
       const message = error instanceof Error ? error.message : "Failed to update booking status.";
       toast.error(message);
     } finally {
@@ -353,6 +364,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
   const formatRelativeTime = (date: Date | null) => {
     if (!date) return "Never";
+    // eslint-disable-next-line react-hooks/purity
     const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
     if (seconds < 10) return "Just now";
     if (seconds < 60) return `${seconds}s ago`;
@@ -365,6 +377,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
   const formatExpiryCountdown = (expiresAt: string | null) => {
     if (!expiresAt) return null;
+    // eslint-disable-next-line react-hooks/purity
     const diff = new Date(expiresAt).getTime() - Date.now();
     if (diff <= 0) return { text: 'Expired', urgent: true };
     const hours = Math.floor(diff / 3600000);

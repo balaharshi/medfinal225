@@ -74,7 +74,7 @@ This document captures all the issues found and fixed in the MedZiva healthcare 
 | 40 | **CartDrawer touch targets too small** — Close (X), delete (Trash), Minus, Plus buttons had `p-1` (22px) — below 44px minimum for mobile. | Increased all to `p-2` (36px+). Added `aria-label` to all icon-only buttons. |
 | 41 | **Custom hex colors instead of Tailwind tokens** — `hover:bg-[#0fd08f]` (BookingModal, EnquiryModal, AdminDashboard), `bg-[#10B981]` (AuthModal). | Standardized to `hover:bg-emerald-600` and `bg-medical-green`. |
 | 42 | **Overlapping lab tests** — CBC, FBS, and HbA1c appeared in BOTH `routine-blood-tests` AND `customize-lab-package`. | Removed from `routine-blood-tests`, keep only in `customize-lab-package`. |
-| 43 | **Service count mismatch** — LabTestSeeder created 47 services, not 50 after removing 3 duplicates. | Verified: 47 lab-tests-at-home + 295 biomarkers + 27 home health + 14 IV + 4 health packages = 387 total. |
+| 43 | **Service count mismatch** — LabTestSeeder created 47 services, not 50 after removing 3 duplicates. | Verified: 47 lab-tests-at-home + 295 biomarkers + 27 home health + 14 IV + 3 health packages = 386 total. |
 
 ## Part 2: Test Scenarios
 
@@ -98,7 +98,7 @@ npx tsx server.ts
 php artisan tinker
 App\Models\User::count(); # Should be 4
 App\Models\Vendor::count(); # Should be 1
-App\Models\Service::count(); # Should be 387
+App\Models\Service::count(); # Should be 386
 App\Models\Product::count(); # Should be 12
 App\Models\VendorWorkingHour::count(); # Should be 7
 ```

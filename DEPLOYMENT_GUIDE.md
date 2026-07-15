@@ -27,8 +27,8 @@ php artisan config:cache
 ## What the Seeder Does
 
 1. Creates all 4 test accounts
-2. Seeds 27 Home Healthcare, 14 IV Therapy, 50 Lab Tests, 295 Biomarkers, 4 Health Packages, 12 Products
-3. Demo Vendor gets ALL 387 services enabled
+2. Seeds 27 Home Healthcare, 14 IV Therapy, 47 Lab Tests, 295 Biomarkers, 3 Health Packages, 12 Products
+3. Demo Vendor gets ALL 386 services enabled
 4. Demo Vendor gets default working hours (8AM-10PM daily)
 5. Creates promo code `MEDZIVA10` (10% off, max AED 100)
 

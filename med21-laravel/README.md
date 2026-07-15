@@ -70,7 +70,7 @@ BookingConfirmation, BookingExpired, BookingReminder, BookingStatusUpdate, Payme
 | IVTherapySeeder | 14 services |
 | LabTestSeeder | 47 services |
 | BiomarkerSeeder | 295 biomarkers |
-| HealthPackageSeeder | 4 packages |
+| HealthPackageSeeder | 3 packages |
 | ProductSeeder | 12 products |
 | VendorWorkingHoursSeeder | 7 days (8AM-10PM) |
 | DatabaseSeeder | 4 accounts + promo code + ~407 vendor assignments |

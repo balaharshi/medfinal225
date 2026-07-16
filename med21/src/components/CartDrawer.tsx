@@ -19,7 +19,6 @@ import { createBooking } from '../services/bookings';
 import { formatAedWhole } from '../utils/money';
 import { TIME_SLOTS } from '../constants';
 import { trackEvent, AnalyticsEvents } from '../services/analytics';
-import SafeImage from './SafeImage';
 
 interface CartDrawerProps {
   isOpen: boolean;

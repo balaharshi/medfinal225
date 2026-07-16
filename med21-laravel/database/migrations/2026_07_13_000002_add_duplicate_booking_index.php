@@ -10,14 +10,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bookings', function (Blueprint $table): void {
-            DB::statement('CREATE INDEX bookings_duplicate_check_idx ON bookings (customer_email(100), date(20), time_slot(50), service_id(36))');
+            $table->index(['customer_email', 'date', 'time_slot', 'service_id'], 'bookings_duplicate_check_idx');
         });
     }
 
     public function down(): void
     {
         Schema::table('bookings', function (Blueprint $table): void {
-            DB::statement('DROP INDEX bookings_duplicate_check_idx ON bookings');
+            $table->dropIndex('bookings_duplicate_check_idx');
         });
     }
 };

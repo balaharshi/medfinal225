@@ -1,22 +1,26 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('services', function ($table): void {
-            DB::statement('ALTER TABLE services MODIFY seo_title TEXT NULL');
+        Schema::table('services', function (Blueprint $table): void {
+            if (Schema::hasColumn('services', 'seo_title')) {
+                $table->text('seo_title')->nullable()->change();
+            }
         });
     }
 
     public function down(): void
     {
-        Schema::table('services', function ($table): void {
-            DB::statement('ALTER TABLE services MODIFY seo_title VARCHAR(255) DEFAULT "" NOT NULL');
+        Schema::table('services', function (Blueprint $table): void {
+            if (Schema::hasColumn('services', 'seo_title')) {
+                $table->string('seo_title', 255)->nullable()->change();
+            }
         });
     }
 };

@@ -9,14 +9,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('vendor_service_assignments', function (Blueprint $table): void {
-            $table->integer('vendor_price')->default(0)->after('enabled');
+            if (! Schema::hasColumn('vendor_service_assignments', 'vendor_price')) {
+                $table->integer('vendor_price')->default(0)->after('enabled');
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('vendor_service_assignments', function (Blueprint $table): void {
-            $table->dropColumn('vendor_price');
+            if (Schema::hasColumn('vendor_service_assignments', 'vendor_price')) {
+                $table->dropColumn('vendor_price');
+            }
         });
     }
 };

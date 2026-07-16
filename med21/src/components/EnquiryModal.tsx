@@ -192,7 +192,7 @@ export default function EnquiryModal({
                   <option value="General Corporate Screening">General Corporate &amp; Wellness Screening</option>
                   <option value="Custom Long-Term Care Quote">Custom Long-Term Care Package</option>
                   {[
-                    'Nursing Care', 'Physiotherapy', 'Doctor on Call', 'Long-Term Care',
+                    'Custom Nursing Care', 'Nursing Care', 'Physiotherapy', 'Doctor on Call', 'Long-Term Care',
                     'Speech Therapy', 'Occupational Therapy', 'IV Therapy',
                   ].map((name) => (
                     <option key={name} value={name}>

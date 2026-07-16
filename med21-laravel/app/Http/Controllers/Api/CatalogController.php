@@ -24,23 +24,23 @@ class CatalogController extends Controller
 
     public function getDatabase(): JsonResponse { return response()->json($this->catalogService->getDatabase()); }
     public function getCategories(): JsonResponse { return response()->json(Cache::remember('api.categories', 1800, fn () => $this->catalogService->getCategories())); }
-    public function createCategory(CategoryRequest $request): JsonResponse { return response()->json($this->catalogService->createCategory($request->validated()), 201); }
-    public function updateCategory(CategoryRequest $request, string $id): JsonResponse { return response()->json($this->catalogService->updateCategory($id, $request->validated())); }
-    public function deleteCategory(string $id): JsonResponse { return response()->json($this->catalogService->deleteCategory($id)); }
-    public function createSubcategory(SubcategoryRequest $request, string $catId): JsonResponse { return response()->json($this->catalogService->createSubcategory($catId, $request->validated()), 201); }
-    public function deleteSubcategory(string $catId, string $subId): JsonResponse { return response()->json($this->catalogService->deleteSubcategory($catId, $subId)); }
+    public function createCategory(CategoryRequest $request): JsonResponse { Cache::forget('api.categories'); return response()->json($this->catalogService->createCategory($request->validated()), 201); }
+    public function updateCategory(CategoryRequest $request, string $id): JsonResponse { Cache::forget('api.categories'); return response()->json($this->catalogService->updateCategory($id, $request->validated())); }
+    public function deleteCategory(string $id): JsonResponse { Cache::forget('api.categories'); return response()->json($this->catalogService->deleteCategory($id)); }
+    public function createSubcategory(SubcategoryRequest $request, string $catId): JsonResponse { Cache::forget('api.categories'); return response()->json($this->catalogService->createSubcategory($catId, $request->validated()), 201); }
+    public function deleteSubcategory(string $catId, string $subId): JsonResponse { Cache::forget('api.categories'); return response()->json($this->catalogService->deleteSubcategory($catId, $subId)); }
     public function getProducts(): JsonResponse { return response()->json(Cache::remember('api.products', 600, fn () => $this->catalogService->getProducts())); }
     public function createProduct(ProductRequest $request): JsonResponse { return response()->json($this->catalogService->createProduct($request->all()), 201); }
     public function deleteProduct(string $id): JsonResponse { Cache::forget('api.products'); return response()->json($this->catalogService->deleteProduct($id)); }
     public function getServices(): JsonResponse { return response()->json(Cache::remember('api.services', 300, fn () => $this->catalogService->getServices())); }
     public function getAllServices(): JsonResponse { return response()->json($this->catalogService->getServices(true)); }
-    public function createService(ServiceRequest $request): JsonResponse { return response()->json($this->catalogService->createService($request->all()), 201); }
+    public function createService(ServiceRequest $request): JsonResponse { Cache::forget('api.services'); return response()->json($this->catalogService->createService($request->all()), 201); }
     public function updateService(ServiceRequest $request, string $id): JsonResponse { Cache::forget('api.services'); Cache::forget('api.categories'); return response()->json($this->catalogService->updateService($id, $request->all())); }
     public function deleteService(string $id): JsonResponse { Cache::forget('api.services'); Cache::forget('api.categories'); return response()->json($this->catalogService->deleteService($id)); }
     public function getVendors(): JsonResponse { return response()->json($this->catalogService->getVendors()); }
     public function getUsers(): JsonResponse { return response()->json($this->catalogService->getUsers()); }
     public function deleteUser(Request $request, string $id): JsonResponse { return response()->json($this->catalogService->deleteUser($id, $request->user()->role)); }
-    public function createVendor(VendorRequest $request): JsonResponse { return response()->json($this->catalogService->createVendor($request->all()), 201); }
+    public function createVendor(VendorRequest $request): JsonResponse { return response()->json($this->catalogService->createVendor($request->validated()), 201); }
     public function updateVendor(VendorRequest $request, string $id): JsonResponse { return response()->json($this->catalogService->updateVendor($id, $request->all())); }
     public function deleteVendor(string $id): JsonResponse { return response()->json($this->catalogService->deleteVendor($id)); }
     public function getVendorBookings(string $vendorId): JsonResponse { return response()->json($this->catalogService->getVendorBookings($vendorId)); }

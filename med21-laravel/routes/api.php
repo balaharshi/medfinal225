@@ -53,6 +53,7 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
 
     Route::get('/services/all', [CatalogController::class, 'getAllServices'])->middleware($admin);
     Route::get('/services', [CatalogController::class, 'getServices']);
+    Route::get('/services/{serviceId}/available-slots', [CatalogController::class, 'getAvailableSlots']);
     Route::post('/services', [CatalogController::class, 'createService'])->middleware($admin);
     Route::patch('/services/{id}', [CatalogController::class, 'updateService'])->middleware($admin);
     Route::delete('/services/{id}', [CatalogController::class, 'deleteService'])->middleware($admin);
@@ -77,6 +78,7 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
     Route::patch('/vendorProfileChangeRequests/{id}/review', [CatalogController::class, 'reviewVendorProfileChangeRequest'])->middleware($admin);
 
     Route::get('/admin/vendor-sla', [CatalogController::class, 'getVendorSlaMetrics'])->middleware($admin);
+    Route::get('/admin/revenue', [CatalogController::class, 'getRevenueReport'])->middleware($admin);
     Route::post('/vendorLogin', [AuthController::class, 'vendorLogin'])->middleware('throttle:10,1');
 
     Route::get('/bookings', [CatalogController::class, 'getBookings'])->middleware($admin);
@@ -86,6 +88,7 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
     Route::delete('/booking/{id}', [CatalogController::class, 'cancelBooking'])->middleware($admin);
 
     Route::get('/my-bookings', [CatalogController::class, 'getMyBookings'])->middleware('api.auth');
+    Route::post('/my-bookings/{id}/reschedule', [CatalogController::class, 'rescheduleMyBooking'])->middleware('api.auth', 'throttle:10,1');
     Route::delete('/my-bookings/{id}', [CatalogController::class, 'cancelMyBooking'])->middleware('api.auth', 'throttle:10,1');
 
     Route::get('/enquiries', [CatalogController::class, 'getEnquiries'])->middleware($admin);

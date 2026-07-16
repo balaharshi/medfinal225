@@ -118,6 +118,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const [selectedVendorServiceVendorId, setSelectedVendorServiceVendorId] = useState("");
   const [vendorServiceAssignments, setVendorServiceAssignments] = useState<any[]>([]);
   const [vendorServiceSearch, setVendorServiceSearch] = useState("");
+  const [bulkVendorPrice, setBulkVendorPrice] = useState("");
   const [isSavingAssignments, setIsSavingAssignments] = useState(false);
   const [selectedVendorDetailsId, setSelectedVendorDetailsId] = useState<string | null>(null);
   const [vendorDetailsTab, setVendorDetailsTab] = useState<"profile" | "requests" | "history" | "payments" | "commissions" | "reviews" | "documents">("profile");
@@ -709,7 +710,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     try {
       await api.post(
         `/api/vendors/${selectedVendorServiceVendorId}/service-assignments/bulk`,
-        { body: { serviceIds, enabled } }
+        { body: { serviceIds, enabled, vendorPrice: bulkVendorPrice ? Number(bulkVendorPrice) : null } }
       );
       triggerToast(`${enabled ? "Enabled" : "Disabled"} ${serviceIds.length} service${serviceIds.length === 1 ? "" : "s"} for ${selectedServiceVendor?.name || "vendor"}.`);
     } catch (error) {
@@ -1239,7 +1240,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     setIsSubmitting(true);
     try {
       await api.post(
-        `/api/subcategories/${parentCatId}`,
+        `/api/categories/${parentCatId}/subcategories`,
         { body: { title: subName, image: subImage || null } }
       );
 
@@ -1260,7 +1261,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       `Delete subcategory "${subName}"?`,
       async () => {
         try {
-          await api.delete(`/api/subcategory/${catId}/${subId}`);
+          await api.delete(`/api/categories/${catId}/subcategories/${subId}`);
           triggerToast(`Specialty subcategory cleared.`);
           onRefresh();
           fetchAdminData();
@@ -3327,10 +3328,19 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                 <div>
                   <h3 className="font-extrabold text-blue-950 text-sm">Service Assignment Screen</h3>
                   <p className="text-[10.5px] text-slate-400">
-                    {selectedServiceVendor ? `Managing service access for ${selectedServiceVendor.name}` : "Select a vendor to begin."}
-                  </p>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-2">
+                     {selectedServiceVendor ? `Managing service access for ${selectedServiceVendor.name}` : "Select a vendor to begin."}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 mb-3 w-full sm:w-auto">
+                    <input
+                      type="number"
+                      value={bulkVendorPrice}
+                      onChange={(e) => setBulkVendorPrice(e.target.value)}
+                      placeholder="Vendor Price (AED)"
+                      className="w-full sm:w-44 px-3 py-2 border border-slate-300 rounded-lg text-xs focus:outline-hidden focus:border-emerald-500"
+                    />
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2">
                   <button
                     type="button"
                     disabled={!selectedVendorServiceVendorId || isSavingAssignments || filteredVendorServiceAssignments.length === 0}

@@ -289,7 +289,7 @@ export default function CartDrawer({
           customerEmail: patientEmail,
           customerPhone: patientContact,
           serviceTitle: title,
-          serviceId: String(serviceId).startsWith('srv-') ? serviceId : undefined,
+          serviceId: serviceId || undefined,
           category,
           subcategory,
           price: effectivePrice * item.quantity,

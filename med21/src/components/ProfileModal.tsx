@@ -88,7 +88,7 @@ export default function ProfileModal({
   const handleCancelBooking = async (bookingId: string) => {
     try {
       await api.delete(`/api/my-bookings/${bookingId}`);
-      setBookings((prev) => prev.filter((b: any) => b.id !== bookingId));
+      setBookings((prev) => prev.map((b: any) => b.id === bookingId ? { ...b, status: 'Cancelled' } : b));
       toast.success('Booking cancelled');
     } catch {
       toast.error('Failed to cancel');

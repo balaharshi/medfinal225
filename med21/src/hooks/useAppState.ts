@@ -920,6 +920,7 @@ export function useAppState() {
     setLoggedInUserEmail('');
     setLoggedInUserPhone('');
     setLoggedInUserAddress('');
+    setCart([]);
     localStorage.removeItem('medziva_user_token');
     api.post('/api/auth/logout').catch(() => undefined);
     localStorage.removeItem('medziva_user_name');

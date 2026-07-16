@@ -18,32 +18,7 @@ class HealthPackageSeeder extends Seeder
             ['id' => 'v-demo', 'name' => 'Demo Vendor', 'type' => 'Healthcare Provider', 'address' => 'Dubai', 'active' => true]
         );
 
-        $packages = [
-            [
-                'name' => 'MedZiva Platinum Comprehensive Pack',
-                'mrp' => 499,
-                'old_price' => 650,
-                'tag' => 'Most Popular',
-                'desc' => 'Our gold standard full physical evaluation. Covers full profile lipids, diabetes checks, liver/kidney counts, heavy vitamins profile, and an at-home clinician consult.',
-                'bullets' => ['Complete lipid panel & HbA1c', 'Liver & kidney metrics assessment', 'Clinician visiting consult included', 'Qualified blood sample collection'],
-            ],
-            [
-                'name' => 'Cardiac Hazard Prevention Bundle',
-                'mrp' => 349,
-                'old_price' => 480,
-                'tag' => 'Coronary Vetted',
-                'desc' => 'A diagnostic profile targeting coronary risk parameters. Identifies high density lipid levels, specific cardiac proteins, uric index, and high tension blood pressure evaluations.',
-                'bullets' => ['Total lipids & triglycerides index', 'High tension readings auditing', 'Uric acid indicators check', 'DHA approved physical analysis'],
-            ],
-            [
-                'name' => 'Elite Fitness and Body Mass Audit',
-                'mrp' => 299,
-                'old_price' => 399,
-                'tag' => 'Metabolism Vetted',
-                'desc' => 'Constructed for athletes or customers during body composition tracking. Monitors endocrine indices, creatine, basic lipid metabolism, and thyroid indicators.',
-                'bullets' => ['Thyroid profile & hormonal check', 'Creatine counts auditing', 'Safe home visit drawn vial', 'Metabolic rate overview report'],
-            ],
-        ];
+        $packages = [];
 
         foreach ($packages as $index => $data) {
             $slug = Str::slug($data['name']) . '-' . ($index + 1);

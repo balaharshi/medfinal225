@@ -766,11 +766,12 @@ function MainApp() {
         email={app.loggedInUserEmail}
         phone={app.loggedInUserPhone}
         address={app.loggedInUserAddress}
-        onSave={(updatedName, updatedEmail, updatedPhone, updatedAddress) => {
+        onSave={async (updatedName, updatedEmail, updatedPhone, updatedAddress) => {
           app.setLoggedInUser(updatedName);
           app.setLoggedInUserEmail(updatedEmail);
           app.setLoggedInUserPhone(updatedPhone);
           app.setLoggedInUserAddress(updatedAddress);
+          try { await api.put('/api/auth/profile', { body: { fullName: updatedName, email: updatedEmail, phone: updatedPhone, address: updatedAddress } }); } catch {}
         }}
         onSuccessToast={app.triggerToast}
       />

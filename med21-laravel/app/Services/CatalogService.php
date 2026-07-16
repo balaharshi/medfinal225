@@ -291,6 +291,19 @@ class CatalogService
 
     public function createBooking(array $payload): array
     {
+        if (($payload['customerEmail'] ?? '') && ($payload['date'] ?? '') && ($payload['timeSlot'] ?? '')) {
+            $existing = Booking::query()
+                ->where('customer_email', $payload['customerEmail'])
+                ->where('date', $payload['date'])
+                ->where('time_slot', $payload['timeSlot'])
+                ->where('service_id', $payload['serviceId'] ?? null)
+                ->whereNotIn('status', ['Cancelled'])
+                ->exists();
+            if ($existing) {
+                throw new HttpException(409, 'A booking already exists for this date and time slot.');
+            }
+        }
+
         if (($payload['vendorId'] ?? null) && ($payload['serviceId'] ?? null)) {
             $this->assignmentService->ensureVendorServiceEnabled((string) $payload['vendorId'], (string) $payload['serviceId']);
         }
@@ -577,6 +590,49 @@ class CatalogService
         $booking->forceFill(['status' => AppConstants::BOOKING_STATUSES['CANCELLED']])->save();
 
         return CaseKeys::camelize($booking);
+    }
+
+    public function rescheduleCustomerBooking(string $id, string $email, ?string $date, ?string $timeSlot): array
+    {
+        $booking = Booking::query()->find($id) ?? throw new HttpException(404, 'Booking not found');
+        if ($booking->customer_email !== $email) {
+            throw new HttpException(403, 'You can only reschedule your own bookings');
+        }
+        if (! in_array($booking->status, [AppConstants::BOOKING_STATUSES['PENDING'], AppConstants::BOOKING_STATUSES['ACTIVE']], true)) {
+            throw new HttpException(400, 'Only pending or active bookings can be rescheduled');
+        }
+        if (! $date || ! $timeSlot) {
+            throw new HttpException(422, 'Date and time slot are required');
+        }
+        $previousDate = $booking->date;
+        $previousTimeSlot = $booking->time_slot;
+        $booking->forceFill(['date' => $date, 'time_slot' => $timeSlot, 'reschedule_count' => ($booking->reschedule_count ?? 0) + 1])->save();
+        return [...CaseKeys::camelize($booking), 'previousDate' => $previousDate, 'previousTimeSlot' => $previousTimeSlot];
+    }
+
+    public function getAvailableTimeSlots(string $serviceId, ?string $date, ?string $region): array
+    {
+        $timeSlots = [
+            ['label' => '06:00 AM - 08:00 AM', 'startHour' => 6, 'startMin' => 0],
+            ['label' => '08:00 AM - 10:00 AM', 'startHour' => 8, 'startMin' => 0],
+            ['label' => '10:00 AM - 12:00 PM', 'startHour' => 10, 'startMin' => 0],
+            ['label' => '12:00 PM - 02:00 PM', 'startHour' => 12, 'startMin' => 0],
+            ['label' => '02:00 PM - 04:00 PM', 'startHour' => 14, 'startMin' => 0],
+            ['label' => '04:00 PM - 06:00 PM', 'startHour' => 16, 'startMin' => 0],
+            ['label' => '06:00 PM - 08:00 PM', 'startHour' => 18, 'startMin' => 0],
+            ['label' => '08:00 PM - 10:00 PM', 'startHour' => 20, 'startMin' => 0],
+        ];
+
+        if (! $date) return $timeSlots;
+
+        $bookedSlots = Booking::query()
+            ->where('date', $date)
+            ->where('service_id', $serviceId)
+            ->whereNotIn('status', ['Cancelled'])
+            ->pluck('time_slot')
+            ->toArray();
+
+        return array_values(array_filter($timeSlots, fn ($slot) => ! in_array($slot['label'], $bookedSlots, true)));
     }
 
     public function updateVendorBookingStatus(string $id, string $vendorId, string $status): array
@@ -1052,5 +1108,25 @@ class CatalogService
         } catch (\Throwable $e) {
             \Log::error('Failed to send booking status update email: ' . $e->getMessage());
         }
+    }
+
+    public function getRevenueReport(?string $from, ?string $to): array
+    {
+        $query = Booking::query()->where('status', 'Completed');
+        if ($from) $query->where('date', '>=', $from);
+        if ($to) $query->where('date', '<=', $to);
+
+        $bookings = $query->get();
+        $grossRevenue = $bookings->sum('price');
+        $vendorCost = $bookings->sum('vendor_cost');
+        $totalCompleted = $bookings->count();
+
+        return [
+            'grossRevenue' => (float) $grossRevenue,
+            'totalCost' => (float) $vendorCost,
+            'netProfit' => (float) ($grossRevenue - $vendorCost),
+            'completedVisits' => $totalCompleted,
+            'period' => ['from' => $from, 'to' => $to],
+        ];
     }
 }

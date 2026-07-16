@@ -397,14 +397,16 @@ export function useAppState() {
             !(service.category === 'iv-therapy' || service.subcategory === 'iv-therapy') ||
             IV_THERAPY_ALLOWED_IDS.has(service.id)
           );
-        const liveIds = new Set(liveServices.map((s: any) => s.id));
-        const hasLiveIvTherapy = liveServices.some((s: any) => s.category === 'iv-therapy' || s.subcategory === 'iv-therapy');
-        setDb(prev => ({
-          ...prev,
-          services: [
-            ...prev.services.filter(s => !liveIds.has(s.id) && !(hasLiveIvTherapy && (s.category === 'iv-therapy' || s.subcategory === 'iv-therapy'))),
-            ...liveServices,
-          ],
+          const normalizeTitle = (t: string) => (t || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+          const liveIds = new Set(liveServices.map((s: any) => s.id));
+          const liveKeys = new Set(liveServices.map((s: any) => `${normalizeTitle(s.title)}|${s.category || ''}|${s.subcategory || ''}`));
+          const hasLiveIvTherapy = liveServices.some((s: any) => s.category === 'iv-therapy' || s.subcategory === 'iv-therapy');
+          setDb(prev => ({
+            ...prev,
+            services: [
+              ...prev.services.filter(s => !liveIds.has(s.id) && !liveKeys.has(`${normalizeTitle(s.title)}|${s.category || ''}|${s.subcategory || ''}`) && !(hasLiveIvTherapy && (s.category === 'iv-therapy' || s.subcategory === 'iv-therapy'))),
+              ...liveServices,
+            ],
         }));
       }
     } catch (e) {

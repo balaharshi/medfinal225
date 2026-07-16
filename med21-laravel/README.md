@@ -79,7 +79,6 @@ BookingConfirmation, BookingExpired, BookingReminder, BookingStatusUpdate, Payme
 
 | Role | Email | Password |
 |---|---|---|
-| Super Admin | superadmin@medzivahealthcare.com | Medziva@123 |
 | Admin | admin@medzivahealthcare.com | Medziva@123 |
 | Vendor | vendor@medzivahealthcare.com | Medziva@123 |
 | Customer | customer@medzivahealthcare.com | Medziva@123 |

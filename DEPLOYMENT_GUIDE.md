@@ -15,7 +15,6 @@ php artisan config:cache
 
 | Role | Email | Password |
 |------|-------|----------|
-| Super Admin | superadmin@medzivahealthcare.com | Medziva@123 |
 | Admin | admin@medzivahealthcare.com | Medziva@123 |
 | Vendor | vendor@medzivahealthcare.com | Medziva@123 |
 | Customer | customer@medzivahealthcare.com | Medziva@123 |
@@ -26,7 +25,7 @@ php artisan config:cache
 
 ## What the Seeder Does
 
-1. Creates all 4 test accounts
+1. Creates all 3 test accounts (admin, vendor, customer)
 2. Seeds 27 Home Healthcare, 14 IV Therapy, 47 Lab Tests, 295 Biomarkers, 12 Products
 3. Demo Vendor gets ALL 383 services enabled
 4. Demo Vendor gets default working hours (8AM-10PM daily)

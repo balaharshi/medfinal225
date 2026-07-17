@@ -48,7 +48,9 @@ const rentalEquipmentImages = import.meta.glob('./assets/images/rentalimg/*.jpg'
   import: 'default',
 }) as Record<string, string>;
 
-export const DEFAULT_HEALTHCARE_SERVICE_IMAGE = '/images/services/generic-nurse.jpg';
+export const DEFAULT_HEALTHCARE_SERVICE_IMAGE =
+  homeHealthcareImages['./assets/images/home_healthcare/Generic Nurse Visit.jpg'] ||
+  getServiceImage('generic-nurse');
 
 const homeHealthcareImageAliases: Record<string, string> = {
   'GUT CLEANSE & ACNE CURE IV THERAPY': 'Gut support IV Therapy',
@@ -102,7 +104,14 @@ const getHomeHealthcareImageKey = (title: string) => {
 };
 
 export const resolveHealthcareServiceImage = (service: HealthcareService): HealthcareService => {
-  return { ...service, image: service.image || DEFAULT_HEALTHCARE_SERVICE_IMAGE };
+  if (service.category === 'lab-tests' || service.category === 'lab-tests-at-home') {
+    return service;
+  }
+
+  const imageKey = getHomeHealthcareImageKey(service.title);
+  const localImage = homeHealthcareImages[`./assets/images/home_healthcare/${imageKey}.jpg`];
+
+  return localImage ? { ...service, image: localImage } : { ...service, image: service.image || DEFAULT_HEALTHCARE_SERVICE_IMAGE };
 };
 
 const withHomeHealthcareImages = (services: HealthcareService[]) =>

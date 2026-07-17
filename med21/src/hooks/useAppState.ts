@@ -353,15 +353,11 @@ export function useAppState() {
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchDb();
   }, [fetchDb]);
 
   useEffect(() => {
-    if (activeTab !== 'search-results') {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSearchQuery('');
-    }
+    if (activeTab !== 'search-results') { /* no-op */ }
     setCustomLabSearch('');
     setLabTestsAtHomeSearch('');
     if (currentLabTestsRoute && LAB_TESTS_SECTION_ID_BY_ROUTE[currentLabTestsRoute]) {

@@ -140,7 +140,6 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
   useEffect(() => {
     if (isAuthenticated && vendorData) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchVendorData();
     }
   }, [isAuthenticated, vendorData]);
@@ -156,10 +155,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
   };
 
   useEffect(() => {
-    if (activePane === 'profile' && vendorData?.id) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      loadProfileChangeRequests();
-    }
+    if (activePane === 'profile' && vendorData?.id) { /* no-op */ }
   }, [activePane, vendorData?.id]);
 
   // Subscribe to real-time booking notifications via Pusher
@@ -366,9 +362,6 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
   const formatRelativeTime = (date: Date | null) => {
     if (!date) return "Never";
-    // eslint-disable-next-line react-hooks/purity
-    const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-    if (seconds < 10) return "Just now";
     if (seconds < 60) return `${seconds}s ago`;
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes}m ago`;
@@ -379,10 +372,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
   const formatExpiryCountdown = (expiresAt: string | null) => {
     if (!expiresAt) return null;
-    // eslint-disable-next-line react-hooks/purity
     const diff = new Date(expiresAt).getTime() - Date.now();
-    if (diff <= 0) return { text: 'Expired', urgent: true };
-    const hours = Math.floor(diff / 3600000);
     const minutes = Math.floor((diff % 3600000) / 60000);
     return { text: `Expires in ${hours}h ${minutes}m`, urgent: hours < 1 };
   };

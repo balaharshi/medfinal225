@@ -32,8 +32,7 @@ export default function Footer({ onNavigationClick }: FooterProps) {
         await api.post('/api/newsletter/subscribe', { body: { email: email.trim() } });
         setSubscribed(true);
         setTimeout(() => setEmail(''), 3000);
-      } catch {
-      }
+      } catch { /* ignore subscribe errors */ }
     }
   };
 

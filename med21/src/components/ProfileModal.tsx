@@ -85,8 +85,7 @@ export default function ProfileModal({
     try {
       const data = await api.get('/api/my-bookings');
       setBookings(data as any);
-    } catch {
-    } finally {
+    } catch { /* ignore fetch errors */ } finally {
       setBookingsLoading(false);
     }
   };

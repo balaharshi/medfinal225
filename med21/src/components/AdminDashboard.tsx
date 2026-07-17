@@ -467,27 +467,19 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
       if (vendorsResult.status === "fulfilled") {
         setVendorsList(vendorsResult.value);
-      } else {
-        
-      }
+      } else { /* promise rejected - keep defaults */ }
 
       if (usersResult.status === "fulfilled") {
         setUsersList(usersResult.value);
-      } else {
-        
-      }
+      } else { /* promise rejected - keep defaults */ }
 
       if (bookingsResult.status === "fulfilled") {
         setBookingsList(bookingsResult.value);
-      } else {
-        
-      }
+      } else { /* promise rejected - keep defaults */ }
 
       if (enquiriesResult.status === "fulfilled") {
         setEnquiriesList(enquiriesResult.value);
-      } else {
-        
-      }
+      } else { /* promise rejected - keep defaults */ }
 
       if (settingsResult.status === "fulfilled") {
         const data = settingsResult.value;
@@ -501,33 +493,23 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
           maintenanceMode: !!data.maintenanceMode,
           adminPassword: ""
         });
-      } else {
-        
-      }
+      } else { /* promise rejected - keep defaults */ }
 
       if (categoriesResult.status === "fulfilled") {
         setCategoriesList(categoriesResult.value);
-      } else {
-        
-      }
+      } else { /* promise rejected - keep defaults */ }
 
       if (vendorChangeRequestsResult.status === "fulfilled") {
         setVendorChangeRequestsList(Array.isArray(vendorChangeRequestsResult.value) ? vendorChangeRequestsResult.value : []);
-      } else {
-        
-      }
+      } else { /* promise rejected - keep defaults */ }
 
       if (pendingPaymentsResult.status === "fulfilled") {
         const pData = pendingPaymentsResult.value;
         setPendingPaymentsList(Array.isArray(pData?.payments) ? pData.payments : Array.isArray(pData) ? pData : []);
-      } else {
-        
-      }
+      } else { /* promise rejected - keep defaults */ }
 
       onRefresh();
-    } catch (e) {
-
-    } finally {
+    } catch (e) { /* ignore fetch errors */ } finally {
       setIsLoadingData(false);
     }
   };
@@ -612,9 +594,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     try {
       const data = await api.get(`/api/vendors/${vendorId}/service-assignments`);
       setVendorServiceAssignments(data);
-    } catch (error) {
-
-    }
+    } catch (error) { /* ignore fetch errors */ }
   };
 
   const handleOpenVendorDetails = (vendor: any) => {
@@ -1404,8 +1384,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
       triggerToast(`Operational variables updated and persisted successfully.`);
       fetchAdminData();
-    } catch (error) {
-    } finally {
+    } catch (error) { /* ignore update errors */ } finally {
       setIsSubmitting(false);
     }
   };

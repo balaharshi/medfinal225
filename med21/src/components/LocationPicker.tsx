@@ -89,7 +89,6 @@ export default function LocationPicker({ onLocationChange, initialLat, initialLn
     mapRef.current = map;
 
     if (initialLat != null && initialLng != null) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       void handlePick(initialLat, initialLng);
     } else if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(

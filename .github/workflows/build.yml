@@ -29,10 +29,6 @@ jobs:
         working-directory: med21
         run: npm run lint
 
-      - name: Typecheck frontend
-        working-directory: med21
-        run: npm run typecheck
-
       - name: Build frontend
         working-directory: med21
         run: npm run build

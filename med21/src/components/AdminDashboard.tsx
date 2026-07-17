@@ -5252,7 +5252,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
               {viewingBooking.notes && (() => {
                 let parsed: any = null;
-                try { parsed = JSON.parse(viewingBooking.notes); } catch {}
+                try { parsed = JSON.parse(viewingBooking.notes); } catch { /* ignore parse errors */ }
                 const hasItems = parsed?.items && Array.isArray(parsed.items);
                 const hasAddress = parsed?.address;
                 if (!hasItems && !hasAddress) {

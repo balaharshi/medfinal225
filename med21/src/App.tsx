@@ -762,7 +762,7 @@ function MainApp() {
               if (profile.phone) app.setLoggedInUserPhone(profile.phone);
               if (profile.address) app.setLoggedInUserAddress(profile.address);
             }
-          } catch {}
+          } catch { /* ignore */ }
           app.triggerToast(`Profile successfully loaded: Welcome back, ${username}!`);
         }}
       />

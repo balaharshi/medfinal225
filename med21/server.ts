@@ -61,8 +61,8 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Frontend running on http://localhost:${PORT}`);
-    console.log(`API proxy forwarding /api requests to ${BACKEND_URL}`);
+    console.warn(`Frontend running on http://localhost:${PORT}`);
+    console.warn(`API proxy forwarding /api requests to ${BACKEND_URL}`);
   });
 }
 

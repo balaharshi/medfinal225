@@ -547,7 +547,7 @@ export default function ProfileModal({
                                       try {
                                         const data = await api.get<any>(`/api/services/${booking.serviceId}/available-slots?date=${e.target.value}`, { noAuth: true });
                                         if (Array.isArray(data)) setRescheduleSlots(data);
-                                      } catch {}
+                                      } catch { /* ignore */ }
                                     }
                                 }}
                                 className="w-full text-[10px] border border-blue-200 rounded-lg p-2 bg-white"

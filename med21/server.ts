@@ -11,7 +11,7 @@ app.use(express.json());
 
 app.use("/api", async (req, res) => {
   try {
-    const response = await fetch(`${BACKEND_URL}${req.originalUrl}`, {
+    const response = await fetch(`${BACKEND_URL}${req.originalUrl.replace(/^\/api/, '')}`, {
       method: req.method,
       headers: {
         "Content-Type": "application/json",

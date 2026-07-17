@@ -104,14 +104,7 @@ const getHomeHealthcareImageKey = (title: string) => {
 };
 
 export const resolveHealthcareServiceImage = (service: HealthcareService): HealthcareService => {
-  if (service.category === 'lab-tests' || service.category === 'lab-tests-at-home') {
-    return service;
-  }
-
-  const imageKey = getHomeHealthcareImageKey(service.title);
-  const localImage = homeHealthcareImages[`./assets/images/home_healthcare/${imageKey}.jpg`];
-
-  return localImage ? { ...service, image: localImage } : { ...service, image: service.image || DEFAULT_HEALTHCARE_SERVICE_IMAGE };
+  return { ...service, image: service.image || DEFAULT_HEALTHCARE_SERVICE_IMAGE };
 };
 
 const withHomeHealthcareImages = (services: HealthcareService[]) =>

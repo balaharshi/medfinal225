@@ -741,6 +741,8 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         }
 
         if (data.accessToken) {
+          localStorage.removeItem("medziva_user_token");
+          localStorage.removeItem("medziva_vendor_token");
           localStorage.setItem("medziva_admin_token", data.accessToken);
         }
         localStorage.setItem("medziva_admin_auth", "true");
@@ -772,6 +774,8 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     }
 
     if (data.accessToken) {
+      localStorage.removeItem("medziva_user_token");
+      localStorage.removeItem("medziva_vendor_token");
       localStorage.setItem("medziva_admin_token", data.accessToken);
     }
     localStorage.setItem("medziva_admin_auth", "true");

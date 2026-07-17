@@ -39,9 +39,9 @@ interface ApiError {
 function getAuthToken(): string | null {
   try {
     return (
-      localStorage.getItem('medziva_user_token') ||
+      localStorage.getItem('medziva_admin_token') ||
       localStorage.getItem('medziva_vendor_token') ||
-      localStorage.getItem('medziva_admin_token')
+      localStorage.getItem('medziva_user_token')
     );
   } catch {
     return null;

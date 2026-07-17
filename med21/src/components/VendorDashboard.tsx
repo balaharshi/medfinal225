@@ -182,6 +182,8 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
       });
       if (data.success) {
         if (data.accessToken) {
+          localStorage.removeItem("medziva_user_token");
+          localStorage.removeItem("medziva_admin_token");
           localStorage.setItem("medziva_vendor_token", data.accessToken);
         }
         setIsAuthenticated(true);

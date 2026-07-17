@@ -119,7 +119,8 @@ class IVTherapySeeder extends Seeder
     private function resolveImage(string $slug, string $name): string
     {
         $registry = config('medziva.images.services.iv-therapy', []);
-        $filename = $registry[$slug] ?? null;
+        $baseSlug = preg_replace('/-\d+$/', '', $slug);
+        $filename = $registry[$slug] ?? $registry[$baseSlug] ?? null;
 
         if ($filename) {
             $path = '/images/services/' . $filename;

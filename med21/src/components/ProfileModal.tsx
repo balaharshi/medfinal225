@@ -543,15 +543,12 @@ export default function ProfileModal({
                                   setRescheduleDate(e.target.value);
                                   setRescheduleSlots([]);
                                   setRescheduleTimeSlot('');
-                                  if (e.target.value && booking.serviceId) {
-                                    try {
-                                      const res = await fetch(`/api/services/${booking.serviceId}/available-slots?date=${e.target.value}`);
-                                      if (res.ok) {
-                                        const data = await res.json();
+                                    if (e.target.value && booking.serviceId) {
+                                      try {
+                                        const data = await api.get<any>(`/api/services/${booking.serviceId}/available-slots?date=${e.target.value}`, { noAuth: true });
                                         if (Array.isArray(data)) setRescheduleSlots(data);
-                                      }
-                                    } catch {}
-                                  }
+                                      } catch {}
+                                    }
                                 }}
                                 className="w-full text-[10px] border border-blue-200 rounded-lg p-2 bg-white"
                               />

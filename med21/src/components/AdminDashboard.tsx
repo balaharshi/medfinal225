@@ -1462,12 +1462,13 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     const targetStatus = currentStatus === "Pending Response" ? "Answered" : "Closed";
     try {
       await api.post(
-        `/api/enquiryStatus/${id}`,
+        `/api/enquiries/${id}/status`,
         { body: { status: targetStatus } }
       );
       triggerToast(`Inquiry marked as ${targetStatus} successfully!`);
       fetchAdminData();
     } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update enquiry status");
     }
   };
 
@@ -1477,7 +1478,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       "Are you sure you want to delete this enquiry from records?",
       async () => {
         try {
-          await api.delete(`/api/enquiry/${id}`);
+          await api.delete(`/api/enquiries/${id}`);
           triggerToast("Enquiry deleted.");
           fetchAdminData();
         } catch (err) {

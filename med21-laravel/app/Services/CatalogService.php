@@ -1118,7 +1118,7 @@ class CatalogService
 
         $bookings = $query->get();
         $grossRevenue = $bookings->sum('price');
-        $vendorCost = $bookings->sum('vendor_cost');
+        $vendorCost = $bookings->sum('cost');
         $totalCompleted = $bookings->count();
 
         return [

@@ -97,9 +97,7 @@ export default function CartDrawer({
         return { serviceId, slots: null };
       }
       try {
-        const res = await fetch(`/api/services/${encodeURIComponent(serviceId)}/available-slots?date=${encodeURIComponent(dispatchDate)}`);
-        if (!res.ok) return { serviceId, slots: null };
-        const data = await res.json();
+        const data = await api.get<any>(`/api/services/${encodeURIComponent(serviceId)}/available-slots?date=${encodeURIComponent(dispatchDate)}`, { noAuth: true });
         return { serviceId, slots: Array.isArray(data) && data.length > 0 ? data : null };
       } catch {
         return { serviceId, slots: null };
@@ -257,8 +255,8 @@ export default function CartDrawer({
     try {
       // Validate cart prices against current API data
       const [srvRes, prodRes] = await Promise.all([
-        fetch('/api/services').then(r => r.ok ? r.json() : []),
-        fetch('/api/products').then(r => r.ok ? r.json() : []),
+        api.get<any[]>('/api/services').catch(() => []),
+        api.get<any[]>('/api/products').catch(() => []),
       ]);
       const currentPrices: Record<string, number> = {};
       (Array.isArray(srvRes) ? srvRes : []).forEach((s: any) => { currentPrices[s.id] = s.price; });

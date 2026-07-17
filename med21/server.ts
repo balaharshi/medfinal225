@@ -9,12 +9,9 @@ const BACKEND_URL = configuredBackendUrl || "http://127.0.0.1:8000";
 
 app.use(express.json());
 
-app.use(express.static("public"));
-
 app.use("/api", async (req, res) => {
   try {
-    const url = `${BACKEND_URL}${req.originalUrl.replace(/^\/api/, '')}`;
-    const response = await fetch(url, {
+    const response = await fetch(`${BACKEND_URL}${req.originalUrl}`, {
       method: req.method,
       headers: {
         "Content-Type": "application/json",

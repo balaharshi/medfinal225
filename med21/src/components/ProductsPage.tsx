@@ -90,7 +90,7 @@ export default function ProductsPage({
                   </div>
                 </div>
 
-                {prod.category === 'devices-for-rent' ? (
+                {prod.category === 'rent-medical-equipment' ? (
                   <button
                     onClick={() => triggerRentalBooking(prod)}
                     className="bg-medical-green hover:bg-emerald-600 text-white text-[10px] font-black px-4 py-2 rounded-lg transition-all cursor-pointer whitespace-nowrap"

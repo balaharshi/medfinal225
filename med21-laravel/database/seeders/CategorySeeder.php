@@ -12,33 +12,17 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         $categories = [
-            'service' => [
-                'title' => 'Service',
-                'subcategories' => ['iv-therapy' => 'IV Therapy'],
-            ],
             'home-healthcare' => [
                 'title' => 'Home Healthcare',
-                'subcategories' => ['nursing-care-at-home' => 'Nursing Care at Home'],
-            ],
-            'long-term-care' => [
-                'title' => 'Long-Term Care',
-                'subcategories' => ['long-term-specialized-care' => 'Long Term Specialised Care'],
-            ],
-            'doctor-on-call' => [
-                'title' => 'Doctor on Call',
-                'subcategories' => ['doctor-on-call' => 'Doctor on Call'],
-            ],
-            'physiotherapy' => [
-                'title' => 'Physiotherapy',
-                'subcategories' => ['physiotherapy-at-home' => 'Physiotherapy at Home'],
-            ],
-            'speech-therapy' => [
-                'title' => 'Speech Therapy',
-                'subcategories' => ['speech-and-language-therapy' => 'Speech and Language Therapy'],
-            ],
-            'occupational-therapy' => [
-                'title' => 'Occupational Therapy',
-                'subcategories' => ['occupational-therapy' => 'Occupational Therapy'],
+                'subcategories' => [
+                    'nursing-care-at-home' => 'Nursing Care at Home',
+                    'physiotherapy-at-home' => 'Physiotherapy at Home',
+                    'doctor-on-call' => 'Doctor on Call',
+                    'long-term-specialized-care' => 'Long Term / Specialised Care',
+                    'speech-and-language-therapy' => 'Speech and Language Therapy',
+                    'occupational-therapy' => 'Occupational Therapy',
+                    'iv-therapy' => 'IV Therapy',
+                ],
             ],
             'lab-tests-at-home' => [
                 'title' => 'Lab Tests at Home',
@@ -52,36 +36,37 @@ class CategorySeeder extends Seeder
                     'genetic-testing' => 'Genetic Testing',
                 ],
             ],
-            'lab-tests' => [
-                'title' => 'Lab Tests (Biomarkers)',
-                'subcategories' => ['customize-lab-package' => 'Create Your Own Package'],
+            'rent-medical-equipment' => [
+                'title' => 'Rent Medical Equipment',
+                'subcategories' => [],
             ],
         ];
 
         foreach ($categories as $slug => $data) {
+            $categoryImage = "/images/{$slug}/{$slug}.jpg";
             $category = Category::firstOrCreate(
                 ['slug' => $slug],
                 [
                     'id' => SequentialId::next(Category::class, 'cat'),
                     'title' => $data['title'],
                     'type' => 'service',
-                    'image' => 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=800',
+                    'image' => $categoryImage,
                     'description' => $data['title'] . ' category',
                 ]
             );
+            $category->update(['image' => $categoryImage]);
 
             foreach ($data['subcategories'] as $subSlug => $subTitle) {
+                $subcategoryImage = "/images/{$slug}/{$subSlug}/{$subSlug}.jpg";
                 $subcategory = $category->subcategories()->firstOrCreate(
                     ['slug' => $subSlug],
                     [
                         'id' => SequentialId::next(Subcategory::class, 'sub'),
                         'title' => $subTitle,
-                        'image' => 'https://images.unsplash.com/photo-1631563016585-64a1e38db6b1?auto=format&fit=crop&q=80&w=800',
+                        'image' => $subcategoryImage,
                     ]
                 );
-                if ($subSlug === 'iv-therapy') {
-                    $subcategory->update(['image' => '/images/services/iv-therapy-at-home.jpg']);
-                }
+                $subcategory->update(['image' => $subcategoryImage]);
             }
         }
 

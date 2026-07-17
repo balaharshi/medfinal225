@@ -43,7 +43,7 @@ const rentalEquipmentImages = import.meta.glob('./assets/images/rentalimg/*.jpg'
   import: 'default',
 }) as Record<string, string>;
 
-export const DEFAULT_HEALTHCARE_SERVICE_IMAGE = '/images/services/generic-nurse-visit.jpg';
+export const DEFAULT_HEALTHCARE_SERVICE_IMAGE = '/images/home-healthcare/nursing-care-at-home/generic-nurse-visit-1.jpg';
 
 const LAB_TESTS_AT_HOME_SERVICES_WITH_LOCAL_IMAGES = (LAB_TESTS_AT_HOME_SERVICES as HealthcareService[]).map((service) => ({
   ...service,
@@ -72,120 +72,29 @@ const withRentalEquipmentImages = (products: Product[]) =>
 const BASE_SERVICE_CATEGORIES: ServiceCategory[] = [
   {
     id: 'cat-home-health',
-    title: 'Nursing Care at Home',
-    image: getServiceImage('generic-nurse'),
+    title: 'Home Healthcare',
+    image: '/images/home-healthcare/home-healthcare.jpg',
     slug: 'home-healthcare',
-    description: 'Professional nursing support delivered at the comfort of your home, including routine nurse visits, wound dressing, catheterisation, and prescription-based IV antibiotic administration.'
+    description: 'Professional healthcare services delivered at the comfort of your home, including nursing care, physiotherapy, doctor visits, long-term care, speech therapy, occupational therapy, and IV therapy.'
   },
   {
-    id: 'cat-physio',
-    title: 'Physiotherapy at Home',
-    image: getServiceImage('physiotherapy-session'),
-    slug: 'physiotherapy',
-    description: 'Professional physiotherapy sessions delivered at the comfort of your home, including rehabilitation support, mobility improvement, pain management, and recovery-focused exercises.'
-  },
-  {
-    id: 'cat-doctor-on-call',
-    title: 'Doctor on Call',
-    image: getServiceImage('doctor-portrait'),
-    slug: 'doctor-on-call',
-    description: 'Convenient medical consultations at your home with qualified doctors providing assessment, advice, treatment guidance, and follow-up care.'
-  },
-  {
-    id: 'cat-long-term-care',
-    title: 'Long-Term / Specialized Care',
-    image: getServiceImage('long-term-care'),
-    slug: 'long-term-care',
-    description: 'Dedicated nursing support at home for long-term and specialized care needs, including ongoing monitoring, chronic condition management, and personalised patient assistance.'
-  },
-  {
-    id: 'cat-speech',
-    title: 'Speech and Language Therapy',
-    image: getServiceImage('speech-therapy'),
-    slug: 'speech-therapy',
-    description: 'Specialised therapy at home to support speech, communication, language development, and swallowing difficulties through personalised care plans.'
-  },
-  {
-    id: 'cat-occupational',
-    title: 'Occupational Therapy',
-    image: getServiceImage('occupational-therapy'),
-    slug: 'occupational-therapy',
-    description: 'Personalised therapy at home to improve daily living skills, independence, mobility, and functional abilities through tailored rehabilitation programmes.'
-  },
-  {
-    id: 'cat-iv-therapy',
-    title: 'IV Therapy',
-    image: getServiceImage('iv-drip-bag'),
-    slug: 'iv-therapy',
-    description: 'Professional IV therapy administered at home under medical guidance, offering convenient access to prescribed treatments, hydration support, and wellness infusions.'
-  },
-  {
-    id: 'cat-devices',
-    title: 'Medical Devices for Rent',
-    image: getServiceImage('medical-devices'),
-    slug: 'devices-for-rent',
-    description: 'Certified oxygen units, wheelchairs, electronic hospital beds, and clinical mobility lifts on weekly / Monthly.'
-  },
-  {
-    id: 'cat-lab-routine-blood-tests',
-    title: 'Routine Blood Tests',
-    image: getServiceImage('lab-technicians'),
-    slug: 'routine-blood-tests',
-    description: 'Convenient home-based blood sample collection for routine health checks, diagnostic testing, and regular monitoring with reliable laboratory support.'
-  },
-  {
-    id: 'cat-lab-preventive-health-packages',
-    title: 'Preventive Health Packages',
-    image: getServiceImage('doctor-phone'),
-    slug: 'preventive-health-packages',
-    description: 'Comprehensive health screening packages designed for early detection, wellness monitoring, and proactive management of your overall health.'
-  },
-  {
-    id: 'cat-lab-mens-health-packages',
-    title: "Men's Health Packages",
-    image: getServiceImage('fitness-exercise'),
-    slug: 'mens-health-packages',
-    description: "Specialised health screening packages designed to support men's wellness, including preventive care, early detection, and monitoring of key health conditions."
-  },
-  {
-    id: 'cat-lab-womens-health-packages',
-    title: "Women's Health Packages",
-    image: getServiceImage('womens-health'),
-    slug: 'womens-health-packages',
-    description: "Comprehensive health screening packages designed to support women's wellness, preventive care, early detection, and monitoring of key health needs."
-  },
-  {
-    id: 'cat-lab-std-sexual-health',
-    title: 'STD / Sexual Health',
-    image: getServiceImage('lab-research'),
-    slug: 'std-sexual-health',
-    description: 'Confidential testing and screening services for sexually transmitted infections, supporting early detection, prevention, and informed health management.'
-  },
-  {
-    id: 'cat-lab-specialized-diagnostic-tests',
-    title: 'Specialized Diagnostic Tests',
-    image: getServiceImage('lab-technicians'),
-    slug: 'specialized-diagnostic-tests',
-    description: 'Advanced diagnostic testing services for accurate detection, specialised health assessments, and personalised care planning.'
-  },
-  {
-    id: 'cat-lab-genetic-testing',
-    title: 'Genetic Testing',
-    image: getServiceImage('lab-research'),
-    slug: 'genetic-testing',
-    description: 'Advanced genetic testing services to assess inherited conditions, health risks, and personalised insights for informed healthcare decisions.'
+    id: 'cat-lab-tests-at-home',
+    title: 'Lab Tests at Home',
+    image: '/images/lab-tests-at-home/lab-tests-at-home.jpg',
+    slug: 'lab-tests-at-home',
+    description: 'Convenient home-based lab testing across routine blood tests, preventive health packages, men\'s and women\'s health packages, STD screening, specialized diagnostics, and genetic testing.'
   },
   {
     id: 'cat-other-services-medical-tourism',
     title: 'Medical Tourism Facilitation',
-    image: getServiceImage('medical-tourism'),
+    image: '/images/home-healthcare/medical-tourism-facilitation/medical-tourism-facilitation.jpg',
     slug: 'medical-tourism-facilitation',
     description: 'End-to-end medical tourism coordination — from hospital selection to post-treatment care.'
   },
   {
     id: 'cat-other-services-shipping-crews',
     title: 'Medical Facilitation for Shipping Crews',
-    image: getServiceImage('shipping-crew'),
+    image: '/images/home-healthcare/shipping-crews-facilitation/shipping-crews-facilitation.jpg',
     slug: 'shipping-crews-facilitation',
     description: 'Comprehensive medical support for shipping crew members — fitness exams, consultations, and clearance.'
   }
@@ -199,8 +108,8 @@ const BASE_PRODUCTS: Product[] = [
     price: 480,
     originalPrice: 1344,
     image: getServiceImage('medical-devices'),
-    category: 'devices-for-rent',
-    subcategory: 'rent-medical-equipments',
+    category: 'rent-medical-equipment',
+    subcategory: '',
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
@@ -219,8 +128,8 @@ const BASE_PRODUCTS: Product[] = [
     price: 660,
     originalPrice: 1848,
     image: getServiceImage('medical-devices'),
-    category: 'devices-for-rent',
-    subcategory: 'rent-medical-equipments',
+    category: 'rent-medical-equipment',
+    subcategory: '',
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
@@ -239,8 +148,8 @@ const BASE_PRODUCTS: Product[] = [
     price: 120,
     originalPrice: 336,
     image: getServiceImage('emergency-medical'),
-    category: 'devices-for-rent',
-    subcategory: 'rent-medical-equipments',
+    category: 'rent-medical-equipment',
+    subcategory: '',
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
@@ -259,8 +168,8 @@ const BASE_PRODUCTS: Product[] = [
     price: 300,
     originalPrice: 840,
     image: getServiceImage('emergency-medical'),
-    category: 'devices-for-rent',
-    subcategory: 'rent-medical-equipments',
+    category: 'rent-medical-equipment',
+    subcategory: '',
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
@@ -279,8 +188,8 @@ const BASE_PRODUCTS: Product[] = [
     price: 360,
     originalPrice: 1008,
     image: getServiceImage('patient-monitor'),
-    category: 'devices-for-rent',
-    subcategory: 'rent-medical-equipments',
+    category: 'rent-medical-equipment',
+    subcategory: '',
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
@@ -299,8 +208,8 @@ const BASE_PRODUCTS: Product[] = [
     price: 960,
     originalPrice: 2688,
     image: getServiceImage('medical-devices'),
-    category: 'devices-for-rent',
-    subcategory: 'rent-medical-equipments',
+    category: 'rent-medical-equipment',
+    subcategory: '',
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
@@ -319,8 +228,8 @@ const BASE_PRODUCTS: Product[] = [
     price: 780,
     originalPrice: 2184,
     image: getServiceImage('medical-devices'),
-    category: 'devices-for-rent',
-    subcategory: 'rent-medical-equipments',
+    category: 'rent-medical-equipment',
+    subcategory: '',
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
@@ -339,8 +248,8 @@ const BASE_PRODUCTS: Product[] = [
     price: 120,
     originalPrice: 336,
     image: getServiceImage('medical-devices'),
-    category: 'devices-for-rent',
-    subcategory: 'rent-medical-equipments',
+    category: 'rent-medical-equipment',
+    subcategory: '',
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
@@ -359,8 +268,8 @@ const BASE_PRODUCTS: Product[] = [
     price: 180,
     originalPrice: 504,
     image: getServiceImage('medical-devices'),
-    category: 'devices-for-rent',
-    subcategory: 'rent-medical-equipments',
+    category: 'rent-medical-equipment',
+    subcategory: '',
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
@@ -379,8 +288,8 @@ const BASE_PRODUCTS: Product[] = [
     price: 240,
     originalPrice: 672,
     image: getServiceImage('medical-devices'),
-    category: 'devices-for-rent',
-    subcategory: 'rent-medical-equipments',
+    category: 'rent-medical-equipment',
+    subcategory: '',
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
@@ -399,8 +308,8 @@ const BASE_PRODUCTS: Product[] = [
     price: 420,
     originalPrice: 1176,
     image: getServiceImage('medical-devices'),
-    category: 'devices-for-rent',
-    subcategory: 'rent-medical-equipments',
+    category: 'rent-medical-equipment',
+    subcategory: '',
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
@@ -419,8 +328,8 @@ const BASE_PRODUCTS: Product[] = [
     price: 90,
     originalPrice: 252,
     image: getServiceImage('long-term-care'),
-    category: 'devices-for-rent',
-    subcategory: 'rent-medical-equipments',
+    category: 'rent-medical-equipment',
+    subcategory: '',
     brand: 'Rental Equipment',
     rating: 4.8,
     inStock: true,
@@ -548,7 +457,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-longterm-dha-rn-live-in-30-days",
     title: "DHA Registered Nurse - 24 Hours Live In - 30 Days - 1 Staff",
-    category: "long-term-care",
+    category: "home-healthcare",
     price: 25000,
     duration: "30 Days - 1 Staff",
     image: getServiceImage('long-term-care'),
@@ -566,7 +475,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-longterm-dha-ventillator-trach-peg-24-hours-30-days",
     title: "DHA Registered Nurse to Manage Ventilator / Trach & PEG - 24 Hours - 30 Days - 1 Staff",
-    category: "long-term-care",
+    category: "home-healthcare",
     price: 28000,
     duration: "30 Days - 1 Staff",
     image: getServiceImage('long-term-care'),
@@ -584,7 +493,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-longterm-dha-nurse-1-plus-1-live-in-30-days",
     title: "DHA Registered Nurse - 24 Hours Live In - 30 Days - 2 Staff (1+1) - 12 Hours Each per Shift",
-    category: "long-term-care",
+    category: "home-healthcare",
     price: 30000,
     duration: "30 Days - 2 Staff (1+1) - 12 Hours Each per Shift",
     image: getServiceImage('long-term-care'),
@@ -602,7 +511,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-longterm-dha-nurse-12-hours-30-days",
     title: "DHA Registered Nurse - 12 Hours - 30 Days - 1 Staff",
-    category: "long-term-care",
+    category: "home-healthcare",
     price: 15000,
     duration: "30 Days - 1 Staff",
     image: getServiceImage('long-term-care'),
@@ -620,7 +529,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-longterm-dha-nurse-8-hours-30-days",
     title: "DHA Registered Nurse - 8 Hours - 30 Days - 1 Staff",
-    category: "long-term-care",
+    category: "home-healthcare",
     price: 10000,
     duration: "30 Days - 1 Staff",
     image: getServiceImage('long-term-care'),
@@ -638,7 +547,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-longterm-dha-nurse-less-than-12-hours-30-days",
     title: "DHA Registered Nurse - Less Than 12 Hours / Day - 30 Days - 1 Staff",
-    category: "long-term-care",
+    category: "home-healthcare",
     price: 13000,
     duration: "30 Days - 1 Staff",
     image: getServiceImage('long-term-care'),
@@ -651,7 +560,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-longterm-dha-nurse-rn-an-live-in-per-day",
     title: "DHA Registered Nurse - 24 Hours Live In - 1 Day - 1 Staff",
-    category: "long-term-care",
+    category: "home-healthcare",
     price: 1500,
     duration: "1 Day - 1 Staff",
     image: getServiceImage('long-term-care'),
@@ -669,7 +578,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-longterm-dha-nurse-24-hours-per-day-1-plus-1",
     title: "DHA Registered Nurse - 24 Hours Live In - 1 Day - 2 Staff (1+1) - 12 Hours Each per Shift",
-    category: "long-term-care",
+    category: "home-healthcare",
     price: 2500,
     duration: "1 Day - 2 Staff (1+1) - 12 Hours Each per Shift",
     image: getServiceImage('long-term-care'),
@@ -687,7 +596,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-longterm-dha-nurse-12-hours-per-day",
     title: "DHA Registered Nurse - 12 Hours - 1 Day - 1 Staff",
-    category: "long-term-care",
+    category: "home-healthcare",
     price: 1000,
     duration: "1 Day - 1 Staff",
     image: getServiceImage('long-term-care'),
@@ -705,7 +614,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-longterm-dha-nurse-less-than-12-hours-per-day",
     title: "DHA Registered Nurse - Less Than 12 Hours - 1 Day - 1 Staff",
-    category: "long-term-care",
+    category: "home-healthcare",
     price: 125,
     duration: "1 Day - 1 Staff",
     image: getServiceImage('long-term-care'),
@@ -719,7 +628,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-longterm-caregiver-live-in-30-days",
     title: "Caregiver - 24 Hours Live In - 30 Days - 1 Staff",
-    category: "long-term-care",
+    category: "home-healthcare",
     price: 17000,
     duration: "30 Days - 1 Staff",
     image: getServiceImage('generic-nurse'),
@@ -732,7 +641,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-longterm-caregiver-24-hours-30-days-1-plus-1",
     title: "Caregiver - 24 Hours Live In - 30 Days - 2 Staff (1+1) - 12 Hours Each per Shift",
-    category: "long-term-care",
+    category: "home-healthcare",
     price: 25000,
     duration: "30 Days - 2 Staff (1+1) - 12 Hours Each per Shift",
     image: getServiceImage('generic-nurse'),
@@ -745,7 +654,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-longterm-caregiver-12-hours-30-days",
     title: "Caregiver - 12 Hours - 30 Days - 1 Staff",
-    category: "long-term-care",
+    category: "home-healthcare",
     price: 12000,
     duration: "30 Days - 1 Staff",
     image: getServiceImage('generic-nurse'),
@@ -758,7 +667,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-longterm-caregiver-less-than-12-hours-30-days",
     title: "Caregiver - Less Than 12 Hours / Day - 30 Days - 1 Staff",
-    category: "long-term-care",
+    category: "home-healthcare",
     price: 11000,
     duration: "30 Days - 1 Staff",
     image: getServiceImage('generic-nurse'),
@@ -771,7 +680,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-longterm-caregiver-live-in-per-day",
     title: "Caregiver - 24 Hours Live In - 1 Day - 1 Staff",
-    category: "long-term-care",
+    category: "home-healthcare",
     price: 850,
     duration: "1 Day - 1 Staff",
     image: getServiceImage('generic-nurse'),
@@ -784,7 +693,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-longterm-caregiver-24-hours-per-day-1-plus-1",
     title: "Caregiver - 24 Hours Live In - 1 Day - 2 Staff (1+1) - 12 Hours Each per Shift",
-    category: "long-term-care",
+    category: "home-healthcare",
     price: 1050,
     duration: "1 Day - 2 Staff (1+1) - 12 Hours Each per Shift",
     image: getServiceImage('generic-nurse'),
@@ -797,7 +706,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-longterm-caregiver-12-hours-per-day",
     title: "Caregiver - 12 Hours - 1 Day - 1 Staff",
-    category: "long-term-care",
+    category: "home-healthcare",
     price: 700,
     duration: "1 Day - 1 Staff",
     image: getServiceImage('generic-nurse'),
@@ -810,7 +719,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-longterm-caregiver-less-than-12-hours-per-day",
     title: "Caregiver - Less Than 12 Hours - 1 Day - 1 Staff",
-    category: "long-term-care",
+    category: "home-healthcare",
     price: 650,
     duration: "1 Day - 1 Staff",
     image: getServiceImage('generic-nurse'),
@@ -823,7 +732,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-physiotherapy",
     title: "Physiotherapy - 1 Hour Session",
-    category: "physiotherapy",
+    category: "home-healthcare",
     price: 400,
     duration: "1 Hour",
     image: getServiceImage('physiotherapy-session'),
@@ -841,7 +750,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-physiotherapy-week-6",
     title: "Physiotherapy - 1 Hour Session / Week - 6 Sessions",
-    category: "physiotherapy",
+    category: "home-healthcare",
     price: 2000,
     duration: "6 Sessions",
     image: getServiceImage('physiotherapy-session'),
@@ -859,7 +768,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-dr-home",
     title: "Doctor at Home",
-    category: "doctor-on-call",
+    category: "home-healthcare",
     price: 500,
     duration: "30 Min Session",
     leadTimeHours: 12,
@@ -876,7 +785,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-dr-hotel",
     title: "Doctor at Hotel",
-    category: "doctor-on-call",
+    category: "home-healthcare",
     price: 1000,
     duration: "30 Min Session",
     leadTimeHours: 12,
@@ -893,7 +802,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-speech-therapy-hour",
     title: "Speech and Language Therapy",
-    category: "speech-therapy",
+    category: "home-healthcare",
     price: 400,
     duration: "1 Hour Session",
     image: getServiceImage('speech-therapy'),
@@ -911,7 +820,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
   {
     id: "srv-occupational-therapy-hour",
     title: "Occupational Therapy",
-    category: "occupational-therapy",
+    category: "home-healthcare",
     price: 400,
     duration: "1 Hour Session",
     image: getServiceImage('occupational-therapy'),

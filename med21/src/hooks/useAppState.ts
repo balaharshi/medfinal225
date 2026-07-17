@@ -85,47 +85,7 @@ export const LAB_TESTS_PAGE_COPY: Record<string, { title: string; description: s
 
 export const DEFAULT_LAB_TESTS_ROUTE = 'routine-blood-tests';
 
-export const HOME_ADDITIONAL_HEALTHCARE_CATEGORIES = [
-  {
-    id: 'cat-long-term-care',
-    title: 'Long-Term / Specialized Care',
-    slug: 'long-term-care',
-    description: 'Dedicated nursing support at home for long-term and specialized care needs, including ongoing monitoring, chronic condition management, and personalised patient assistance.',
-  },
-  {
-    id: 'cat-rent-medical-equipments',
-    title: 'Rent Medical Equipment',
-    slug: 'devices-for-rent',
-    description: 'Rent certified medical equipment with weekly and monthly options for home healthcare support.',
-  },
-  {
-    id: 'cat-iv-therapy',
-    title: 'IV Therapy',
-    slug: 'iv-therapy',
-    description: 'Professional IV therapy administered at home under medical guidance, offering convenient access to prescribed treatments, hydration support, and wellness infusions.',
-  },
-  ...LAB_TESTS_AT_HOME_CATEGORIES.map((category) => ({
-    id: `cat-lab-${category.slug}`,
-    title: category.title,
-    slug: category.slug,
-    description: category.slug === 'routine-blood-tests'
-      ? 'Convenient home-based blood sample collection for routine health checks, diagnostic testing, and regular monitoring with reliable laboratory support.'
-      : category.slug === 'preventive-health-packages'
-      ? 'Comprehensive health screening packages designed for early detection, wellness monitoring, and proactive management of your overall health.'
-      : category.slug === 'mens-health-packages'
-      ? "Specialised health screening packages designed to support men's wellness, including preventive care, early detection, and monitoring of key health conditions."
-      : category.slug === 'womens-health-packages'
-      ? "Comprehensive health screening packages designed to support women's wellness, preventive care, early detection, and monitoring of key health needs."
-      : category.slug === 'std-sexual-health'
-      ? 'Confidential testing and screening services for sexually transmitted infections, supporting early detection, prevention, and informed health management.'
-      : category.slug === 'specialized-diagnostic-tests'
-      ? 'Advanced diagnostic testing services for accurate detection, specialised health assessments, and personalised care planning.'
-      : category.slug === 'genetic-testing'
-      ? 'Advanced genetic testing services to assess inherited conditions, health risks, and personalised insights for informed healthcare decisions.'
-      : 'Lab tests at home with 12 hours prior booking, available in Dubai and Sharjah.',
-    image: undefined,
-  })),
-];
+export const HOME_ADDITIONAL_HEALTHCARE_CATEGORIES: ServiceCategory[] = [];
 
 export const PRODUCT_ROUTE_BY_SECTION_ID: Record<string, string> = {
   'rent-medical-equipments-section': 'rent-medical-equipments',
@@ -140,7 +100,7 @@ export const PRODUCT_SECTION_ID_BY_ROUTE: Record<string, string> = {
 };
 
 export const PRODUCT_CATEGORY_BY_ROUTE: Record<string, string> = {
-  'rent-medical-equipments': 'devices-for-rent',
+  'rent-medical-equipments': 'rent-medical-equipment',
   'buy-medical-equipments': 'buy-medical-equipments',
   'supplements': 'supplements',
 };
@@ -508,14 +468,13 @@ export function useAppState() {
     const rentalEquipment = db.products
       .filter(
         (product) =>
-          product.category === 'devices-for-rent' ||
-          product.subcategory === 'rent-medical-equipments',
+          product.category === 'rent-medical-equipment',
       )
       .map((product) => ({
         id: product.id,
         title: product.name,
-        category: 'devices-for-rent',
-        subcategory: 'rent-medical-equipments',
+        category: 'rent-medical-equipment',
+        subcategory: '',
         price: product.price,
         originalPrice: product.originalPrice,
         duration: 'Weekly / Monthly Rental',
@@ -556,41 +515,41 @@ export function useAppState() {
   const longTermServices = useMemo(
     () =>
       placeVentilatorCareAfterLessThan12Hours(
-        filteredServices
-          .filter((srv) => srv.category === 'long-term-care' || srv.subcategory === 'long-term-care')
+          filteredServices
+            .filter((srv) => srv.category === 'home-healthcare' && srv.subcategory === 'long-term-specialized-care')
           .map(normalizeLongTermServiceSlashSpacing),
       ),
     [filteredServices],
   );
 
   const physioServices = useMemo(
-    () => filteredServices.filter((srv) => srv.category === 'physiotherapy'),
+    () => filteredServices.filter((srv) => srv.category === 'home-healthcare' && srv.subcategory === 'physiotherapy-at-home'),
     [filteredServices],
   );
 
   const doctorServices = useMemo(
-    () => filteredServices.filter((srv) => srv.category === 'doctor-on-call'),
+    () => filteredServices.filter((srv) => srv.category === 'home-healthcare' && srv.subcategory === 'doctor-on-call'),
     [filteredServices],
   );
 
   const speechServices = useMemo(
-    () => filteredServices.filter((srv) => srv.category === 'speech-therapy'),
+    () => filteredServices.filter((srv) => srv.category === 'home-healthcare' && srv.subcategory === 'speech-and-language-therapy'),
     [filteredServices],
   );
 
   const occupationalServices = useMemo(
-    () => filteredServices.filter((srv) => srv.category === 'occupational-therapy'),
+    () => filteredServices.filter((srv) => srv.category === 'home-healthcare' && srv.subcategory === 'occupational-therapy'),
     [filteredServices],
   );
 
   const ivServices = useMemo(
-    () => filteredServices.filter((srv) => srv.category === 'iv-therapy' || srv.subcategory === 'iv-therapy'),
+    () => filteredServices.filter((srv) => srv.category === 'home-healthcare' && srv.subcategory === 'iv-therapy'),
     [filteredServices],
   );
 
   const displayedLabServices = useMemo(() => {
     if (activeSectionId === 'customize-lab-package-section') {
-      const labServices = db.services.filter((service) => service.category === 'lab-tests');
+      const labServices = db.services.filter((service) => service.category === 'lab-tests-at-home');
       const customizeServices = labServices.filter((service) => service.subcategory === 'customize-lab-package');
       const query = customLabSearch.trim().toLowerCase();
       if (!query) return customizeServices;

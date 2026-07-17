@@ -124,7 +124,7 @@ export default function HomePage({
             </button>
 
           <div id="popular-products-scroll" className="flex gap-4 overflow-x-auto no-scrollbar snap-x pb-2 px-8 sm:px-10">
-            {db.products.filter(p => p.category === 'devices-for-rent').slice(0, 8).map((prod) => (
+            {db.products.filter(p => p.category === 'rent-medical-equipment').slice(0, 8).map((prod) => (
               <div
                 key={prod.id}
                 className="snap-start bg-white rounded-2xl border border-slate-150/60 p-0 min-w-[200px] sm:min-w-[220px] max-w-[220px] flex-shrink-0 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between overflow-hidden"

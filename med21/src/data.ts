@@ -108,6 +108,10 @@ export const resolveHealthcareServiceImage = (service: HealthcareService): Healt
     return service;
   }
 
+  if (service.subcategory === 'iv-therapy') {
+    return { ...service, image: service.image || DEFAULT_HEALTHCARE_SERVICE_IMAGE };
+  }
+
   const imageKey = getHomeHealthcareImageKey(service.title);
   const localImage = homeHealthcareImages[`./assets/images/home_healthcare/${imageKey}.jpg`];
 

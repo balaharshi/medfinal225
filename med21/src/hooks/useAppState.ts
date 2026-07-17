@@ -532,8 +532,10 @@ export function useAppState() {
 
   const displayedLabServices = useMemo(() => {
     if (activeSectionId === 'customize-lab-package-section') {
-      const labServices = db.services.filter((service) => service.category === 'lab-tests-at-home');
-      const customizeServices = labServices.filter((service) => service.subcategory === 'customize-lab-package');
+      const customizeServices = db.services.filter((service) =>
+        service.subcategory === 'customize-lab-package' &&
+        (service.category === 'lab-tests-at-home' || service.category === 'lab-tests')
+      );
       const query = customLabSearch.trim().toLowerCase();
       if (!query) return customizeServices;
       return customizeServices.filter((service) => {

@@ -26,6 +26,10 @@ export const LAB_TESTS_AT_HOME_CATEGORIES = [
   {
     "title": "Genetic Testing",
     "slug": "genetic-testing"
+  },
+  {
+    "title": "Create Your Own Package",
+    "slug": "customize-lab-package"
   }
 ];
 

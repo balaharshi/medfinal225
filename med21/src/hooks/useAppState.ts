@@ -392,19 +392,14 @@ export function useAppState() {
       if (catRes && catRes.length > 0) setDb(prev => ({ ...prev, categories: catRes }));
       if (srvRes && srvRes.length > 0) {
         const liveServices = srvRes
-          .map(resolveHealthcareServiceImage)
-          .filter((service: any) =>
-            !(service.category === 'iv-therapy' || service.subcategory === 'iv-therapy') ||
-            IV_THERAPY_ALLOWED_IDS.has(service.id)
-          );
+          .map(resolveHealthcareServiceImage);
           const normalizeTitle = (t: string) => (t || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
           const liveIds = new Set(liveServices.map((s: any) => s.id));
           const liveKeys = new Set(liveServices.map((s: any) => `${normalizeTitle(s.title)}|${s.category || ''}|${s.subcategory || ''}`));
-          const hasLiveIvTherapy = liveServices.some((s: any) => s.category === 'iv-therapy' || s.subcategory === 'iv-therapy');
           setDb(prev => ({
             ...prev,
             services: [
-              ...prev.services.filter(s => !liveIds.has(s.id) && !liveKeys.has(`${normalizeTitle(s.title)}|${s.category || ''}|${s.subcategory || ''}`) && !(hasLiveIvTherapy && (s.category === 'iv-therapy' || s.subcategory === 'iv-therapy'))),
+              ...prev.services.filter(s => !liveIds.has(s.id) && !liveKeys.has(`${normalizeTitle(s.title)}|${s.category || ''}|${s.subcategory || ''}`)),
               ...liveServices,
             ],
         }));
@@ -601,10 +596,14 @@ export function useAppState() {
       if (!query) return customizeServices;
       return customizeServices.filter((service) => {
         const testCode = Array.isArray(service.attributes) ? service.attributes.find((item: any) => item.label === 'Test Code')?.value || '' : '';
+        const attrText = Array.isArray(service.attributes)
+          ? service.attributes.map((a: any) => `${a.label || ''} ${a.value || ''}`).join(' ').toLowerCase()
+          : '';
         return (
           String(service.title || '').toLowerCase().includes(query) ||
           String(service.description || '').toLowerCase().includes(query) ||
-          String(testCode).toLowerCase().includes(query)
+          String(testCode).toLowerCase().includes(query) ||
+          attrText.includes(query)
         );
       });
     }

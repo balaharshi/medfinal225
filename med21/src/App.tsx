@@ -750,10 +750,19 @@ function MainApp() {
       <AuthModal
         isOpen={app.isAuthOpen}
         onClose={() => app.setIsAuthOpen(false)}
-        onSuccess={(username, email) => {
+        onSuccess={async (username, email) => {
           app.setLoggedInUser(username);
           app.setLoggedInUserEmail(email);
           app.setIsAuthOpen(false);
+          try {
+            const profile = await api.get<{ fullName?: string; email?: string; phone?: string; address?: string }>('/api/auth/profile');
+            if (profile) {
+              app.setLoggedInUser(profile.fullName || username);
+              app.setLoggedInUserEmail(profile.email || email);
+              if (profile.phone) app.setLoggedInUserPhone(profile.phone);
+              if (profile.address) app.setLoggedInUserAddress(profile.address);
+            }
+          } catch {}
           app.triggerToast(`Profile successfully loaded: Welcome back, ${username}!`);
         }}
       />
@@ -767,11 +776,11 @@ function MainApp() {
         phone={app.loggedInUserPhone}
         address={app.loggedInUserAddress}
         onSave={async (updatedName, updatedEmail, updatedPhone, updatedAddress) => {
+          await api.put('/api/auth/profile', { body: { fullName: updatedName, email: updatedEmail, phone: updatedPhone, address: updatedAddress } });
           app.setLoggedInUser(updatedName);
           app.setLoggedInUserEmail(updatedEmail);
           app.setLoggedInUserPhone(updatedPhone);
           app.setLoggedInUserAddress(updatedAddress);
-          try { await api.put('/api/auth/profile', { body: { fullName: updatedName, email: updatedEmail, phone: updatedPhone, address: updatedAddress } }); } catch {}
         }}
         onSuccessToast={app.triggerToast}
       />

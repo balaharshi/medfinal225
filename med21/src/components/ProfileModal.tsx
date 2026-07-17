@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { X, User, Mail, Phone, MapPin, CheckCircle, Shield, Award, Edit3, Save, Calendar, Clock, Package, ArrowLeft } from 'lucide-react';
+import { X, User, Mail, Phone, MapPin, CheckCircle, Shield, Award, Edit3, Save, Calendar, Clock, Package, ArrowLeft, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PhoneInput from './PhoneInput';
 import ConfirmDialog from './ConfirmDialog';
@@ -34,7 +34,7 @@ interface ProfileModalProps {
   email: string;
   phone: string; // 9-digit UAE mobile number
   address: string;
-  onSave: (fullName: string, email: string, phone: string, address: string) => void;
+  onSave: (fullName: string, email: string, phone: string, address: string) => Promise<void>;
   onSuccessToast: (msg: string) => void;
 }
 
@@ -58,6 +58,12 @@ export default function ProfileModal({
   const [activeTab, setActiveTab] = useState<'profile' | 'bookings'>('profile');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
 
   // Reschedule state
   const [rescheduleBookingId, setRescheduleBookingId] = useState<string | null>(null);
@@ -95,6 +101,44 @@ export default function ProfileModal({
     }
   };
 
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError('');
+
+    if (!currentPassword) {
+      setPasswordError('Current password is required');
+      return;
+    }
+    if (!newPassword || newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters');
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) {
+      setPasswordError('New password must include uppercase, number, and special character');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      await api.put('/api/auth/change-password', {
+        body: { currentPassword, newPassword },
+      });
+      toast.success('Password changed successfully');
+      setShowChangePassword(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      setPasswordError(err?.message || 'Failed to change password');
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
   // Sync state when details load
   useEffect(() => {
     if (isOpen) {
@@ -110,7 +154,7 @@ export default function ProfileModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
@@ -136,12 +180,16 @@ export default function ProfileModal({
 
     setFormErrors({});
     
-    onSave(nameVal.trim(), emailVal.trim(), phoneVal, addressVal.trim());
-    setIsSaved(true);
-    onSuccessToast('Your premium MedZiva profile has been updated!');
-    setTimeout(() => {
-      onClose();
-    }, 1200);
+    try {
+      await onSave(nameVal.trim(), emailVal.trim(), phoneVal, addressVal.trim());
+      setIsSaved(true);
+      onSuccessToast('Your premium MedZiva profile has been updated!');
+      setTimeout(() => {
+        onClose();
+      }, 1200);
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to save profile. Please try again.');
+    }
   };
 
   return (
@@ -317,6 +365,82 @@ export default function ProfileModal({
                   </p>
                 </div>
               </div>
+
+              {!showChangePassword ? (
+                <button
+                  type="button"
+                  onClick={() => setShowChangePassword(true)}
+                  className="flex items-center gap-2 text-xs font-bold text-medical-blue hover:text-blue-800 py-2 cursor-pointer"
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  Change Password
+                </button>
+              ) : (
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-black text-slate-700 flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5 text-slate-500" />
+                      Change Password
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowChangePassword(false);
+                        setPasswordError('');
+                        setCurrentPassword('');
+                        setNewPassword('');
+                        setConfirmPassword('');
+                      }}
+                      className="text-[10px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  {passwordError && (
+                    <p className="text-[10px] font-semibold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg">{passwordError}</p>
+                  )}
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 block mb-1">Current Password</label>
+                    <input
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => { setCurrentPassword(e.target.value); setPasswordError(''); }}
+                      placeholder="Enter current password"
+                      className="w-full text-xs border border-slate-200 rounded-lg p-2.5 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 block mb-1">New Password</label>
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => { setNewPassword(e.target.value); setPasswordError(''); }}
+                        placeholder="New password"
+                        className="w-full text-xs border border-slate-200 rounded-lg p-2.5 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 block mb-1">Confirm Password</label>
+                      <input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError(''); }}
+                        placeholder="Confirm new password"
+                        className="w-full text-xs border border-slate-200 rounded-lg p-2.5 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleChangePassword}
+                    disabled={changingPassword}
+                    className="w-full py-2.5 bg-medical-blue hover:bg-blue-900 text-white font-black text-xs rounded-lg cursor-pointer transition-all disabled:opacity-50"
+                  >
+                    {changingPassword ? 'Updating...' : 'Update Password'}
+                  </button>
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="pt-4 flex gap-3 border-t border-slate-100 mt-5">

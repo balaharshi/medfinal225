@@ -82,6 +82,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        $this->call(CategorySeeder::class);
         $this->call(HomeHealthcareSeeder::class);
         $this->call(IVTherapySeeder::class);
         $this->call(LabTestSeeder::class);

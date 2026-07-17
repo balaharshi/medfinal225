@@ -692,7 +692,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       );
     } catch (error) {
 
-      toast.error("Unable to update service assignment.");
+      toast.error(error instanceof Error ? error.message : "Unable to update service assignment.");
     } finally {
       setIsSavingAssignments(false);
     }
@@ -715,7 +715,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       triggerToast(`${enabled ? "Enabled" : "Disabled"} ${serviceIds.length} service${serviceIds.length === 1 ? "" : "s"} for ${selectedServiceVendor?.name || "vendor"}.`);
     } catch (error) {
 
-      toast.error("Unable to update service assignments.");
+      toast.error(error instanceof Error ? error.message : "Unable to update service assignments.");
     } finally {
       setIsSavingAssignments(false);
     }
@@ -1121,6 +1121,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       onRefresh();
       fetchAdminData();
     } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to save service");
     } finally {
       setIsSubmitting(false);
     }
@@ -1202,7 +1203,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       onRefresh();
       fetchAdminData();
     } catch (err) {
-      toast.error("Failed to submit category. Network error.");
+      toast.error(err instanceof Error ? err.message : "Failed to submit category. Network error.");
     } finally {
       setIsSubmitting(false);
     }
@@ -1250,6 +1251,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         onRefresh();
         fetchAdminData();
     } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Unable to add subcategory");
     } finally {
       setIsSubmitting(false);
     }
@@ -1338,7 +1340,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       handleCancelVendorEdit();
       fetchAdminData();
     } catch (err) {
-      toast.error(`Failed to ${isEdit ? 'update' : 'create'} vendor. Please check your connection.`);
+      toast.error(err instanceof Error ? err.message : `Failed to ${isEdit ? 'update' : 'create'} vendor. Please check your connection.`);
     } finally {
       setIsSubmitting(false);
     }

@@ -19,7 +19,7 @@ const API_BASE = (() => {
   return '';
 })();
 
-type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 interface RequestOptions {
   body?: unknown;
@@ -118,6 +118,9 @@ export const api = {
 
   post: <T = unknown>(url: string, options?: RequestOptions) =>
     request<T>('POST', url, options),
+
+  put: <T = unknown>(url: string, options?: RequestOptions) =>
+    request<T>('PUT', url, options),
 
   patch: <T = unknown>(url: string, options?: RequestOptions) =>
     request<T>('PATCH', url, options),

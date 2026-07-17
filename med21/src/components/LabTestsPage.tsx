@@ -163,7 +163,7 @@ export default function LabTestsPage({
                           <span className="text-medical-green font-black">AED {formatAedWhole(srv.price)}</span>
                         </div>
                         {testCode && (
-                          <p className="text-[11px] text-slate-500 mt-1 line-clamp-1">{testCode}</p>
+                          <p className="text-[11px] text-slate-500 mt-1 line-clamp-1">Code: {testCode} &middot; Coverage: Dubai &amp; Sharjah only</p>
                         )}
                       </div>
                           <button

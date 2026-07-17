@@ -24,7 +24,10 @@ class OAuthIdentityService
         }
 
         $claims = $response->json();
-        if (($claims['aud'] ?? null) !== $clientId || empty($claims['email']) || ($claims['email_verified'] ?? 'true') === 'false') {
+        $audOk = ($claims['aud'] ?? null) === $clientId;
+        $emailOk = !empty($claims['email']);
+        $emailVerified = !isset($claims['email_verified']) || $claims['email_verified'] === true || $claims['email_verified'] === 'true';
+        if (! $audOk || ! $emailOk || ! $emailVerified) {
             throw new HttpException(401, 'Google account email could not be verified');
         }
 

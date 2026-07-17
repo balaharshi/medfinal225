@@ -122,23 +122,6 @@ export const PRODUCT_PAGE_COPY: Record<string, { title: string; description: str
 
 export const DEFAULT_PRODUCT_ROUTE = 'rent-medical-equipments';
 
-export const IV_THERAPY_ALLOWED_IDS = new Set([
-  'srv-iv-skin-glow',
-  'srv-iv-hair-skin-nail-care',
-  'srv-iv-energy-weight-loss',
-  'srv-iv-immune-hydration-drip',
-  'srv-iv-antistress-relax',
-  'srv-iv-gut-cleanse-acne-cure',
-  'srv-iv-memory-boost',
-  'srv-iv-surgery-recovery',
-  'srv-iv-women-health-fertility',
-  'srv-iv-men-power-drip',
-  'srv-iv-liver-detox-after-party',
-  'srv-iv-nad-100',
-  'srv-iv-nad-250',
-  'srv-iv-nad-500',
-]);
-
 // ── Utility helpers ─────────────────────────────────────────────────────
 
 const addSpacesAroundSlashes = (value?: string) =>

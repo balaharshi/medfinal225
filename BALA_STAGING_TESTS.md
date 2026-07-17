@@ -62,8 +62,8 @@ All must return **200**.
 **Expected**: 47
 
 ### Test 8: Home Healthcare Count
-`php artisan tinker --execute="echo \App\Models\Service::whereIn('category',['home-healthcare','long-term-care','doctor-on-call','physiotherapy','speech-therapy','occupational-therapy'])->count();"`  
-**Expected**: 27
+`php artisan tinker --execute="echo \App\Models\Service::where('category','home-healthcare')->count();"`  
+**Expected**: 41 (27 core services + 14 IV Therapy)
 
 ### Test 9: No Health Packages Exist
 Browse the website → Lab Tests page. There should be **no** "Health Packages" category pill.
@@ -104,7 +104,7 @@ Click "Sign in with Google". Click your saved Google account.
 ## SECTION 3: Service & Product Catalog (7 tests)
 
 ### Test 17: Service Categories Display
-On homepage, click "Book a Service". All 7 category pills should show: Nursing Care, Physiotherapy, Doctor on Call, Long-Term Care, Speech Therapy, Occupational Therapy, IV Therapy.
+On homepage, click "Book a Service". The categories should show: Home Healthcare (with subcategory pills: Nursing Care, Physiotherapy, Doctor on Call, Long-Term Care, Speech Therapy, Occupational Therapy, IV Therapy), Lab Tests at Home, and Rent Medical Equipment.
 
 ### Test 18: IV Therapy — Only 14 Services
 Go to Services → IV Therapy. Scroll through all entries.  
@@ -298,7 +298,7 @@ Add 10 items to cart rapidly one after another.
 | 5 | IV Therapy count | 14 | |
 | 6 | Biomarker count | 295 | |
 | 7 | Lab test count | 47 | |
-| 8 | Home healthcare count | 27 | |
+| 8 | Home healthcare count | 41 (27 core + 14 IV) | |
 | 9 | No health packages | None visible | |
 | 10 | No duplicate services | Each appears once | |
 | 11 | Register new customer | Success | |
@@ -307,7 +307,7 @@ Add 10 items to cart rapidly one after another.
 | 14 | Session persistence | Stays logged in | |
 | 15 | Logout clears cart | Cart empty | |
 | 16 | Google OAuth | Success | |
-| 17 | Service categories display | All 7 show | |
+| 17 | Service categories display | 3 cats w/ subcategories | |
 | 18 | IV Therapy only 14 | Exactly 14 | |
 | 19 | Create your own package | 295 biomarkers | |
 | 20 | Routine blood tests | 4 services, no CBC/FBS/HbA1c | |

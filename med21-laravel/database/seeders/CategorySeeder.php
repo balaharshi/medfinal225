@@ -71,7 +71,7 @@ class CategorySeeder extends Seeder
             );
 
             foreach ($data['subcategories'] as $subSlug => $subTitle) {
-                $category->subcategories()->firstOrCreate(
+                $subcategory = $category->subcategories()->firstOrCreate(
                     ['slug' => $subSlug],
                     [
                         'id' => SequentialId::next(Subcategory::class, 'sub'),
@@ -79,6 +79,9 @@ class CategorySeeder extends Seeder
                         'image' => 'https://images.unsplash.com/photo-1631563016585-64a1e38db6b1?auto=format&fit=crop&q=80&w=800',
                     ]
                 );
+                if ($subSlug === 'iv-therapy') {
+                    $subcategory->update(['image' => '/images/services/iv-therapy-at-home.jpg']);
+                }
             }
         }
 

@@ -44,16 +44,16 @@ class HomeHealthcareSeeder extends Seeder
         // Map specific titles to their canonical slug-based images.
         $titleMap = [
             'Generic Nurse Visit' => '/images/services/generic-nurse-visit.jpg',
-            'Wound care and Surgical Dressing-Small' => '/images/services/wound-care-and-surgical-dressing-small.jpg',
-            'Wound care and Surgical Dressing-Medium' => '/images/services/wound-care-and-surgical-dressing-medium.jpg',
-            'Wound care and Surgical Dressing-Large' => '/images/services/wound-care-and-surgical-dressing-large.jpg',
-            'Catheterisation at home' => '/images/services/catheterisation-at-home.jpg',
+            'Wound care and Surgical Dressing-Small' => '/images/services/wound-care-and-surgical-dressing.jpg',
+            'Wound care and Surgical Dressing-Medium' => '/images/services/wound-care-and-surgical-dressing.jpg',
+            'Wound care and Surgical Dressing-Large' => '/images/services/wound-care-and-surgical-dressing.jpg',
+            'Catheterisation at home' => '/images/services/catheterisation-at-home-female.jpg',
             'IV antibiotics at home (with Dr Prescription)' => '/images/services/iv-antibiotics-at-home.jpg',
             'Doctor at Home' => '/images/services/doctor-home-fix.jpg',
-            'Doctor at Hotel' => '/images/services/doctor-home-fix.jpg',
+            'Doctor at Hotel' => '/images/services/doctor-at-hotel.jpg',
             'Physiotherapy-1 Hour Session' => '/images/services/physio-fix.jpg',
             'Physiotherapy-1 Hour Session/Week (6 Sessions)' => '/images/services/physio-fix.jpg',
-            'Speech and Language Therapy' => '/images/services/speech-fix.jpg',
+            'Speech and Language Therapy' => '/images/services/speech-and-language-therapy.jpg',
             'Occupational Therapy' => '/images/services/ot-fix.jpg',
         ];
         if (isset($titleMap[$title])) return $titleMap[$title];

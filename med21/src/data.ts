@@ -37,78 +37,22 @@ const labTestsAtHomeImages = import.meta.glob('./assets/images/lab-tests-at-home
   query: '?url',
   import: 'default',
 }) as Record<string, string>;
-const homeHealthcareImages = import.meta.glob('./assets/images/home_healthcare/*.jpg', {
-  eager: true,
-  query: '?url',
-  import: 'default',
-}) as Record<string, string>;
 const rentalEquipmentImages = import.meta.glob('./assets/images/rentalimg/*.jpg', {
   eager: true,
   query: '?url',
   import: 'default',
 }) as Record<string, string>;
 
-export const DEFAULT_HEALTHCARE_SERVICE_IMAGE =
-  homeHealthcareImages['./assets/images/home_healthcare/Generic Nurse Visit.jpg'] ||
-  getServiceImage('generic-nurse');
-
-const homeHealthcareImageAliases: Record<string, string> = {
-  'GUT CLEANSE & ACNE CURE IV THERAPY': 'Gut support IV Therapy',
-  'GUT CLEANSE AND ACNE CURE IV THERAPY': 'Gut support IV Therapy',
-  'MEMORY BOOST AND FOCUS IV THERAPY': 'Memory Boost IV Therapy',
-  'MEMORY BOOST IV THERAPY': 'Memory Boost IV Therapy',
-  'SPEECH AND LANGUAGE THERAPY': 'Adult Speech Rehabilitation',
-  'SURGERY RECOVERY IV THERAPY': 'IV antibiotics at home (with Dr Prescription)',
-};
+export const DEFAULT_HEALTHCARE_SERVICE_IMAGE = '/images/services/generic-nurse-visit.jpg';
 
 const LAB_TESTS_AT_HOME_SERVICES_WITH_LOCAL_IMAGES = (LAB_TESTS_AT_HOME_SERVICES as HealthcareService[]).map((service) => ({
   ...service,
   image: labTestsAtHomeImages[`./assets/images/lab-tests-at-home/${service.id}.jpg`] || service.image,
 }));
 
-const getHomeHealthcareImageKey = (title: string) => {
-  const normalizedTitle = title.replace(/&amp;/gi, '&').replace(/\s+/g, ' ').trim().toUpperCase();
-  if (normalizedTitle === 'WOUND CARE AND SURGICAL DRESSING - SMALL') return 'Wound Care and Surgical Dressing-Small';
-  if (normalizedTitle === 'WOUND CARE AND SURGICAL DRESSING - MEDIUM') return 'Wound Care and Surgical Dressing-Medium';
-  if (normalizedTitle === 'WOUND CARE AND SURGICAL DRESSING - LARGE') return 'Wound Care and Surgical Dressing-Large';
-  if (normalizedTitle === 'CATHETERISATION AT HOME (FEMALE)') return 'Catheterisation at home (Female)';
-  if (normalizedTitle === 'IV ANTIBIOTICS AT HOME (WITH DR PRESCRIPTION)') return 'IV antibiotics at home (with Dr Prescription)';
-  if (normalizedTitle.startsWith('PHYSIOTHERAPY')) return 'Physiotherapy';
-  if (normalizedTitle === 'MULTI VITAMIN DRIP') return 'Vitamin Mix IV Therapy';
-  if (normalizedTitle === 'HYDRATION AND ENERGY IV DRIP') return 'Energy Booster IV Therapy';
-  if (normalizedTitle === 'SNOW WHITE GLUTA WHITENING DRIP') return 'Skin Glow IV Therapy';
-  if (normalizedTitle === 'COLLAGEN, VITAMIN C AND ELECTROLYTES') return 'Skin Glow IV Therapy';
-  if (normalizedTitle === 'NAD+ (FUSION APOTHICARY)') return 'Antiaging with NAD 500mg IV Therapy';
-  if (normalizedTitle === 'WEIGHT LOSS DRIP') return 'Gut support IV Therapy';
-  if (normalizedTitle === 'SKIN GLOW DRIP') return 'Skin Glow IV Therapy';
-  if (normalizedTitle === 'HANGOVER DRIP') return 'Hangover IV Therapy';
-  if (normalizedTitle === 'ANTISTRESS DRIP') return 'Antistress and Antioxidant IV Therapy';
-  if (normalizedTitle.startsWith('DHA') && normalizedTitle.includes('NURSE')) return 'DHA Nurse';
-  if (normalizedTitle.startsWith('CARE GIVER')) return 'Caregiver';
-  if (homeHealthcareImageAliases[normalizedTitle]) return homeHealthcareImageAliases[normalizedTitle];
-  if (normalizedTitle.includes('SKIN GLOW')) return 'Skin Glow IV Therapy';
-  if (normalizedTitle.includes('HAIR') && normalizedTitle.includes('SKIN')) return 'Skin and Hair wellness IV Drip';
-  if (normalizedTitle.includes('HAIR LOSS')) return 'Hair Loss IV Therapy';
-  if (normalizedTitle.includes('ENERGY') || normalizedTitle.includes('WEIGHT LOSS')) return 'Energy Booster IV Therapy';
-  if (normalizedTitle.includes('IMMUNE') || normalizedTitle.includes('HYDRATION')) return 'Immune Booster IV Therapy';
-  if (normalizedTitle.includes('ANTISTRESS') || normalizedTitle.includes('RELAX')) return 'Antistress and Antioxidant IV Therapy';
-  if (normalizedTitle.includes('HANGOVER')) return 'Hangover IV Therapy';
-  if (normalizedTitle.includes('LIVER DETOX')) return 'Liver Detox IV Therapy';
-  if (normalizedTitle.includes('FEMALE') || normalizedTitle.includes('WOMEN') || normalizedTitle.includes('FERTILITY')) return 'Female Balance IV Therapy';
-  if (normalizedTitle.includes('IRON')) return 'Iron Boost IV Therapy';
-  if (normalizedTitle.includes('VITAMIN MIX')) return 'Vitamin Mix IV Therapy';
-  if (normalizedTitle.includes('NAD 100')) return 'Antiaging with NAD 100mg IV Therapy';
-  if (normalizedTitle.includes('NAD 250')) return 'Antiaging with NAD 250mg IV Therapy';
-  if (normalizedTitle.includes('NAD 500') || normalizedTitle.includes('WITH NAD')) return 'Antiaging with NAD 500mg IV Therapy';
-  return title;
-};
-
 export const resolveHealthcareServiceImage = (service: HealthcareService): HealthcareService => {
   return { ...service, image: service.image || DEFAULT_HEALTHCARE_SERVICE_IMAGE };
 };
-
-const withHomeHealthcareImages = (services: HealthcareService[]) =>
-  services.map(resolveHealthcareServiceImage);
 
 const rentalEquipmentImageNames: Record<string, string> = {
   'BIPAP Machine': 'bipap machine',
@@ -1474,13 +1418,13 @@ const BASE_HEALTHCARE_SERVICES_WITHOUT_LEGACY_HOME = BASE_HEALTHCARE_SERVICES.fi
 const CUSTOMIZE_LAB_SERVICES: HealthcareService[] = [];
 
 export const SERVICE_CATEGORIES: ServiceCategory[] = mergeById(BASE_SERVICE_CATEGORIES, HOME_HEALTHCARE_CATEGORIES as ServiceCategory[]);
-export const HEALTHCARE_SERVICES: HealthcareService[] = withHomeHealthcareImages(
+export const HEALTHCARE_SERVICES: HealthcareService[] = (
   mergeById(
     mergeById(mergeById(mergeById(BASE_HEALTHCARE_SERVICES_WITHOUT_LEGACY_HOME, CUSTOMIZE_LAB_SERVICES), LAB_TESTS_AT_HOME_SERVICES_WITH_LOCAL_IMAGES),
     HOME_HEALTHCARE_SERVICES as HealthcareService[]),
     OTHER_SERVICES,
-  ),
-);
+  ) as HealthcareService[]
+).map(resolveHealthcareServiceImage);
 
 export const DUBAI_LOCATIONS = [
   'Dubai Marina, Dubai',

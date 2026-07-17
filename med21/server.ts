@@ -9,7 +9,7 @@ const BACKEND_URL = configuredBackendUrl || "http://127.0.0.1:8000";
 
 app.use(express.json());
 
-app.use("/images", express.static(path.resolve(import.meta.dirname, "public", "images")));
+app.use("/images", express.static("public/images"));
 
 app.use("/api", async (req, res) => {
   try {

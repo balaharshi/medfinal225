@@ -8,7 +8,6 @@ const configuredBackendUrl = process.env.BACKEND_URL || "";
 const BACKEND_URL = configuredBackendUrl || "http://127.0.0.1:8000";
 
 app.use(express.json());
-
 app.use("/images", express.static("public/images"));
 
 app.use("/api", async (req, res) => {

@@ -48,9 +48,7 @@ const rentalEquipmentImages = import.meta.glob('./assets/images/rentalimg/*.jpg'
   import: 'default',
 }) as Record<string, string>;
 
-export const DEFAULT_HEALTHCARE_SERVICE_IMAGE =
-  homeHealthcareImages['./assets/images/home_healthcare/Generic Nurse Visit.jpg'] ||
-  getServiceImage('generic-nurse');
+export const DEFAULT_HEALTHCARE_SERVICE_IMAGE = '/images/services/generic-nurse.jpg';
 
 const homeHealthcareImageAliases: Record<string, string> = {
   'GUT CLEANSE & ACNE CURE IV THERAPY': 'Gut support IV Therapy',
@@ -104,18 +102,7 @@ const getHomeHealthcareImageKey = (title: string) => {
 };
 
 export const resolveHealthcareServiceImage = (service: HealthcareService): HealthcareService => {
-  if (service.category === 'lab-tests' || service.category === 'lab-tests-at-home') {
-    return service;
-  }
-
-  if (service.subcategory === 'iv-therapy' || service.category === 'iv-therapy') {
-    return { ...service, image: service.image || DEFAULT_HEALTHCARE_SERVICE_IMAGE };
-  }
-
-  const imageKey = getHomeHealthcareImageKey(service.title);
-  const localImage = homeHealthcareImages[`./assets/images/home_healthcare/${imageKey}.jpg`];
-
-  return localImage ? { ...service, image: localImage } : { ...service, image: service.image || DEFAULT_HEALTHCARE_SERVICE_IMAGE };
+  return { ...service, image: service.image || DEFAULT_HEALTHCARE_SERVICE_IMAGE };
 };
 
 const withHomeHealthcareImages = (services: HealthcareService[]) =>
@@ -182,7 +169,7 @@ const BASE_SERVICE_CATEGORIES: ServiceCategory[] = [
   {
     id: 'cat-iv-therapy',
     title: 'IV Therapy',
-    image: '/images/services/iv-therapy-at-home.jpg',
+    image: getServiceImage('iv-drip-bag'),
     slug: 'iv-therapy',
     description: 'Professional IV therapy administered at home under medical guidance, offering convenient access to prescribed treatments, hydration support, and wellness infusions.'
   },
@@ -600,7 +587,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     category: "home-healthcare",
     price: 750,
     duration: "1 Session",
-    image: '/images/services/iv-therapy-at-home.jpg',
+    image: getServiceImage('iv-drip-bag'),
     description: "Complete your antibiotic course from the comfort of home — a qualified nurse administers your prescribed IV treatment safely and efficiently, so you recover without the hospital stay.",
     popular: true,
     bookingNotice: "12 hours prior booking",
@@ -999,7 +986,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     category: "iv-therapy",
     price: 850,
     duration: "1 Session",
-    image: '/images/services/skin-glow-iv-therapy.jpg',
+    image: getServiceImage('iv-drip-bag'),
     description: "This powerful blend of antioxidants and vitamins promotes a radiant complexion by reducing oxidative stress and improving skin health.",
     popular: true,
     bookingNotice: "24 hours prior booking",
@@ -1017,7 +1004,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     category: "iv-therapy",
     price: 850,
     duration: "1 Session",
-    image: '/images/services/iv-therapy-at-home.jpg',
+    image: getServiceImage('iv-drip-bag'),
     description: "For those looking to improve the appearance and health of their hair, nails and skin, this drip delivers essential nutrients to promote regeneration and hydration.",
     popular: false,
     bookingNotice: "24 hours prior booking",
@@ -1035,7 +1022,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     category: "iv-therapy",
     price: 900,
     duration: "1 Session",
-    image: '/images/services/iv-therapy-at-home.jpg',
+    image: getServiceImage('iv-drip-bag'),
     description: "Supports your metabolism and energy levels with its potent blend of vitamins, minerals and amino acids. Ideal for patients dealing with fatigue, weight management issues or those seeking enhanced athletic performance.",
     popular: false,
     bookingNotice: "24 hours prior booking",
@@ -1053,7 +1040,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     category: "iv-therapy",
     price: 799,
     duration: "1 Session",
-    image: '/images/services/iv-therapy-at-home.jpg',
+    image: getServiceImage('iv-drip-bag'),
     description: "Strengthen your immune defenses and ensure optimal hydration with this drip, formulated to help fight infections and promote recovery from illness.",
     popular: false,
     bookingNotice: "24 hours prior booking",
@@ -1071,7 +1058,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     category: "iv-therapy",
     price: 898.8,
     duration: "1 Session",
-    image: '/images/services/iv-therapy-at-home.jpg',
+    image: getServiceImage('iv-drip-bag'),
     description: "Reduces mental fatigue and sharpens focus while promoting relaxation and reducing stress.",
     popular: false,
     bookingNotice: "24 hours prior booking",
@@ -1089,7 +1076,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     category: "iv-therapy",
     price: 899,
     duration: "1 Session",
-    image: '/images/services/iv-therapy-at-home.jpg',
+    image: getServiceImage('iv-drip-bag'),
     description: "This IV drip is designed to improve skin health and reduce acne through a blend of vitamins, minerals and antioxidants that support both skin and gut health.",
     popular: false,
     bookingNotice: "24 hours prior booking",
@@ -1107,7 +1094,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     category: "iv-therapy",
     price: 898.8,
     duration: "1 Session",
-    image: '/images/services/surgery-recovery-iv-therapy.jpg',
+    image: getServiceImage('iv-drip-bag'),
     description: "This drip is specifically designed to support recovery following surgery by providing essential vitamins and amino acids that enhance healing, reduce inflammation and boost overall recovery.",
     popular: false,
     bookingNotice: "24 hours prior booking",
@@ -1125,7 +1112,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     category: "iv-therapy",
     price: 898.8,
     duration: "1 Session",
-    image: '/images/services/iv-therapy-at-home.jpg',
+    image: getServiceImage('iv-drip-bag'),
     description: "This drip is designed to support women's fertility and reproductive health by improving egg quality, balancing hormones, reducing oxidative stress, and promoting overall reproductive wellness.",
     popular: false,
     bookingNotice: "24 hours prior booking",
@@ -1143,7 +1130,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     category: "iv-therapy",
     price: 838.8,
     duration: "1 Session",
-    image: '/images/services/iv-therapy-at-home.jpg',
+    image: getServiceImage('iv-drip-bag'),
     description: "This drip is designed to support men's sexual health and vitality by enhancing energy levels, promoting healthy blood flow, supporting testosterone production, and improving overall performance and wellness.",
     popular: false,
     bookingNotice: "24 hours prior booking",
@@ -1161,7 +1148,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     category: "iv-therapy",
     price: 899,
     duration: "1 Session",
-    image: '/images/services/iv-therapy-at-home.jpg',
+    image: getServiceImage('iv-drip-bag'),
     description: "Promotes liver health and detoxification with this formula, ideal for those exposed to environmental toxins, medications or poor dietary habits.",
     popular: false,
     bookingNotice: "24 hours prior booking",
@@ -1179,7 +1166,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     category: "iv-therapy",
     price: 800,
     duration: "1 Session",
-    image: '/images/services/nad-anti-aging-iv-therapy.jpg',
+    image: getServiceImage('iv-drip-bag'),
     description: "Perfect for those seeking anti-aging benefits. This NAD+ drip supports cellular regeneration, improves energy levels and promotes overall longevity.",
     popular: false,
     bookingNotice: "24 hours prior booking",
@@ -1197,7 +1184,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     category: "iv-therapy",
     price: 1198.8,
     duration: "1 Session",
-    image: '/images/services/nad-anti-aging-iv-therapy.jpg',
+    image: getServiceImage('iv-drip-bag'),
     description: "Perfect for those seeking anti-aging benefits. This NAD+ drip supports cellular regeneration, improves energy levels and promotes overall longevity.",
     popular: false,
     bookingNotice: "24 hours prior booking",
@@ -1215,7 +1202,7 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     category: "iv-therapy",
     price: 1699,
     duration: "1 Session",
-    image: '/images/services/nad-anti-aging-iv-therapy.jpg',
+    image: getServiceImage('iv-drip-bag'),
     description: "Perfect for those seeking anti-aging benefits. This NAD+ drip supports cellular regeneration, improves energy levels and promotes overall longevity.",
     popular: true,
     bookingNotice: "24 hours prior booking",

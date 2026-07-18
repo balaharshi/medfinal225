@@ -469,7 +469,13 @@ export default function CartDrawer({
 
                               <div className="flex items-center gap-2 border border-slate-200 rounded-lg p-0.5 bg-slate-50">
                                 <button
-                                  onClick={() => onUpdateQty(item.product.id, Math.max(1, item.quantity - 1))}
+                                  onClick={() => {
+                                    if (item.quantity <= 1) {
+                                      requestRemoveItem(item.product.id, 'name' in item.product ? item.product.name : item.product.title);
+                                    } else {
+                                      onUpdateQty(item.product.id, item.quantity - 1);
+                                    }
+                                  }}
                                   aria-label="Decrease quantity"
                                   className="p-2 hover:bg-white rounded text-slate-600 hover:text-slate-900 cursor-pointer"
                                 >

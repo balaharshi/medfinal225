@@ -627,6 +627,16 @@ export default function MainHeader({
               <Globe className="w-5 h-5 text-medical-blue" />
               <span className="font-semibold">About Us</span>
             </button>
+            <hr className="my-2 border-slate-100" />
+            <button
+              onClick={() => {
+                closeMobileMenu();
+                setShowLogoutConfirm(true);
+              }}
+              className="w-full flex items-center gap-3 p-3 rounded-lg text-left text-red-500 hover:bg-red-50 transition-colors"
+            >
+              <span className="font-semibold">Logout</span>
+            </button>
           </div>
         </div>
       )}

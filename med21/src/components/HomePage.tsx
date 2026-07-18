@@ -46,13 +46,13 @@ export default function HomePage({
       className="space-y-0"
     >
       {/* Hero Banner */}
-      <section className="relative w-full">
+      <section className="relative w-full pb-2 sm:pb-0">
         <SafeImage
           src="/b23.png"
           alt="Complete Healthcare Anytime Anywhere"
           className="w-full h-auto object-cover"
         />
-        <div className="absolute bottom-1 sm:bottom-[8%] md:bottom-[10%] lg:bottom-[12%] left-[4%] flex gap-2 sm:gap-3 md:gap-4">
+        <div className="absolute bottom-2 sm:bottom-[8%] md:bottom-[10%] lg:bottom-[12%] left-[4%] flex gap-2 sm:gap-3 md:gap-4">
           <button
             onClick={() => onTabChange('services')}
             className="bg-medical-green hover:bg-emerald-600 text-white font-bold text-[10px] sm:text-xs md:text-sm py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-6 rounded-lg sm:rounded-xl cursor-pointer transition-all active:scale-95 shadow-lg flex items-center gap-1 sm:gap-2"

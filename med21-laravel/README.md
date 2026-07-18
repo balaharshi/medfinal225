@@ -21,6 +21,19 @@ php artisan images:verify   # Confirm all seeded image paths exist
 php artisan serve
 ```
 
+## Keeping Dependencies in Sync
+
+After editing `package.json` (adding/removing/moving any dependency), always run `npm install` and commit the updated `package-lock.json`:
+
+```bash
+cd med21
+npm install
+git add package.json package-lock.json
+git commit -m "chore: sync lockfile after dep changes"
+```
+
+The CI's `npm ci --legacy-peer-deps` step **requires** a matching lock file — it will fail immediately if `package-lock.json` is out of sync with `package.json`.
+
 ## Image Management Commands
 
 | Command | Purpose |

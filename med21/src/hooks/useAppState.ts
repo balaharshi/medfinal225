@@ -474,7 +474,7 @@ export function useAppState() {
   }, [db.products, db.services]);
 
   const nursingServices = useMemo(
-    () => filteredServices.filter((srv) => srv.category === 'home-healthcare'),
+    () => filteredServices.filter((srv) => srv.category === 'home-healthcare' && srv.subcategory === 'nursing-care-at-home'),
     [filteredServices],
   );
 

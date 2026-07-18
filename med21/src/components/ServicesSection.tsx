@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useRef } from 'react';
+import { useState, useRef, MouseEvent, SyntheticEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronRight, ChevronLeft, CalendarClock, Eye, X, ShieldCheck, Heart, Clock, Star, MessageCircle, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -75,7 +75,7 @@ export default function ServicesSection({
     (s) => s.category === activeCategoryObject?.slug || s.subcategory === activeCategoryObject?.slug
   );
 
-  const toggleFavorite = (id: string, e: React.MouseEvent) => {
+  const toggleFavorite = (id: string, e: MouseEvent) => {
     e.stopPropagation();
     if (favorites.includes(id)) {
       setFavorites(favorites.filter(fav => fav !== id));
@@ -99,7 +99,7 @@ export default function ServicesSection({
   const getServiceImage = (service: HealthcareService) =>
     resolveHealthcareServiceImage(service).image || DEFAULT_HEALTHCARE_SERVICE_IMAGE;
 
-  const handleServiceImageError = (event: React.SyntheticEvent<HTMLImageElement>, service: HealthcareService) => {
+  const handleServiceImageError = (event: SyntheticEvent<HTMLImageElement>, service: HealthcareService) => {
     const image = event.currentTarget;
     const fallback = getServiceImage(service);
     if (image.src.endsWith(fallback) || image.dataset.fallbackApplied === 'true') {

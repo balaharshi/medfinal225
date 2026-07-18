@@ -52,7 +52,7 @@ class HealthPackageSeeder extends Seeder
                 'home_visit_fee_included' => false,
                 'duration' => '',
                 'estimated_visit_time' => '',
-                'image' => 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&q=80&w=400',
+                'image' => '/images/default-service.jpg',
                 'short_description' => $data['desc'],
                 'full_description' => $data['desc'],
                 'description' => $data['desc'],

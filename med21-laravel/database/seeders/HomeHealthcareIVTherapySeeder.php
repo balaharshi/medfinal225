@@ -20,7 +20,7 @@ class HomeHealthcareIVTherapySeeder extends Seeder
                 'id' => SequentialId::next(Category::class, 'cat'),
                 'title' => 'Home Healthcare',
                 'type' => 'service',
-                'image' => 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=800',
+                'image' => '/images/home-healthcare/home-healthcare.jpg',
                 'description' => 'Professional healthcare services',
             ]
         );

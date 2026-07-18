@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, FormEvent } from 'react';
 import { X, Calendar, Clock, Check, User, Phone, Mail, Award, CheckCircle2, ShieldAlert } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { createEnbdpayCheckout } from '../services/enbdpay';
@@ -186,7 +186,7 @@ export default function BookingModal({
     ? backendServices.map(s => ({ id: s.id, title: s.title, price: s.price, category: s.category || 'Other' }))
     : [];
 
-  const groupedServices = React.useMemo(() => {
+  const groupedServices = useMemo(() => {
     const groups: Record<string, typeof servicesList> = {};
     servicesList.forEach(s => {
       const cat = s.category || 'Other';
@@ -244,7 +244,7 @@ export default function BookingModal({
     setPromoError('');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
     

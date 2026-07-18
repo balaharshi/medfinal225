@@ -7,16 +7,7 @@ return [
 
     'allowed_origins' => array_values(array_filter(array_map('trim', explode(
         ',',
-        env(
-            'CORS_ORIGIN',
-            env(
-                'CLIENT_ORIGIN',
-                env(
-                    'FRONTEND_URL',
-                    'http://localhost:3000,http://localhost:5173,https://medzivahealthcare.com,https://staging.medzivahealthcare.com'
-                )
-            )
-        )
+        env('CORS_ORIGIN', env('CLIENT_ORIGIN', env('FRONTEND_URL', '*')))
     )))),
 
     'allowed_origins_patterns' => [],

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, FormEvent } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { api } from "../lib/api";
@@ -243,7 +243,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
   };
 
   // Handle profile update
-  const handleProfileChangeRequest = async (e: React.FormEvent) => {
+  const handleProfileChangeRequest = async (e: FormEvent) => {
     e.preventDefault();
     if (!vendorData?.id) return;
     if (!profileChangeValue.trim()) {

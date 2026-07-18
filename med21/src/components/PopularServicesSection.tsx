@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useRef } from 'react';
+import { useState, useRef, MouseEvent, SyntheticEvent } from 'react';
 import { ChevronRight, ChevronLeft, CalendarClock, Heart, Send, Eye } from 'lucide-react';
 import { DEFAULT_HEALTHCARE_SERVICE_IMAGE, resolveHealthcareServiceImage } from '../data';
 import { HealthcareService } from '../types';
@@ -51,7 +51,7 @@ export default function PopularServicesSection({
   const [favorites, setFavorites] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const toggleFavorite = (id: string, e: React.MouseEvent) => {
+  const toggleFavorite = (id: string, e: MouseEvent) => {
     e.stopPropagation();
     if (favorites.includes(id)) {
       setFavorites(favorites.filter(fav => fav !== id));
@@ -73,7 +73,7 @@ export default function PopularServicesSection({
   const getServiceImage = (service: HealthcareService) =>
     resolveHealthcareServiceImage(service).image || DEFAULT_HEALTHCARE_SERVICE_IMAGE;
 
-  const handleServiceImageError = (event: React.SyntheticEvent<HTMLImageElement>, service: HealthcareService) => {
+  const handleServiceImageError = (event: SyntheticEvent<HTMLImageElement>, service: HealthcareService) => {
     const image = event.currentTarget;
     const fallback = getServiceImage(service);
     if (image.src.endsWith(fallback) || image.dataset.fallbackApplied === 'true') {

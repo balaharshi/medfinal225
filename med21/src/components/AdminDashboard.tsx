@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, FormEvent } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { api } from "../lib/api";
@@ -1036,7 +1036,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     resetServiceForm();
   };
 
-  const handleCreateService = async (e: React.FormEvent) => {
+  const handleCreateService = async (e: FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
     if (!srvTitle.trim()) newErrors.srvTitle = 'Service title is required';
@@ -1146,7 +1146,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     setIsCategoryEditModalOpen(false);
   };
 
-  const handleCreateCategory = async (e: React.FormEvent) => {
+  const handleCreateCategory = async (e: FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
     if (!catName.trim()) newErrors.catName = 'Category title is required';
@@ -1210,7 +1210,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     );
   };
 
-  const handleCreateSubcategory = async (e: React.FormEvent) => {
+  const handleCreateSubcategory = async (e: FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
     if (!parentCatId) newErrors.parentCatId = 'Parent specialty category is required';
@@ -1286,7 +1286,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     setIsVendorEditModalOpen(false);
   };
 
-  const handleCreateVendor = async (e: React.FormEvent) => {
+  const handleCreateVendor = async (e: FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
     if (!vendorName.trim()) newErrors.vendorName = 'Provider corporate name is required';
@@ -1351,7 +1351,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
 
   // --- SETTINGS PREFERENCES ---
-  const handleSettingsSubmit = async (e: React.FormEvent) => {
+  const handleSettingsSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
     if (!settingsForm.siteName.trim()) newErrors.siteName = 'System brand name is required';

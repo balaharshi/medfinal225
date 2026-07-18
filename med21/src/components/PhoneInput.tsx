@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 
 const COUNTRIES = [
   { code: '+971', name: 'UAE', digits: 9 },
@@ -61,13 +61,13 @@ export default function PhoneInput({
     onChange(d ? `${code} ${d}` : '');
   };
 
-  const handleDigitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDigitChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newDigits = e.target.value.replace(/\D/g, '').slice(0, maxDigits);
     setDigits(newDigits);
     emit(countryCode, newDigits);
   };
 
-  const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleCountryChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const newCode = e.target.value;
     setCountryCode(newCode);
     const newCountry = COUNTRIES.find(c => c.code === newCode);

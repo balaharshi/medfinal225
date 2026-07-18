@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import { useState, FormEvent } from 'react';
 import { Mail, Phone, MapPin, Send, MessageCircle, Heart, CheckCircle } from 'lucide-react';
 import { api } from '../lib/api';
 import SafeImage from './SafeImage';
@@ -25,7 +25,7 @@ export default function Footer({ onNavigationClick }: FooterProps) {
     }, 0);
   };
 
-  const handleSubscribe = async (e: React.FormEvent) => {
+  const handleSubscribe = async (e: FormEvent) => {
     e.preventDefault();
     if (email.trim().length > 3) {
       try {

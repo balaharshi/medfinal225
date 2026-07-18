@@ -533,7 +533,7 @@ class EnbdpayService
             'lastName' => $last,
             'isdCode' => '+971',
             'mobileNumber' => substr(preg_replace('/\D/', '', (string) ($customer['phone'] ?? '500000000')), -15) ?: '500000000',
-            'email' => substr((string) ($customer['email'] ?? 'guest@medzivahealthcare.com'), 0, 50),
+            'email' => substr((string) ($customer['email'] ?? 'booking@' . config('app.name') . '.ae'), 0, 50),
             'shippingAddress' => ['addressLine1' => $address, 'addressLine2' => 'MedZiva Healthcare', 'city' => 'Dubai', 'state' => 'Dubai', 'countryCode' => 'AE', 'pinCode' => '00000'],
             'billingAddress' => ['addressLine1' => $address, 'addressLine2' => 'MedZiva Healthcare', 'city' => 'Dubai', 'state' => 'Dubai', 'countryCode' => 'AE', 'pinCode' => '00000'],
         ];

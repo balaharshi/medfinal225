@@ -13,7 +13,7 @@ class Booking extends BaseModel
         'region', 'status', 'payment_status', 'payment_provider', 'payment_app_utr',
         'payment_order_id', 'payment_transaction_utr', 'payment_response_status',
         'paid_at', 'notes', 'accepted_at', 'completed_at', 'expires_at',
-        'cost',
+        'cost', 'reschedule_count',
     ];
 
     protected function casts(): array

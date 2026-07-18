@@ -1,4 +1,3 @@
-import React from 'react';
 import { Share2, MessageCircle, Facebook, Link } from 'lucide-react';
 import toast from 'react-hot-toast';
 

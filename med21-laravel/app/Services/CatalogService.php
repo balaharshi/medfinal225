@@ -23,7 +23,10 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class CatalogService
 {
-    private string $defaultImage = 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=400';
+    private function defaultImage(): string
+    {
+        return config('app.url') . '/images/default-service.jpg';
+    }
 
     public function __construct(
         private readonly VendorServiceAssignmentService $assignmentService,
@@ -64,7 +67,7 @@ class CatalogService
             'id' => SequentialId::next(Category::class, 'cat'),
             'title' => $payload['title'],
             'slug' => Str::slug($payload['title']),
-            'image' => $payload['image'] ?? $this->defaultImage,
+            'image' => $payload['image'] ?? $this->defaultImage(),
             'description' => $payload['description'] ?? '',
             'type' => $payload['type'] ?? 'service',
         ]);
@@ -139,7 +142,7 @@ class CatalogService
             'subtitle' => $payload['subtitle'] ?? '',
             'price' => $price,
             'original_price' => (int) ($payload['originalPrice'] ?? $price),
-            'image' => $payload['image'] ?? 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&q=80&w=400',
+            'image' => $payload['image'] ?? $this->defaultImage(),
             'category' => $payload['category'] ?? 'devices-for-rent',
             'subcategory' => $payload['subcategory'] ?? '',
             'brand' => $payload['brand'] ?? 'MedZiva Store',
@@ -761,7 +764,7 @@ class CatalogService
         $set('home_visit_fee_included', $has('homeVisitFeeIncluded') ? (bool) $payload['homeVisitFeeIncluded'] : ($partial ? null : true));
         $set('duration', $payload['duration'] ?? ($partial ? null : '1 Hour'));
         $set('estimated_visit_time', $payload['estimatedVisitTime'] ?? ($partial ? null : ''));
-        $set('image', $payload['image'] ?? ($partial ? null : $this->defaultImage));
+        $set('image', $payload['image'] ?? ($partial ? null : $this->defaultImage()));
         $set('short_description', $this->sanitizeDescription($payload['shortDescription'] ?? $payload['description'] ?? ($partial ? null : '')));
         $set('full_description', $this->sanitizeDescription($payload['fullDescription'] ?? $payload['description'] ?? ($partial ? null : '')));
         $set('description', $this->sanitizeDescription($payload['description'] ?? $payload['shortDescription'] ?? ($partial ? null : '')));
@@ -943,13 +946,16 @@ class CatalogService
 
     public function getVendorSlaMetrics(): array
     {
-        $vendors = Vendor::query()->where('active', true)->get();
+        $vendors = Vendor::query()->where('active', true)->get()->keyBy('id');
 
-        $metrics = $vendors->map(function (Vendor $vendor) {
-            $bookings = Booking::query()
-                ->where('vendor_id', $vendor->id)
-                ->whereIn('status', ['Active', 'Completed', 'Canceled'])
-                ->get();
+        $allBookings = Booking::query()
+            ->whereIn('vendor_id', $vendors->keys())
+            ->whereIn('status', ['Active', 'Completed', 'Canceled'])
+            ->get()
+            ->groupBy('vendor_id');
+
+        $metrics = $vendors->map(function (Vendor $vendor) use ($allBookings) {
+            $bookings = $allBookings->get($vendor->id, collect());
 
             $totalBookings = $bookings->count();
             $completedBookings = $bookings->where('status', 'Completed')->count();

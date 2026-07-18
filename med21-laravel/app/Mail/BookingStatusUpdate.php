@@ -20,8 +20,9 @@ class BookingStatusUpdate extends Mailable implements ShouldQueue
 
     public function envelope(): Envelope
     {
+        $title = $this->booking['serviceTitle'] ?? $this->booking['service_title'] ?? 'Healthcare Service';
         return new Envelope(
-            subject: "Booking Update - {$this->booking['serviceTitle'] ?? $this->booking['service_title'] ?? 'Healthcare Service'}",
+            subject: "Booking Update - {$title}",
         );
     }
 

@@ -592,7 +592,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     if (!vendorId) return;
 
     try {
-      const data = await api.get(`/api/vendors/${vendorId}/service-assignments`);
+      const data: any = await api.get(`/api/vendors/${vendorId}/service-assignments`);
       setVendorServiceAssignments(data);
     } catch (error) { /* ignore fetch errors */ }
   };
@@ -3860,8 +3860,8 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                   {reportMetrics.serviceReportData.slice(0, 10).map((service) => (
                     <div key={service.name} className="grid grid-cols-[1fr_auto_auto] gap-4 items-center rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs">
                       <span className="font-black text-blue-950 truncate">{service.name}</span>
-                      <span className="font-bold text-slate-500">{service.count} bookings</span>
-                      <span className="font-black text-emerald-700">{service.revenue} {settingsData.defaultCurrency || "AED"}</span>
+                      <span className="font-bold text-slate-500">{(service as any).count} bookings</span>
+                      <span className="font-black text-emerald-700">{(service as any).revenue} {settingsData.defaultCurrency || "AED"}</span>
                     </div>
                   ))}
                 </div>

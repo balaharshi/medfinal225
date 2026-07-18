@@ -907,11 +907,11 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
     vendorPrices: [],
-    attributes: {
+    attributes: [{
       key_ingredients: "Alpha Lipoic Acid\nZinc Sulphate\nSelenium\nVitamin C",
       clinical_benefits: "● Brightens skin and improves tone\n● Reduces signs of aging and oxidative stress\n● Promotes collagen synthesis and skin elasticity",
       disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
-    }
+    }]
   },
   {
     id: "srv-iv-hair-skin-nail-care",
@@ -925,11 +925,11 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
     vendorPrices: [],
-    attributes: {
+    attributes: [{
       key_ingredients: "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nBiotin\nZinc Sulphate\nMagnesium Chloride",
       clinical_benefits: "● Promotes healthy hair growth and nail strength\n● Enhances skin hydration and elasticity\n● Reduces inflammation and supports skin healing",
       disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
-    }
+    }]
   },
   {
     id: "srv-iv-energy-weight-loss",
@@ -943,11 +943,11 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
     vendorPrices: [],
-    attributes: {
+    attributes: [{
       key_ingredients: "Vitamin B1\nVitamin B6\nVitamin B12\nCarnitine\nAlpha Lipoic Acid\nZinc Sulphate\nMagnesium Chloride",
       clinical_benefits: "● Boosts energy and endurance\n● Enhances fat metabolism\n● Reduces exercise-related fatigue and muscle cramps",
       disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
-    }
+    }]
   },
   {
     id: "srv-iv-immune-hydration-drip",
@@ -961,11 +961,11 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
     vendorPrices: [],
-    attributes: {
+    attributes: [{
       key_ingredients: "Vitamin C\nZinc Sulphate\nMagnesium Chloride\nN-Acetylcysteine (NAC)\nSelenium",
       clinical_benefits: "● Supports immune system function\n● Enhances hydration and recovery\n● Reduces oxidative stress and inflammation",
       disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
-    }
+    }]
   },
   {
     id: "srv-iv-antistress-relax",
@@ -979,11 +979,11 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
     vendorPrices: [],
-    attributes: {
+    attributes: [{
       key_ingredients: "Vitamin B1\nVitamin B6\nVitamin B12\nCarnitine\nAlpha Lipoic Acid\nZinc Sulphate\nMagnesium Chloride",
       clinical_benefits: "● Supports neurotransmitter function for sharper focus\n● Promotes better concentration and focus\n● Promotes relaxation and reduces stress\n● Magnesium and B vitamins help soothe the nervous system, leading to a more relaxed state of mind",
       disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
-    }
+    }]
   },
   {
     id: "srv-iv-gut-cleanse-acne-cure",
@@ -997,11 +997,11 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
     vendorPrices: [],
-    attributes: {
+    attributes: [{
       key_ingredients: "Vitamin B Complex (B1, B5, B6, B12)\nMagnesium Chloride\nZinc Sulphate\nN-Acetylcysteine (NAC)\nL-Glutamine\nAlpha Lipoic Acid (ALA)\nAscorbic Acid (Vitamin C)",
       clinical_benefits: "● Sebum Regulation: Vitamins and zinc decrease oil production\n● Anti Inflammatory Effects: Magnesium, NAC, ALA and Vitamin C minimizes inflammation\n● Anti Oxidant Support: NAC, ALA and Vitamin C combat oxidative stress\n● Gut Health Improvement: L-Glutamine enhances gut health, reducing systemic inflammation",
       disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
-    }
+    }]
   },
   {
     id: "srv-iv-surgery-recovery",
@@ -1015,11 +1015,11 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
     vendorPrices: [],
-    attributes: {
+    attributes: [{
       key_ingredients: "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nNiacinamide\nVitamin B2\nMagnesium Chloride\nZinc Sulphate\nIron III Hydroxide Sucrose\nL-Glutamine\nFolic Acid\nAscorbic Acid",
       clinical_benefits: "● Enhances Healing: Vitamins and amino acids promote tissue repair and recovery\n● Reduced Inflammation: Ingredients like Niacinamide and Vitamin C help mitigate inflammation\n● Support for immune function: Zinc and Vitamin B6 boost immune response\n● Energy production: B vitamins facilitate energy metabolism to support recovery",
       disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
-    }
+    }]
   },
   {
     id: "srv-iv-women-health-fertilty",
@@ -1033,11 +1033,11 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
     vendorPrices: [],
-    attributes: {
+    attributes: [{
       key_ingredients: "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nVitamin B2\nMagnesium Chloride\nZinc Sulphate\nAscorbic Acid\nN-Acetylcysteine\nSelenium",
       clinical_benefits: "● Enhances women's fertility and health by improving egg quality, regulating hormones and reducing oxidative stress\n● Boosts energy and balances hormones\n● Provides antioxidant protection, promoting reproductive wellness",
       disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
-    }
+    }]
   },
   {
     id: "srv-iv-men-power-drip",
@@ -1051,11 +1051,11 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
     vendorPrices: [],
-    attributes: {
+    attributes: [{
       key_ingredients: "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nMagnesium Chloride\nZinc Sulphate\nL-Glutamine\nL-Arginine\nAscorbic Acid\nTaurine\nSelenium",
       clinical_benefits: "● Supports men's sexual performance by boosting energy, improving blood flow and enhancing overall vitality\n● Stimulates nitric oxide production promoting better circulation and erectile function\n● Zinc Sulphate aids testosterone synthesis",
       disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
-    }
+    }]
   },
   {
     id: "srv-iv-liver-detox-after-party",
@@ -1069,11 +1069,11 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
     vendorPrices: [],
-    attributes: {
+    attributes: [{
       key_ingredients: "Vitamin B1\nVitamin B5\nVitamin B6\nVitamin B12\nCarnitine\nAlpha Lipoic Acid\nZinc Sulphate\nMagnesium Chloride",
       clinical_benefits: "● Supports detoxification and liver function\n● Reduces oxidative stress on the liver\n● Enhances fat metabolism and energy production",
       disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
-    }
+    }]
   },
   {
     id: "srv-iv-nad-100",
@@ -1087,11 +1087,11 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
     vendorPrices: [],
-    attributes: {
+    attributes: [{
       key_ingredients: "NAD+ 100mg",
       clinical_benefits: "● Enhances cellular repair and regeneration\n● Boosts energy and combats fatigue\n● Supports anti-aging and overall vitality",
       disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
-    }
+    }]
   },
   {
     id: "srv-iv-nad-250",
@@ -1105,11 +1105,11 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
     vendorPrices: [],
-    attributes: {
+    attributes: [{
       key_ingredients: "NAD+ 250mg",
       clinical_benefits: "● Enhances cellular repair and regeneration\n● Boosts energy and combats fatigue\n● Supports anti-aging and overall vitality",
       disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
-    }
+    }]
   },
   {
     id: "srv-iv-nad-500",
@@ -1123,11 +1123,11 @@ const BASE_HEALTHCARE_SERVICES: HealthcareService[] = [
     bookingNotice: "24 hours prior booking",
     leadTimeHours: 12,
     vendorPrices: [],
-    attributes: {
+    attributes: [{
       key_ingredients: "NAD+ 500mg",
       clinical_benefits: "● Enhances cellular repair and regeneration\n● Boosts energy and combats fatigue\n● Supports anti-aging and overall vitality",
       disclaimer: "Disclaimer:\n1. IV Therapy is a wellness service and is not intended to diagnose, treat, cure, or prevent any disease.\n2. Treatment suitability is subject to a medical assessment by a qualified healthcare professional.\n3. Results may vary between individuals.\n4. By booking a service, you acknowledge and accept the potential risks and benefits of IV Therapy."
-    }
+    }]
   },
 ];
 

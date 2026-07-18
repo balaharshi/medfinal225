@@ -19,8 +19,9 @@ class PaymentConfirmation extends Mailable implements ShouldQueue
 
     public function envelope(): Envelope
     {
+        $title = $this->booking['serviceTitle'] ?? $this->booking['service_title'] ?? 'Healthcare Service';
         return new Envelope(
-            subject: "Payment Received - {$this->booking['serviceTitle'] ?? $this->booking['service_title'] ?? 'Healthcare Service'}",
+            subject: "Payment Received - {$title}",
         );
     }
 

@@ -362,19 +362,21 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
   const formatRelativeTime = (date: Date | null) => {
     if (!date) return "Never";
-    if (seconds < 60) return `${seconds}s ago`;
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.floor(hours / 24)}d ago`;
+    const secs = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (secs < 60) return `${secs}s ago`;
+    const mins = Math.floor(secs / 60);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
   };
 
   const formatExpiryCountdown = (expiresAt: string | null) => {
     if (!expiresAt) return null;
     const diff = new Date(expiresAt).getTime() - Date.now();
-    const minutes = Math.floor((diff % 3600000) / 60000);
-    return { text: `Expires in ${hours}h ${minutes}m`, urgent: hours < 1 };
+    const hrs = Math.floor(diff / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    return { text: `Expires in ${hrs}h ${mins}m`, urgent: hrs < 1 };
   };
 
   const pendingBookingsCount = bookingsList.filter(b => b.status === "Pending" || !b.status).length;

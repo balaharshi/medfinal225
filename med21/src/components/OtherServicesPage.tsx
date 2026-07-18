@@ -18,7 +18,7 @@ export default function OtherServicesPage({
   activeSectionId,
   handleTabChange,
   triggerServiceEnquiry,
-}: WellnessPageProps) {
+}: OtherServicesPageProps) {
   return (
     <>
       {!activeSectionId && (

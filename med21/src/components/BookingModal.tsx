@@ -142,7 +142,7 @@ export default function BookingModal({
       .catch(() => null)
       .then(data => {
         if (!cancelled && Array.isArray(data) && data.length > 0) {
-          setApiSlots(data);
+          setApiSlots(data as any);
         } else if (!cancelled) {
           setApiSlots(null);
         }
@@ -177,7 +177,7 @@ export default function BookingModal({
   useEffect(() => {
     if (availableSlots.length === 0) return;
     if (!availableSlots.some(s => s.label === time)) {
-      setTime(availableSlots[0].label);
+      setTime(availableSlots[0].label as any);
     }
   }, [date, availableSlots, time]);
 
@@ -542,7 +542,7 @@ export default function BookingModal({
                   </label>
                   <select
                     value={time}
-                    onChange={(e) => setTime(e.target.value)}
+                    onChange={(e) => setTime(e.target.value as any)}
                     className="w-full text-xs border border-slate-200 rounded-xl p-3 bg-white focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
                   >
                     {availableSlots.map((slot) => (

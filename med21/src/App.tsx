@@ -183,7 +183,7 @@ function PaymentReturnPage() {
   const normalizedStatus = effectiveStatus.toUpperCase();
   const isSuccess = ['CAPTURED', 'AUTHORIZED', 'PROCESSED', 'SUCCESS'].includes(normalizedStatus);
   const isFailure = ['FAILED', 'DECLINED', 'REJECTED', 'ERROR', 'AUTHORIZATION_DECLINED'].includes(normalizedStatus);
-  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     if (isSuccess) {

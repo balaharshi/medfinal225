@@ -8,7 +8,7 @@ interface SafeImageProps {
   fallbackSrc?: string;
   fallback?: ReactNode;
   children?: ReactNode;
-  referrerPolicy?: HTMLImageElement['referrerPolicy'];
+  referrerPolicy?: React.HTMLAttributeReferrerPolicy;
   loading?: 'eager' | 'lazy';
   onError?: (event: SyntheticEvent<HTMLImageElement>) => void;
 }

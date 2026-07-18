@@ -105,4 +105,5 @@ export type ActiveTab =
   | 'terms'
   | 'admin'
   | 'vendor'
-  | 'search-results';
+  | 'search-results'
+  | 'health-packages';

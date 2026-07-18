@@ -11,6 +11,15 @@ class CategorySeeder extends Seeder
 {
     public function run(): void
     {
+        // Remove old/stale categories from previous seeders
+        $validSlugs = ['home-healthcare', 'lab-tests-at-home', 'rent-medical-equipment'];
+        Category::whereNotIn('slug', $validSlugs)->delete();
+        Subcategory::whereNotIn('slug', ['nursing-care-at-home', 'physiotherapy-at-home', 'doctor-on-call',
+            'long-term-specialized-care', 'speech-and-language-therapy', 'occupational-therapy', 'iv-therapy',
+            'routine-blood-tests', 'preventive-health-packages', 'mens-health-packages', 'womens-health-packages',
+            'std-sexual-health', 'specialized-diagnostic-tests', 'genetic-testing'
+        ])->delete();
+
         $categories = [
             'home-healthcare' => [
                 'title' => 'Home Healthcare',

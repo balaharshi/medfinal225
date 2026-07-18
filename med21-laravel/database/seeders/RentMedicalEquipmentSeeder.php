@@ -64,7 +64,9 @@ class RentMedicalEquipmentSeeder extends Seeder
                 $product->id = SequentialId::next(Product::class, 'prod');
             }
 
+            $slug = Str::slug($data['name']);
             $product->fill([
+                'slug' => $slug,
                 'subtitle' => "MRP per week AED {$data['weekly_price']} | MRP per month AED {$data['monthly_price']} | Security deposit AED {$data['security_deposit']}",
                 'price' => $data['weekly_price'],
                 'original_price' => $data['monthly_price'],

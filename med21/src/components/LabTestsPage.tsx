@@ -170,7 +170,7 @@ export default function LabTestsPage({
                             type="button"
                             onClick={isAdded ? undefined : () => handleAddToCart(srv)}
                             disabled={isAdded}
-                            className={`shrink-0 rounded-xl px-3 py-2 text-[11px] font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                            className={`shrink-0 rounded-xl px-[13px] py-[9px] text-[11px] font-black transition-all cursor-pointer flex items-center gap-1.5 ${
                               isAdded
                                 ? 'bg-emerald-50 text-medical-green border border-emerald-200 opacity-60 cursor-not-allowed'
                                 : 'bg-medical-blue text-white hover:bg-blue-900'

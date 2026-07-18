@@ -161,7 +161,7 @@ export default function EnquiryModal({
           <button
             onClick={success ? handleReset : onClose}
             aria-label="Close enquiry dialog"
-            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-150 rounded-full cursor-pointer transition-colors"
+            className="p-[9px] text-slate-400 hover:text-slate-600 hover:bg-slate-150 rounded-full cursor-pointer transition-colors"
           >
             <X className="w-4 h-4" />
           </button>

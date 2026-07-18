@@ -408,7 +408,7 @@ export default function CartDrawer({
                 <button
                   onClick={onClose}
                   aria-label="Close cart"
-                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full cursor-pointer transition-colors"
+                  className="p-[9px] text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full cursor-pointer transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -462,7 +462,7 @@ export default function CartDrawer({
                                   )
                                 }
                                 aria-label="Remove item"
-                                className="text-red-400 hover:text-red-500 hover:bg-red-50 p-2 rounded transition-colors cursor-pointer"
+                                className="text-red-400 hover:text-red-500 hover:bg-red-50 p-[9px] rounded transition-colors cursor-pointer"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -477,7 +477,7 @@ export default function CartDrawer({
                                     }
                                   }}
                                   aria-label="Decrease quantity"
-                                  className="p-2 hover:bg-white rounded text-slate-600 hover:text-slate-900 cursor-pointer"
+                                  className="p-[9px] hover:bg-white rounded text-slate-600 hover:text-slate-900 cursor-pointer"
                                 >
                                   <Minus className="w-3.5 h-3.5" />
                                 </button>
@@ -485,7 +485,7 @@ export default function CartDrawer({
                                 <button
                                   onClick={() => onUpdateQty(item.product.id, item.quantity + 1)}
                                   aria-label="Increase quantity"
-                                  className="p-2 hover:bg-white rounded text-slate-600 hover:text-slate-900 cursor-pointer"
+                                  className="p-[9px] hover:bg-white rounded text-slate-600 hover:text-slate-900 cursor-pointer"
                                 >
                                   <Plus className="w-3.5 h-3.5" />
                                 </button>

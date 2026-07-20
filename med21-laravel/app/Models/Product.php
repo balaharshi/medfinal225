@@ -5,7 +5,7 @@ namespace App\Models;
 class Product extends BaseModel
 {
     protected $fillable = [
-        'name', 'slug', 'subtitle', 'price', 'original_price', 'image', 'category',
+        'id', 'name', 'slug', 'subtitle', 'price', 'original_price', 'image', 'category',
         'subcategory', 'brand', 'rating', 'in_stock', 'description',
         'attributes', 'vendor_prices',
     ];

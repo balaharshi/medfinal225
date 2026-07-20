@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Subcategory extends BaseModel
 {
-    protected $fillable = ['category_id', 'title', 'slug', 'image'];
+    protected $fillable = ['id', 'category_id', 'title', 'slug', 'image'];
 
     public function category(): BelongsTo
     {

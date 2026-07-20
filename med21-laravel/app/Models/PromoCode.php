@@ -5,7 +5,7 @@ namespace App\Models;
 class PromoCode extends BaseModel
 {
     protected $fillable = [
-        'code', 'discount_percent', 'max_uses', 'uses', 'expires_at', 'active',
+        'id', 'code', 'discount_percent', 'max_uses', 'uses', 'expires_at', 'active',
     ];
 
     protected $casts = [

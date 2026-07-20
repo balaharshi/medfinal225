@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Service extends BaseModel
 {
     protected $fillable = [
-        'title', 'slug', 'category', 'subcategory', 'status', 'active',
+        'id', 'title', 'slug', 'category', 'subcategory', 'status', 'active',
         'price', 'original_price', 'sale_price', 'currency',
         'home_visit_fee_included', 'duration', 'estimated_visit_time', 'image',
         'short_description', 'full_description', 'description', 'inclusions',

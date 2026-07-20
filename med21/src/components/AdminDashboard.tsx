@@ -1482,33 +1482,66 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     }
   };
 
+  const dateFilteredBookings = useMemo(() => {
+    if (reportDateRange === "all" && !reportStartDate && !reportEndDate) {
+      return bookingsList;
+    }
+
+    const now = new Date();
+    let startDate: Date | null = null;
+    let endDate: Date | null = null;
+
+    if (reportStartDate) {
+      startDate = new Date(reportStartDate);
+    } else if (reportDateRange !== "all") {
+      const daysMap = { today: 0, "7d": 7, "30d": 30, "90d": 90 };
+      const days = daysMap[reportDateRange as keyof typeof daysMap];
+      if (days !== undefined) {
+        startDate = new Date(now);
+        startDate.setDate(startDate.getDate() - days);
+      }
+    }
+
+    if (reportEndDate) {
+      endDate = new Date(reportEndDate);
+      endDate.setHours(23, 59, 59, 999);
+    }
+
+    return bookingsList.filter((booking) => {
+      const bookingDate = new Date(booking.date || booking.createdAt || "");
+      if (startDate && bookingDate < startDate) return false;
+      if (endDate && bookingDate > endDate) return false;
+      return true;
+    });
+  }, [bookingsList, reportDateRange, reportStartDate, reportEndDate]);
+
   // --- REPORT METRIC ANALYTICS CALCULATIONS ---
   const reportMetrics = useMemo(() => {
-    const totalBookings = bookingsList.length;
-    const completed = bookingsList.filter(b => b.status === 'Completed');
+    const totalBookings = dateFilteredBookings.length;
+    const completed = dateFilteredBookings.filter(b => b.status === 'Completed');
     const completedVal = completed.reduce((acc, curr) => acc + (curr.price || 0), 0);
     const completedCost = completed.reduce((acc, curr) => acc + ((curr as any).cost || 0), 0);
     const totalProfit = completedVal - completedCost;
-    const completedCount = bookingsList.filter(b => b.status === "Completed").length;
-    const activeCount = bookingsList.filter(b => b.status === "Active").length;
-    const pendingCount = bookingsList.filter(b => b.status === "Pending" || !b.status).length;
-    const cancelledCount = bookingsList.filter(b => b.status === "Canceled").length;
-    const assignedCount = bookingsList.filter(b => !!b.vendorId || (b.vendorName && b.vendorName !== "Unassigned")).length;
-    const unassignedCount = bookingsList.filter(b => !b.vendorId && (!b.vendorName || b.vendorName === "Unassigned")).length;
+    const completedCount = dateFilteredBookings.filter(b => b.status === "Completed").length;
+    const activeCount = dateFilteredBookings.filter(b => b.status === "Active").length;
+    const pendingCount = dateFilteredBookings.filter(b => b.status === "Pending" || !b.status).length;
+    const cancelledCount = dateFilteredBookings.filter(b => b.status === "Canceled").length;
+    const assignedCount = dateFilteredBookings.filter(b => !!b.vendorId || (b.vendorName && b.vendorName !== "Unassigned")).length;
+    const unassignedCount = dateFilteredBookings.filter(b => !b.vendorId && (!b.vendorName || b.vendorName === "Unassigned")).length;
     const fulfillmentRate = totalBookings > 0 ? Math.round(((activeCount + completedCount) / totalBookings) * 100) : 0;
     const averageBookingValue = totalBookings > 0 ? Math.round(completedVal / totalBookings) : 0;
-    const uniqueCustomers = new Set(bookingsList.map((b) => b.customerEmail || b.customerPhone || b.customerName).filter(Boolean)).size;
-    const customerBookingCounts = bookingsList.reduce((acc, booking) => {
+    const uniqueCustomers = new Set(dateFilteredBookings.map((b) => b.customerEmail || b.customerPhone || b.customerName).filter(Boolean)).size;
+    const customerBookingCounts = dateFilteredBookings.reduce((acc, booking) => {
       const key = booking.customerEmail || booking.customerPhone || booking.customerName || "guest";
       acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
     const repeatCustomerCount = (Object.values(customerBookingCounts) as number[]).filter((count) => count > 1).length;
-    
+
     // Revenue by region
     let dubaiRev = 0;
     let shjRev = 0;
-    bookingsList.forEach(b => {
+    dateFilteredBookings.forEach(b => {
       const p = Number(b.price) || 0;
       if (b.region?.toLowerCase().includes("dubai")) {
         dubaiRev += p;
@@ -1523,12 +1556,12 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       servicesByCategoryCount[s.category] = (servicesByCategoryCount[s.category] || 0) + 1;
     });
 
-    const revenueByService = bookingsList.reduce((acc, booking) => {
+    const revenueByService = dateFilteredBookings.reduce((acc, booking) => {
       const title = booking.serviceTitle || "Unassigned service";
       acc[title] = (acc[title] || 0) + (Number(booking.price) || 0);
       return acc;
     }, {} as Record<string, number>);
-    const bookingsByService = bookingsList.reduce((acc, booking) => {
+    const bookingsByService = dateFilteredBookings.reduce((acc, booking) => {
       const title = booking.serviceTitle || "Unassigned service";
       acc[title] = (acc[title] || 0) + 1;
       return acc;
@@ -1572,7 +1605,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       revenue: revenueByService[name] || 0,
     })).sort((a, b) => b.revenue - a.revenue);
     const vendorPerformanceData = vendorsList.map((vendor) => {
-      const vendorBookings = bookingsList.filter((booking) => booking.vendorId === vendor.id || booking.vendorName === vendor.name);
+      const vendorBookings = dateFilteredBookings.filter((booking) => booking.vendorId === vendor.id || booking.vendorName === vendor.name);
       const revenue = vendorBookings.reduce((sum, booking) => sum + (Number(booking.price) || 0), 0);
       const completed = vendorBookings.filter((booking) => booking.status === "Completed").length;
       const active = vendorBookings.filter((booking) => booking.status === "Active").length;
@@ -1588,7 +1621,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         completionRate: vendorBookings.length > 0 ? Math.round((completed / vendorBookings.length) * 100) : 0,
       };
     }).sort((a, b) => b.revenue - a.revenue);
-    const customerReportMap = bookingsList.reduce((acc, booking) => {
+    const customerReportMap = dateFilteredBookings.reduce((acc, booking) => {
       const key = booking.customerEmail || booking.customerPhone || booking.customerName || "guest";
       if (!acc[key]) {
         acc[key] = {
@@ -1605,7 +1638,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     const customerReportData = (Object.values(customerReportMap) as Array<{ name: string; email: string; bookings: number; revenue: number }>)
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 8);
-    const monthlySalesData = bookingsList.reduce((acc, booking) => {
+    const monthlySalesData = dateFilteredBookings.reduce((acc, booking) => {
       const month = String(booking.date || booking.createdAt || "").slice(0, 7) || "Unscheduled";
       acc[month] = (acc[month] || 0) + (Number(booking.price) || 0);
       return acc;
@@ -1644,40 +1677,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       customerReportData,
       salesTrendData
     };
-  }, [bookingsList, vendorsList, usersList, db.services]);
-
-  const dateFilteredBookings = useMemo(() => {
-    if (reportDateRange === "all" && !reportStartDate && !reportEndDate) {
-      return bookingsList;
-    }
-
-    const now = new Date();
-    let startDate: Date | null = null;
-    let endDate: Date | null = null;
-
-    if (reportStartDate) {
-      startDate = new Date(reportStartDate);
-    } else if (reportDateRange !== "all") {
-      const daysMap = { today: 0, "7d": 7, "30d": 30, "90d": 90 };
-      const days = daysMap[reportDateRange as keyof typeof daysMap];
-      if (days !== undefined) {
-        startDate = new Date(now);
-        startDate.setDate(startDate.getDate() - days);
-      }
-    }
-
-    if (reportEndDate) {
-      endDate = new Date(reportEndDate);
-      endDate.setHours(23, 59, 59, 999);
-    }
-
-    return bookingsList.filter((booking) => {
-      const bookingDate = new Date(booking.date || booking.createdAt || "");
-      if (startDate && bookingDate < startDate) return false;
-      if (endDate && bookingDate > endDate) return false;
-      return true;
-    });
-  }, [bookingsList, reportDateRange, reportStartDate, reportEndDate]);
+  }, [dateFilteredBookings, vendorsList, usersList, db.services]);
 
   const exportToCSV = (data: any[], filename: string) => {
     if (data.length === 0) return;

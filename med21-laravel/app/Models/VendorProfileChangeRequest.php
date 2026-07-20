@@ -5,7 +5,7 @@ namespace App\Models;
 class VendorProfileChangeRequest extends BaseModel
 {
     protected $fillable = [
-        'vendor_id',
+        'id', 'vendor_id',
         'field_name',
         'current_value',
         'requested_value',

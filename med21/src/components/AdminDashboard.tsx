@@ -666,9 +666,10 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     );
 
     try {
+      const vendorPrice = enabled && bulkVendorPrice ? Number(bulkVendorPrice) : null;
       await api.patch(
         `/api/vendors/${selectedVendorServiceVendorId}/service-assignments/${serviceId}`,
-        { body: { enabled } }
+        { body: { enabled, vendorPrice } }
       );
     } catch (error) {
 
@@ -3378,6 +3379,9 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                           <span className="bg-white border border-slate-200 rounded-md px-2 py-1">Category: {service.category || "Unassigned"}</span>
                           <span className="bg-white border border-slate-200 rounded-md px-2 py-1">Subcategory: {service.subcategory || "None"}</span>
                           <span className="bg-white border border-slate-200 rounded-md px-2 py-1">Price: {service.price || 0} {settingsData.defaultCurrency || "AED"}</span>
+                          {service.vendorPrice != null && (
+                            <span className="bg-emerald-50 border border-emerald-200 rounded-md px-2 py-1">Vendor Price: {service.vendorPrice} {settingsData.defaultCurrency || "AED"}</span>
+                          )}
                         </div>
                       </div>
 

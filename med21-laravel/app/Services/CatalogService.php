@@ -167,12 +167,33 @@ class CatalogService
 
     public function getServices(bool $includeHidden = false): array
     {
-        $query = Service::query()->orderBy('display_priority')->orderByDesc('updated_at');
+        $query = Service::query()->with('assignments.vendor')->orderBy('display_priority')->orderByDesc('updated_at');
         if (! $includeHidden) {
             $query->where('active', true)->where('status', 'active');
         }
 
-        return CaseKeys::camelize($query->get());
+        return CaseKeys::camelize($query->get()->map(function (Service $service): array {
+            $data = $service->toArray();
+            $dbPrices = $service->getAttribute('vendor_prices') ?? [];
+            $assignments = $service->getRelation('assignments') ?? collect();
+            $assignmentPrices = $assignments
+                ->filter(fn ($a) => $a->enabled && $a->vendor)
+                ->map(fn ($a) => [
+                    'vendorName' => $a->vendor->name,
+                    'price' => (int) ($a->vendor_price ?: $data['price'] ?? 0),
+                ])
+                ->values()
+                ->all();
+            $data['vendor_prices'] = $dbPrices
+                ? array_map(fn ($vp) => [
+                    'vendorName' => $vp['vendorName'] ?? $vp['vendor_name'] ?? $vp['name'] ?? '',
+                    'price' => (int) ($vp['price'] ?? $data['price'] ?? 0),
+                ], $dbPrices)
+                : $assignmentPrices;
+            unset($data['assignments']);
+
+            return $data;
+        })->all());
     }
 
     public function createService(array $payload): array

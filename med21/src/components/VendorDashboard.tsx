@@ -742,7 +742,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                           <p className="text-[10px] text-slate-400">{book.date} • {book.price} AED</p>
                           <div className="flex items-center gap-1.5">
                             {(() => {
-                              const expiry = formatExpiryCountdown(book.expires_at);
+                              const expiry = formatExpiryCountdown(book.expiresAt);
                               if (expiry && (book.status === "Pending" || !book.status)) {
                                 return (
                                   <span className={`text-[9px] font-bold ${expiry.urgent ? 'text-red-600' : 'text-amber-600'}`}>
@@ -901,7 +901,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                         {!book.customerPhone && <span>No phone</span>}
                       </div>
                       {(() => {
-                        const expiry = formatExpiryCountdown(book.expires_at);
+                        const expiry = formatExpiryCountdown(book.expiresAt);
                         if (expiry && (book.status === "Pending" || !book.status)) {
                           return (
                             <span className={`text-[9px] font-bold ${expiry.urgent ? 'text-red-600' : 'text-amber-600'}`}>

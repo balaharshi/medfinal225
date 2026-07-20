@@ -24,7 +24,7 @@ declare global {
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (username: string, email: string) => void;
+  onSuccess: (username: string, email: string, phone?: string, address?: string) => void;
 }
 
 interface AuthFormValues {
@@ -153,7 +153,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     setAuthError(null);
 
     try {
-      const data = await api.post<{ success?: boolean; accessToken?: string; user?: { fullName?: string; email?: string } }>(isSignUp ? '/api/auth/register' : '/api/auth/login', {
+      const data = await api.post<{ success?: boolean; accessToken?: string; user?: { fullName?: string; email?: string; phone?: string; address?: string } }>(isSignUp ? '/api/auth/register' : '/api/auth/login', {
         body: isSignUp
           ? {
               fullName: values.fullName.trim(),
@@ -178,7 +178,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
           : values.email.split('@')[0].replace(/^./, (char) => char.toUpperCase());
 
         trackEvent(isSignUp ? AnalyticsEvents.SIGNUP : AnalyticsEvents.LOGIN, { method: 'email' });
-        onSuccess(user.fullName || fallbackName, user.email || values.email.trim());
+        onSuccess(user.fullName || fallbackName, user.email || values.email.trim(), user.phone, user.address);
         closeModal();
       } else {
         const friendlyError = getFriendlyAuthError(data, isSignUp);
@@ -199,7 +199,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     setAuthError(null);
 
     try {
-      const data = await api.post<{ success?: boolean; accessToken?: string; user?: { fullName?: string; email?: string } }>('/api/auth/google', { body: payload });
+      const data = await api.post<{ success?: boolean; accessToken?: string; user?: { fullName?: string; email?: string; phone?: string; address?: string } }>('/api/auth/google', { body: payload });
 
       if (!data?.success) {
         const friendlyError = getFriendlyAuthError(data, false);
@@ -214,7 +214,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
 
       const user = data.user || {};
       trackEvent(AnalyticsEvents.GOOGLE_LOGIN, { method: 'google' });
-      onSuccess(user.fullName || user.email || 'MedZiva Customer', user.email || '');
+      onSuccess(user.fullName || user.email || 'MedZiva Customer', user.email || '', user.phone, user.address);
       closeModal();
     } catch (error) {
       const friendlyError = error instanceof Error ? error.message : 'We could not connect to the secure login service. Please try again in a moment.';

@@ -115,15 +115,23 @@ export const resolveHealthcareServiceImage = (service: HealthcareService): Healt
 };
 
 const rentalEquipmentImageNames: Record<string, string> = {
-  'BIPAP Machine': 'bipap machine',
-  'Patient Hoist': 'hospital patient hoist',
+  'Electric Bed 3 Function': 'Electric Bed 3 Function',
+  'Electric Bed 5 Function': 'Electric Bed 5 Function',
+  'Oxygen Concentrator 5 ltr': 'Oxygen Concentrator 5 ltr',
+  'Oxygen Cylinder Set 48cft (Includes regulator and trolley)': 'Oxygen Cylinder Set 48cft',
   'Patient Monitor 5 Parameter with trolley and accessories': 'Patient Monitor 5 Parameter with',
+  'BIPAP Machine': 'bipap machine',
+  'CPAP Machine': 'CPAP Machine',
   'Suction Machine': 'suction machine',
+  'Infusion Pump': 'Infusion Pump',
+  'Syringe Pump': 'Syringe Pump',
+  'Patient Hoist': 'hospital patient hoist',
+  'Wheel Chair': 'Wheel Chair',
 };
 
 const withRentalEquipmentImages = (products: Product[]) =>
   products.map((product) => {
-    if (product.subcategory !== 'rent-medical-equipments') return product;
+    if (product.category !== 'rent-medical-equipment') return product;
     const imageName = rentalEquipmentImageNames[product.name] || product.name;
     const localImage = rentalEquipmentImages[`./assets/images/rentalimg/${imageName}.jpg`];
     return localImage ? { ...product, image: localImage } : product;

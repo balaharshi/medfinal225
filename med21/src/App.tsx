@@ -357,6 +357,7 @@ function MainApp() {
           speechServices={app.speechServices}
           occupationalServices={app.occupationalServices}
           ivServices={app.ivServices}
+          servicesLoading={app.servicesLoading}
         />
       )}
 
@@ -749,19 +750,12 @@ function MainApp() {
       <AuthModal
         isOpen={app.isAuthOpen}
         onClose={() => app.setIsAuthOpen(false)}
-        onSuccess={async (username, email) => {
+        onSuccess={async (username, email, phone, address) => {
           app.setLoggedInUser(username);
           app.setLoggedInUserEmail(email);
+          if (phone) app.setLoggedInUserPhone(phone);
+          if (address) app.setLoggedInUserAddress(address);
           app.setIsAuthOpen(false);
-          try {
-            const profile = await api.get<{ fullName?: string; email?: string; phone?: string; address?: string }>('/api/auth/profile');
-            if (profile) {
-              app.setLoggedInUser(profile.fullName || username);
-              app.setLoggedInUserEmail(profile.email || email);
-              if (profile.phone) app.setLoggedInUserPhone(profile.phone);
-              if (profile.address) app.setLoggedInUserAddress(profile.address);
-            }
-          } catch { /* ignore */ }
           app.triggerToast(`Profile successfully loaded: Welcome back, ${username}!`);
         }}
       />

@@ -275,18 +275,36 @@ export function useAppState() {
     });
   }, [loggedInUserEmail]);
 
-  useEffect(() => {
-    localStorage.removeItem('medziva_user_name');
-    localStorage.removeItem('medziva_user_email');
-    localStorage.removeItem('medziva_user_phone');
-    localStorage.removeItem('medziva_user_address');
+  const cacheUserData = useCallback((name: string, email: string, phone?: string, address?: string) => {
+    try {
+      localStorage.setItem('medziva_user_name', name);
+      localStorage.setItem('medziva_user_email', email);
+      if (phone) localStorage.setItem('medziva_user_phone', phone);
+      if (address) localStorage.setItem('medziva_user_address', address);
+    } catch { /* storage full */ }
   }, []);
+
+  useEffect(() => {
+    if (loggedInUser && loggedInUserEmail) {
+      cacheUserData(loggedInUser, loggedInUserEmail, loggedInUserPhone, loggedInUserAddress);
+    }
+  }, [loggedInUser, loggedInUserEmail, loggedInUserPhone, loggedInUserAddress, cacheUserData]);
 
   useEffect(() => {
     const restoreCustomerSession = async () => {
       try {
         const token = localStorage.getItem('medziva_user_token');
         if (!token) return;
+        const cachedName = localStorage.getItem('medziva_user_name');
+        const cachedEmail = localStorage.getItem('medziva_user_email');
+        const cachedPhone = localStorage.getItem('medziva_user_phone');
+        const cachedAddress = localStorage.getItem('medziva_user_address');
+        if (cachedName || cachedEmail) {
+          setLoggedInUser(cachedName || '');
+          setLoggedInUserEmail(cachedEmail || '');
+          if (cachedPhone) setLoggedInUserPhone(cachedPhone);
+          if (cachedAddress) setLoggedInUserAddress(cachedAddress);
+        }
         const data = await api.get<{ user?: { role?: string; fullName?: string; email?: string; phone?: string; address?: string } }>('/api/auth/session');
         if (data?.user?.role !== 'customer') return;
         setLoggedInUser(data.user.fullName || '');
@@ -314,6 +332,8 @@ export function useAppState() {
 
   // Toast / Copy notification states
   const [copiedCoupon, setCopiedCoupon] = useState<string | null>(null);
+
+  const [servicesLoading, setServicesLoading] = useState(true);
 
   // Reactive ERP states loaded from back-end
   const [db, setDb] = useState<{
@@ -349,6 +369,8 @@ export function useAppState() {
       }
     } catch (e) {
       console.error('Error fetching service data:', e);
+    } finally {
+      setServicesLoading(false);
     }
   }, []);
 
@@ -972,6 +994,7 @@ export function useAppState() {
     currentProductSectionId,
 
     // Derived data
+    servicesLoading,
     filteredServices,
     filteredProducts,
     displayedProducts,

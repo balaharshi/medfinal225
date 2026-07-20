@@ -28,6 +28,7 @@ interface ServicesPageProps {
   speechServices: HealthcareService[];
   occupationalServices: HealthcareService[];
   ivServices: HealthcareService[];
+  servicesLoading?: boolean;
 };
 
 export default function ServicesPage({
@@ -45,6 +46,7 @@ export default function ServicesPage({
   speechServices,
   occupationalServices,
   ivServices,
+  servicesLoading = false,
 }: ServicesPageProps) {
 
   const getServiceAttributeValue = (srv: HealthcareService, label: string) => {
@@ -205,7 +207,19 @@ export default function ServicesPage({
         <p className="text-slate-500 text-sm mt-1 max-w-2xl">{description}</p>
       </div>
 
-      {items.length > 0 ? (
+      {servicesLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1,2,3].map((n) => (
+            <div key={n} className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-2xs animate-pulse">
+              <div className="h-44 w-full rounded-2xl bg-slate-100 mb-4" />
+              <div className="h-4 bg-slate-100 rounded w-3/4 mb-3" />
+              <div className="h-3 bg-slate-100 rounded w-full mb-2" />
+              <div className="h-3 bg-slate-100 rounded w-2/3 mb-4" />
+              <div className="h-10 bg-slate-100 rounded-xl mt-3" />
+            </div>
+          ))}
+        </div>
+      ) : items.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {items.map((srv) => renderServiceCard(srv))}
         </div>

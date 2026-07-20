@@ -30,7 +30,7 @@ class CatalogController extends Controller
     public function createSubcategory(SubcategoryRequest $request, string $catId): JsonResponse { Cache::forget('api.categories'); return response()->json($this->catalogService->createSubcategory($catId, $request->validated()), 201); }
     public function deleteSubcategory(string $catId, string $subId): JsonResponse { Cache::forget('api.categories'); return response()->json($this->catalogService->deleteSubcategory($catId, $subId)); }
     public function getProducts(): JsonResponse { return response()->json(Cache::remember('api.products', 600, fn () => $this->catalogService->getProducts())); }
-    public function createProduct(ProductRequest $request): JsonResponse { return response()->json($this->catalogService->createProduct($request->all()), 201); }
+    public function createProduct(ProductRequest $request): JsonResponse { Cache::forget('api.products'); return response()->json($this->catalogService->createProduct($request->all()), 201); }
     public function deleteProduct(string $id): JsonResponse { Cache::forget('api.products'); return response()->json($this->catalogService->deleteProduct($id)); }
     public function getServices(): JsonResponse { return response()->json(Cache::remember('api.services', 300, fn () => $this->catalogService->getServices())); }
     public function getAllServices(): JsonResponse { return response()->json($this->catalogService->getServices(true)); }
@@ -61,6 +61,33 @@ class CatalogController extends Controller
         $this->pusherService->triggerEvent('appointment:update', ['action' => 'created', 'message' => 'New appointment booked for '.$booking['serviceTitle'], 'booking' => $booking]);
 
         return response()->json($booking, 201);
+    }
+
+    public function createBookingsBatch(Request $request): JsonResponse
+    {
+        $request->validate([
+            'items' => 'required|array|min:1|max:50',
+            'items.*.customerName' => 'required|string|max:255',
+            'items.*.customerEmail' => 'required|email|max:255',
+            'items.*.serviceTitle' => 'required|string|max:255',
+            'items.*.price' => 'required|numeric|min:0',
+            'items.*.date' => 'required|date|after_or_equal:today',
+        ]);
+
+        $result = $this->catalogService->createBookingsBatch(
+            $request->input('items'),
+            $request->input('paymentGroupId'),
+        );
+
+        foreach ($result['bookings'] as $booking) {
+            $this->pusherService->triggerEvent('appointment:update', [
+                'action' => 'created',
+                'message' => 'New appointment booked for '.$booking['serviceTitle'],
+                'booking' => $booking,
+            ]);
+        }
+
+        return response()->json($result, 201);
     }
 
     public function updateBooking(Request $request, string $id): JsonResponse

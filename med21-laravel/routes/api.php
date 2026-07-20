@@ -84,6 +84,7 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
     Route::get('/bookings', [CatalogController::class, 'getBookings'])->middleware($admin);
     Route::get('/booking/{id}', [CatalogController::class, 'getBooking'])->middleware($admin);
     Route::post('/bookings', [CatalogController::class, 'createBooking'])->middleware('api.auth', 'throttle:20,1');
+    Route::post('/bookings/batch', [CatalogController::class, 'createBookingsBatch'])->middleware('api.auth', 'throttle:20,1');
     Route::patch('/booking/{id}', [CatalogController::class, 'updateBooking'])->middleware($admin);
     Route::delete('/booking/{id}', [CatalogController::class, 'cancelBooking'])->middleware($admin);
 

@@ -7,7 +7,7 @@ class Product extends BaseModel
     protected $fillable = [
         'id', 'name', 'slug', 'subtitle', 'price', 'original_price', 'image', 'category',
         'subcategory', 'brand', 'rating', 'in_stock', 'description',
-        'attributes', 'vendor_prices',
+        'attributes', 'vendor_prices', 'rental_duration',
     ];
 
     protected function casts(): array

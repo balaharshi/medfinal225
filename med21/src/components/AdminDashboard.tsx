@@ -7,6 +7,7 @@ import { useState, useMemo, useEffect, FormEvent } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { api } from "../lib/api";
+import { clearServicesCache } from '../services/servicesApi';
 import SafeImage from '../components/SafeImage';
 import { 
   Lock, 
@@ -467,19 +468,19 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
       if (vendorsResult.status === "fulfilled") {
         setVendorsList(vendorsResult.value);
-      } else { /* promise rejected - keep defaults */ }
+      } else { console.error('Failed to load vendors:', vendorsResult.reason); }
 
       if (usersResult.status === "fulfilled") {
         setUsersList(usersResult.value);
-      } else { /* promise rejected - keep defaults */ }
+      } else { console.error('Failed to load users:', usersResult.reason); }
 
       if (bookingsResult.status === "fulfilled") {
         setBookingsList(bookingsResult.value);
-      } else { /* promise rejected - keep defaults */ }
+      } else { console.error('Failed to load bookings:', bookingsResult.reason); }
 
       if (enquiriesResult.status === "fulfilled") {
         setEnquiriesList(enquiriesResult.value);
-      } else { /* promise rejected - keep defaults */ }
+      } else { console.error('Failed to load enquiries:', enquiriesResult.reason); }
 
       if (settingsResult.status === "fulfilled") {
         const data = settingsResult.value;
@@ -493,23 +494,26 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
           maintenanceMode: !!data.maintenanceMode,
           adminPassword: ""
         });
-      } else { /* promise rejected - keep defaults */ }
+      } else { console.error('Failed to load settings:', settingsResult.reason); }
 
       if (categoriesResult.status === "fulfilled") {
         setCategoriesList(categoriesResult.value);
-      } else { /* promise rejected - keep defaults */ }
+      } else { console.error('Failed to load categories:', categoriesResult.reason); }
 
       if (vendorChangeRequestsResult.status === "fulfilled") {
         setVendorChangeRequestsList(Array.isArray(vendorChangeRequestsResult.value) ? vendorChangeRequestsResult.value : []);
-      } else { /* promise rejected - keep defaults */ }
+      } else { console.error('Failed to load vendor change requests:', vendorChangeRequestsResult.reason); }
 
       if (pendingPaymentsResult.status === "fulfilled") {
         const pData = pendingPaymentsResult.value;
         setPendingPaymentsList(Array.isArray(pData?.payments) ? pData.payments : Array.isArray(pData) ? pData : []);
-      } else { /* promise rejected - keep defaults */ }
+      } else { console.error('Failed to load pending payments:', pendingPaymentsResult.reason); }
 
       onRefresh();
-    } catch (e) { /* ignore fetch errors */ } finally {
+    } catch (e) {
+      console.error('Failed to fetch admin data:', e);
+      toast.error('Failed to load admin data. Some sections may be incomplete.');
+    } finally {
       setIsLoadingData(false);
     }
   };
@@ -527,7 +531,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       const data = await api.get("/api/admin/vendor-sla");
       setVendorSlaMetrics(Array.isArray(data) ? data : []);
     } catch (e) {
-      // silent
+      console.error('Failed to fetch vendor SLA metrics:', e);
     } finally {
       setVendorSlaLoading(false);
     }
@@ -594,7 +598,9 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
     try {
       const data: any = await api.get(`/api/vendors/${vendorId}/service-assignments`);
       setVendorServiceAssignments(data);
-    } catch (error) { /* ignore fetch errors */ }
+    } catch (error) {
+      console.error('Failed to fetch vendor service assignments:', error);
+    }
   };
 
   const handleOpenVendorDetails = (vendor: any) => {
@@ -660,19 +666,19 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   const handleToggleVendorService = async (serviceId: string, enabled: boolean) => {
     if (!selectedVendorServiceVendorId) return;
 
+    const previousAssignments = [...vendorServiceAssignments];
     setIsSavingAssignments(true);
     setVendorServiceAssignments((items) =>
       items.map((item) => item.id === serviceId ? { ...item, assigned: true, enabled, status: enabled ? "Enabled" : "Disabled" } : item),
     );
 
     try {
-      const vendorPrice = enabled && bulkVendorPrice ? Number(bulkVendorPrice) : null;
       await api.patch(
         `/api/vendors/${selectedVendorServiceVendorId}/service-assignments/${serviceId}`,
-        { body: { enabled, vendorPrice } }
+        { body: { enabled } }
       );
     } catch (error) {
-
+      setVendorServiceAssignments(previousAssignments);
       toast.error(error instanceof Error ? error.message : "Unable to update service assignment.");
     } finally {
       setIsSavingAssignments(false);
@@ -684,6 +690,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
     setIsSavingAssignments(true);
     const serviceIds = filteredVendorServiceAssignments.map((service) => service.id);
+    const previousAssignments = [...vendorServiceAssignments];
     setVendorServiceAssignments((items) =>
       items.map((item) => serviceIds.includes(item.id) ? { ...item, assigned: true, enabled, status: enabled ? "Enabled" : "Disabled" } : item),
     );
@@ -695,7 +702,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       );
       triggerToast(`${enabled ? "Enabled" : "Disabled"} ${serviceIds.length} service${serviceIds.length === 1 ? "" : "s"} for ${selectedServiceVendor?.name || "vendor"}.`);
     } catch (error) {
-
+      setVendorServiceAssignments(previousAssignments);
       toast.error(error instanceof Error ? error.message : "Unable to update service assignments.");
     } finally {
       setIsSavingAssignments(false);
@@ -1098,6 +1105,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       }
 
       triggerToast(`Service "${srvTitle}" ${isEdit ? 'updated' : 'added'} successfully!`);
+      clearServicesCache();
       if (isEdit) {
         handleCancelServiceEdit();
       } else {
@@ -1120,6 +1128,7 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
         try {
           await api.delete(`/api/services/${id}`);
           triggerToast(`${name} deleted from active catalog.`);
+          clearServicesCache();
           onRefresh();
           fetchAdminData();
         } catch (err) {

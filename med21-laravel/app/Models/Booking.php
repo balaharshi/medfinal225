@@ -12,6 +12,7 @@ class Booking extends BaseModel
         'vendor_name', 'vendor_id', 'service_id', 'category', 'subcategory', 'price', 'date', 'time_slot',
         'region', 'status', 'payment_status', 'payment_provider', 'payment_app_utr',
         'payment_order_id', 'payment_transaction_utr', 'payment_response_status',
+        'payment_group_id',
         'paid_at', 'notes', 'accepted_at', 'completed_at', 'expires_at',
         'cost', 'reschedule_count',
     ];

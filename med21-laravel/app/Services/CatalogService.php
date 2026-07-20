@@ -81,7 +81,7 @@ class CatalogService
         $category->fill(array_filter([
             'title' => $payload['title'] ?? null,
             'slug' => isset($payload['title']) ? Str::slug($payload['title']) : null,
-            'image' => $payload['image'] ?? null,
+            'image' => array_key_exists('image', $payload) ? ($payload['image'] !== '' ? $payload['image'] : null) : null,
             'description' => array_key_exists('description', $payload) ? $payload['description'] : null,
             'type' => $payload['type'] ?? null,
         ], fn ($value) => $value !== null));
@@ -151,6 +151,7 @@ class CatalogService
             'description' => $payload['description'] ?? '',
             'attributes' => is_array($payload['attributes'] ?? null) ? $payload['attributes'] : [],
             'vendor_prices' => is_array($payload['vendorPrices'] ?? null) ? $payload['vendorPrices'] : [],
+            'rental_duration' => $payload['rentalDuration'] ?? null,
         ]);
 
         return CaseKeys::camelize($product);
@@ -313,6 +314,38 @@ class CatalogService
         return CaseKeys::camelize($booking);
     }
 
+    public function createBookingsBatch(array $items, ?string $paymentGroupId = null): array
+    {
+        if ($items === []) {
+            throw new HttpException(422, 'At least one booking item is required');
+        }
+
+        $paymentGroupId ??= 'pg-' . strtolower(\Illuminate\Support\Str::random(16));
+        $bookings = [];
+        $totalAmount = 0;
+
+        \DB::beginTransaction();
+        try {
+            foreach ($items as $item) {
+                $item['paymentGroupId'] = $paymentGroupId;
+                $booking = $this->createBooking($item);
+                $bookings[] = $booking;
+                $totalAmount += (int) ($item['price'] ?? 0);
+            }
+            \DB::commit();
+        } catch (\Throwable $e) {
+            \DB::rollBack();
+            throw $e;
+        }
+
+        return [
+            'success' => true,
+            'bookings' => $bookings,
+            'paymentGroupId' => $paymentGroupId,
+            'totalAmount' => $totalAmount,
+        ];
+    }
+
     public function createBooking(array $payload): array
     {
         if (($payload['customerEmail'] ?? '') && ($payload['date'] ?? '') && ($payload['timeSlot'] ?? '')) {
@@ -376,6 +409,7 @@ class CatalogService
             'payment_order_id' => $payload['paymentOrderId'] ?? null,
             'payment_transaction_utr' => $payload['paymentTransactionUtr'] ?? null,
             'payment_response_status' => $payload['paymentResponseStatus'] ?? null,
+            'payment_group_id' => $payload['paymentGroupId'] ?? null,
             'paid_at' => isset($payload['paidAt']) ? new \DateTime($payload['paidAt']) : null,
             'expires_at' => now()->addHours(2),
             'notes' => $payload['notes'] ?? '',
@@ -389,26 +423,34 @@ class CatalogService
         return CaseKeys::camelize($booking);
     }
 
-    public function attachBookingPayment(string $bookingId, array $payment = []): ?array
+    public function attachBookingPayment(string $bookingId, array $payment = [], ?string $paymentGroupId = null): ?array
     {
-        $booking = Booking::query()->find($bookingId);
-        if (! $booking) {
-            return null;
-        }
-
-        $booking->forceFill([
+        $fields = [
             'payment_status' => $payment['paymentStatus'] ?? AppConstants::PAYMENT_STATUSES['PENDING'],
             'payment_provider' => $payment['paymentProvider'] ?? 'ENBDpay',
             'payment_app_utr' => $payment['paymentAppUtr'] ?? null,
             'payment_order_id' => $payment['paymentOrderId'] ?? null,
             'payment_transaction_utr' => $payment['paymentTransactionUtr'] ?? null,
             'payment_response_status' => $payment['paymentResponseStatus'] ?? null,
-        ])->save();
+        ];
+
+        if ($paymentGroupId) {
+            Booking::query()->where('payment_group_id', $paymentGroupId)->update($fields);
+            $updated = Booking::query()->where('payment_group_id', $paymentGroupId)->get();
+            return $updated->isNotEmpty() ? CaseKeys::camelize($updated) : null;
+        }
+
+        $booking = Booking::query()->find($bookingId);
+        if (! $booking) {
+            return null;
+        }
+
+        $booking->forceFill($fields)->save();
 
         return CaseKeys::camelize($booking);
     }
 
-    public function updateBookingPaymentStatus(array $payment = []): ?array
+    public function updateBookingPaymentStatus(array $payment = [], ?string $paymentGroupId = null): ?array
     {
         $responseStatus = strtoupper((string) ($payment['responseStatus'] ?? $payment['paymentResponseStatus'] ?? ''));
         $paymentStatus = match (true) {
@@ -417,6 +459,16 @@ class CatalogService
             in_array($responseStatus, ['FAILED', 'DECLINED', 'REJECTED', 'ERROR', 'AUTHORIZATION_DECLINED'], true) => AppConstants::PAYMENT_STATUSES['FAILED'],
             default => AppConstants::PAYMENT_STATUSES['PENDING'],
         };
+
+        $paymentFields = $this->paymentStatusFields($payment, $responseStatus, $paymentStatus);
+
+        if ($paymentGroupId) {
+            Booking::query()
+                ->where('payment_group_id', $paymentGroupId)
+                ->update($paymentFields);
+            $bookings = Booking::query()->where('payment_group_id', $paymentGroupId)->get();
+            return $bookings->isNotEmpty() ? CaseKeys::camelize($bookings) : null;
+        }
 
         $query = Booking::query()->where(function (Builder $query) use ($payment): void {
             foreach ([
@@ -436,15 +488,14 @@ class CatalogService
             return null;
         }
 
-        $booking->forceFill([
-            'payment_status' => $paymentStatus,
-            'payment_provider' => 'ENBDpay',
-            'payment_app_utr' => $payment['appUtr'] ?? $payment['paymentAppUtr'] ?? null,
-            'payment_order_id' => $payment['orderId'] ?? $payment['paymentOrderId'] ?? null,
-            'payment_transaction_utr' => $payment['transactionUtr'] ?? $payment['paymentTransactionUtr'] ?? null,
-            'payment_response_status' => $responseStatus ?: null,
-            'paid_at' => $paymentStatus === AppConstants::PAYMENT_STATUSES['PAID'] ? now() : null,
-        ])->save();
+        $booking->forceFill($paymentFields)->save();
+
+        if ($booking->payment_group_id) {
+            Booking::query()
+                ->where('payment_group_id', $booking->payment_group_id)
+                ->where('id', '!=', $booking->id)
+                ->update($paymentFields);
+        }
 
         if ($paymentStatus === AppConstants::PAYMENT_STATUSES['PAID']) {
             $this->sendPaymentConfirmationEmail($booking);
@@ -1027,6 +1078,19 @@ class CatalogService
         });
 
         return $metrics->toArray();
+    }
+
+    private function paymentStatusFields(array $payment, string $responseStatus, string $paymentStatus): array
+    {
+        return [
+            'payment_status' => $paymentStatus,
+            'payment_provider' => 'ENBDpay',
+            'payment_app_utr' => $payment['appUtr'] ?? $payment['paymentAppUtr'] ?? null,
+            'payment_order_id' => $payment['orderId'] ?? $payment['paymentOrderId'] ?? null,
+            'payment_transaction_utr' => $payment['transactionUtr'] ?? $payment['paymentTransactionUtr'] ?? null,
+            'payment_response_status' => $responseStatus ?: null,
+            'paid_at' => $paymentStatus === AppConstants::PAYMENT_STATUSES['PAID'] ? now() : null,
+        ];
     }
 
     private function sendBookingConfirmationEmail(Booking $booking): void

@@ -455,6 +455,7 @@ export default function CartDrawer({
 
                             <div className="flex flex-col items-end justify-between gap-2 h-16 shrink-0">
                               <button
+                                type="button"
                                 onClick={() =>
                                   requestRemoveItem(
                                     item.product.id,
@@ -462,9 +463,9 @@ export default function CartDrawer({
                                   )
                                 }
                                 aria-label="Remove item"
-                                className="text-red-400 hover:text-red-500 hover:bg-red-50 p-[9px] rounded transition-colors cursor-pointer"
+                                className="text-red-400 hover:text-red-500 hover:bg-red-50 p-3 rounded transition-colors cursor-pointer"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Trash2 className="w-4 h-4" />
                               </button>
 
                               <div className="flex items-center gap-2 border border-slate-200 rounded-lg p-0.5 bg-slate-50">

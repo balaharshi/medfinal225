@@ -188,6 +188,7 @@ function PaymentReturnPage() {
   useEffect(() => {
     if (isSuccess) {
       trackEvent(AnalyticsEvents.PAYMENT_COMPLETED, { bookingId: bookingIdParam, status: normalizedStatus });
+      localStorage.removeItem('medziva_cart');
     } else if (isFailure) {
       trackEvent(AnalyticsEvents.PAYMENT_FAILED, { bookingId: bookingIdParam, status: normalizedStatus });
     }

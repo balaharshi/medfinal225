@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuthTransaction;
+use App\Models\Booking;
+use App\Models\Wallet;
 use App\Services\EnbdpayService;
+use App\Services\WalletService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -198,5 +201,78 @@ class AdminPaymentController extends Controller
             'message' => 'Amount updated. Will be captured when you click Capture.',
             'auth' => $auth->fresh(),
         ]);
+    }
+
+    public function refundAuth(Request $request): JsonResponse
+    {
+        $request->validate([
+            'id' => 'required|integer|exists:auth_transactions,id',
+            'amount' => 'nullable|numeric|min:0',
+        ]);
+
+        $auth = AuthTransaction::findOrFail($request->id);
+
+        if ($auth->status !== 'CAPTURED') {
+            return response()->json([
+                'success' => false,
+                'error' => 'Only captured transactions can be refunded',
+            ], 400);
+        }
+
+        $refundAmount = $request->amount ?? $auth->captured_amount ?? $auth->authorized_amount;
+
+        try {
+            $result = $this->enbdpayService->refundTransaction([
+                'transactionUtr' => $auth->transaction_utr,
+                'appUtr' => $auth->app_utr,
+                'orderId' => $auth->order_id,
+                'amount' => $refundAmount,
+                'reason' => 'Admin initiated refund',
+            ]);
+
+            $auth->update([
+                'status' => 'REFUNDED',
+                'notes' => ($auth->notes ? $auth->notes . ' | ' : '') . 'Refunded AED ' . $refundAmount . ' by admin at ' . now()->toDateTimeString(),
+            ]);
+
+            // Credit to wallet if booking exists
+            $booking = Booking::query()->find($auth->booking_id);
+            if ($booking) {
+                try {
+                    $user = \App\Models\User::query()->where('email', $booking->customer_email)->first();
+                    if ($user) {
+                        $wallet = Wallet::query()->where('user_id', $user->id)->first();
+                        if ($wallet) {
+                            $walletService = app(WalletService::class);
+                            $walletService->credit($wallet, (int) $refundAmount, 'Refund for booking ' . $booking->id, 'booking_refund', $booking->id);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Wallet credit on refund failed: ' . $e->getMessage());
+                }
+            }
+
+            Log::info('Admin refunded transaction', [
+                'auth_id' => $auth->id,
+                'amount' => $refundAmount,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Transaction refunded successfully. Amount credited to customer wallet.',
+                'result' => $result,
+                'auth' => $auth->fresh(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Admin refund failed', [
+                'auth_id' => $auth->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Refund failed: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

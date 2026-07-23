@@ -117,6 +117,7 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
         Route::get('/pending', [AdminPaymentController::class, 'getPendingPayments']);
         Route::post('/capture', [AdminPaymentController::class, 'captureAuth']);
         Route::post('/void', [AdminPaymentController::class, 'voidAuth']);
+        Route::post('/refund', [AdminPaymentController::class, 'refundAuth']);
         Route::post('/update-amount', [AdminPaymentController::class, 'updateAmount']);
     });
 

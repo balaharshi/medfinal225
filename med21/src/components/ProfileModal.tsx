@@ -55,7 +55,7 @@ export default function ProfileModal({
   const [mobileError, setMobileError] = useState('');
   const [isSaved, setIsSaved] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [activeTab, setActiveTab] = useState<'profile' | 'bookings'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'bookings' | 'wallet' | 'referral'>('profile');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -73,10 +73,33 @@ export default function ProfileModal({
   const [rescheduling, setRescheduling] = useState(false);
   const [cancelBookingId, setCancelBookingId] = useState<string | null>(null);
 
+  // Wallet state
+  const [wallet, setWallet] = useState<{ balance: number; transactions: any[] } | null>(null);
+  const [walletLoading, setWalletLoading] = useState(false);
+
+  // Referral state
+  const [referralCode, setReferralCode] = useState<{ code: string; shareLink: string } | null>(null);
+  const [referralStats, setReferralStats] = useState<{ invitesSent: number; completedReferrals: number; totalRewardsEarned: number; pendingRewards: number } | null>(null);
+  const [referralLoading, setReferralLoading] = useState(false);
+
   // Fetch user bookings when bookings tab is opened
   useEffect(() => {
     if (isOpen && activeTab === 'bookings' && bookings.length === 0) {
       fetchBookings();
+    }
+  }, [isOpen, activeTab]);
+
+  // Fetch wallet when wallet tab is opened
+  useEffect(() => {
+    if (isOpen && activeTab === 'wallet' && !wallet) {
+      fetchWallet();
+    }
+  }, [isOpen, activeTab]);
+
+  // Fetch referral when referral tab is opened
+  useEffect(() => {
+    if (isOpen && activeTab === 'referral' && !referralCode) {
+      fetchReferral();
     }
   }, [isOpen, activeTab]);
 
@@ -97,6 +120,30 @@ export default function ProfileModal({
       toast.success('Booking cancelled');
     } catch {
       toast.error('Failed to cancel');
+    }
+  };
+
+  const fetchWallet = async () => {
+    setWalletLoading(true);
+    try {
+      const data = await api.get('/api/wallet');
+      setWallet(data as any);
+    } catch { /* ignore */ } finally {
+      setWalletLoading(false);
+    }
+  };
+
+  const fetchReferral = async () => {
+    setReferralLoading(true);
+    try {
+      const [codeRes, statsRes] = await Promise.allSettled([
+        api.get('/api/referral/code'),
+        api.get('/api/referral/stats'),
+      ]);
+      if (codeRes.status === 'fulfilled') setReferralCode(codeRes.value as any);
+      if (statsRes.status === 'fulfilled') setReferralStats(statsRes.value as any);
+    } catch { /* ignore */ } finally {
+      setReferralLoading(false);
     }
   };
 
@@ -237,11 +284,119 @@ export default function ProfileModal({
             >
               My Bookings
             </button>
+            <button
+              onClick={() => setActiveTab('wallet')}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'wallet'
+                  ? 'bg-white text-medical-blue'
+                  : 'bg-white/10 text-white hover:bg-white/20'
+              }`}
+            >
+              Wallet
+            </button>
+            <button
+              onClick={() => setActiveTab('referral')}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'referral'
+                  ? 'bg-white text-medical-blue'
+                  : 'bg-white/10 text-white hover:bg-white/20'
+              }`}
+            >
+              Referral
+            </button>
           </div>
         </div>
 
         {/* Body & Form content */}
-        {activeTab === 'profile' ? (
+        {activeTab === 'wallet' ? (
+          <div className="p-6 space-y-4 overflow-y-auto flex-grow">
+            {walletLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue mx-auto"></div>
+                <p className="text-xs text-slate-500 mt-3">Loading wallet...</p>
+              </div>
+            ) : wallet ? (
+              <>
+                <div className="bg-gradient-to-br from-medical-blue to-teal-950 rounded-2xl p-5 text-white">
+                  <p className="text-[10px] text-teal-200 uppercase tracking-widest font-bold">Wallet Balance</p>
+                  <p className="text-3xl font-black mt-1">AED {wallet.balance}</p>
+                  <p className="text-[10px] text-teal-300 mt-1">Available for bookings</p>
+                </div>
+                <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider">Recent Transactions</h4>
+                {wallet.transactions && wallet.transactions.length > 0 ? (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {wallet.transactions.map((tx: any) => (
+                      <div key={tx.id} className="flex items-center justify-between bg-white border border-slate-100 rounded-xl p-3">
+                        <div className="text-left">
+                          <p className="text-xs font-bold text-slate-700">{tx.description}</p>
+                          <p className="text-[9px] text-slate-400">{new Date(tx.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <span className={`text-xs font-black ${tx.type === 'credit' ? 'text-medical-green' : 'text-red-500'}`}>
+                          {tx.type === 'credit' ? '+' : '-'}AED {tx.amount}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 text-center py-4">No transactions yet.</p>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-xs text-slate-500">Wallet not available. Please contact support.</p>
+              </div>
+            )}
+          </div>
+        ) : activeTab === 'referral' ? (
+          <div className="p-6 space-y-4 overflow-y-auto flex-grow">
+            {referralLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue mx-auto"></div>
+                <p className="text-xs text-slate-500 mt-3">Loading referral info...</p>
+              </div>
+            ) : (
+              <>
+                <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-5 text-white">
+                  <p className="text-[10px] text-amber-200 uppercase tracking-widest font-bold">Your Referral Code</p>
+                  {referralCode ? (
+                    <div className="mt-2 flex items-center gap-3">
+                      <span className="text-2xl font-black tracking-widest">{referralCode.code}</span>
+                      <button
+                        onClick={() => { navigator.clipboard.writeText(referralCode.shareLink); toast.success('Referral link copied!'); }}
+                        className="text-[10px] font-bold bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg cursor-pointer"
+                      >
+                        Copy Link
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-amber-200 mt-1">Generating your code...</p>
+                  )}
+                </div>
+                {referralStats && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-slate-50 rounded-xl p-4 text-center">
+                      <p className="text-lg font-black text-slate-800">{referralStats.invitesSent}</p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Invites Sent</p>
+                    </div>
+                    <div className="bg-slate-50 rounded-xl p-4 text-center">
+                      <p className="text-lg font-black text-slate-800">{referralStats.completedReferrals}</p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Completed</p>
+                    </div>
+                    <div className="bg-slate-50 rounded-xl p-4 text-center">
+                      <p className="text-lg font-black text-medical-green">AED {referralStats.totalRewardsEarned}</p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Total Earned</p>
+                    </div>
+                    <div className="bg-slate-50 rounded-xl p-4 text-center">
+                      <p className="text-lg font-black text-amber-600">AED {referralStats.pendingRewards}</p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Pending</p>
+                    </div>
+                  </div>
+                )}
+                <p className="text-[10px] text-slate-400 text-center">Share your code with friends. You get AED 25 when they book!</p>
+              </>
+            )}
+          </div>
+        ) : activeTab === 'profile' ? (
           <form onSubmit={handleSubmit} noValidate className="p-6 space-y-4 overflow-y-auto flex-grow">
             
             {isSaved ? (

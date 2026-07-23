@@ -4376,6 +4376,37 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
                                 </button>
                               </div>
                             )}
+                            {payment.status === 'CAPTURED' && (
+                              <button
+                                onClick={async () => {
+                                  const maxAmount = payment.captured_amount || payment.authorized_amount;
+                                  const refundAmount = prompt(`Refund amount (max AED ${maxAmount}):`, maxAmount);
+                                  if (refundAmount === null) return;
+                                  const amount = parseFloat(refundAmount);
+                                  if (isNaN(amount) || amount <= 0) {
+                                    toast.error("Invalid amount");
+                                    return;
+                                  }
+                                  if (!confirm(`Refund AED ${amount} to customer wallet?`)) return;
+                                  try {
+                                    const data = await api.post<{ success?: boolean; error?: string }>("/api/admin/payments/refund", {
+                                      body: { id: payment.id, amount },
+                                    });
+                                    if (data.success) {
+                                      toast.success(`Refunded AED ${amount}`);
+                                      setPendingPaymentsList((prev) => prev.map((p) => p.id === payment.id ? { ...p, status: 'REFUNDED' } : p));
+                                    } else {
+                                      toast.error(data.error || "Refund failed");
+                                    }
+                                  } catch (e) {
+                                    toast.error("Refund failed");
+                                  }
+                                }}
+                                className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-[10px] font-bold cursor-pointer"
+                              >
+                                Refund
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))}

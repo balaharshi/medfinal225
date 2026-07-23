@@ -730,7 +730,30 @@ class CatalogService
         }
         $booking->forceFill(['status' => AppConstants::BOOKING_STATUSES['CANCELLED']])->save();
 
-        if ($refundToWallet && $booking->payment_status === AppConstants::PAYMENT_STATUSES['PAID']) {
+        $isCaptured = $booking->payment_captured_at !== null;
+        $isAuthorized = $booking->payment_status === AppConstants::PAYMENT_STATUSES['PAID'] && ! $isCaptured;
+
+        if ($isAuthorized) {
+            try {
+                $auth = \App\Models\AuthTransaction::query()
+                    ->where('booking_id', $booking->id)
+                    ->where('status', 'AUTHORIZED')
+                    ->first();
+                if ($auth) {
+                    $enbdpayService = app(\App\Services\EnbdpayService::class);
+                    $enbdpayService->voidAuthorization([
+                        'transactionUtr' => $auth->transaction_utr,
+                        'appUtr' => $auth->app_utr,
+                        'orderId' => $auth->order_id,
+                    ]);
+                    $auth->update(['status' => 'VOIDED', 'voided_at' => now()]);
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Failed to void auth on cancellation: ' . $e->getMessage());
+            }
+        }
+
+        if ($refundToWallet && $isCaptured) {
             $refundAmount = $booking->price - ($booking->wallet_amount ?? 0);
             if ($refundAmount > 0) {
                 $wallet = \App\Models\Wallet::query()->where('user_id', $userId ?? \App\Models\User::query()

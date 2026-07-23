@@ -13,7 +13,7 @@ class Booking extends BaseModel
         'region', 'status', 'payment_status', 'payment_provider', 'payment_app_utr',
         'payment_order_id', 'payment_transaction_utr', 'payment_response_status',
             'payment_group_id',
-            'paid_at', 'notes', 'accepted_at', 'completed_at', 'expires_at',
+            'paid_at', 'payment_captured_at', 'notes', 'accepted_at', 'completed_at', 'expires_at',
             'cost', 'reschedule_count', 'wallet_amount', 'wallet_transaction_id',
     ];
 
@@ -26,6 +26,7 @@ class Booking extends BaseModel
             'expires_at' => 'datetime',
             'cost' => 'integer',
             'wallet_amount' => 'integer',
+            'payment_captured_at' => 'datetime',
         ];
     }
 

@@ -57,7 +57,7 @@ class CatalogController extends Controller
 
     public function createBooking(BookingRequest $request): JsonResponse
     {
-        $booking = $this->catalogService->createBooking($request->all());
+        $booking = $this->catalogService->createBooking($request->all(), $request->user()?->id);
         $this->pusherService->triggerEvent('appointment:update', ['action' => 'created', 'message' => 'New appointment booked for '.$booking['serviceTitle'], 'booking' => $booking]);
 
         return response()->json($booking, 201);
@@ -77,6 +77,7 @@ class CatalogController extends Controller
         $result = $this->catalogService->createBookingsBatch(
             $request->input('items'),
             $request->input('paymentGroupId'),
+            $request->user()?->id,
         );
 
         foreach ($result['bookings'] as $booking) {
@@ -123,7 +124,8 @@ class CatalogController extends Controller
     public function cancelMyBooking(Request $request, string $id): JsonResponse
     {
         $email = $request->user()->email;
-        $booking = $this->catalogService->cancelCustomerBooking($id, $email);
+        $refundToWallet = $request->boolean('refundToWallet', false);
+        $booking = $this->catalogService->cancelCustomerBooking($id, $email, $refundToWallet, $request->user()->id);
         $this->pusherService->triggerEvent('appointment:update', ['action' => 'cancelled', 'message' => "Booking {$id} was cancelled by customer", 'booking' => $booking]);
 
         return response()->json(['success' => true, 'booking' => $booking]);

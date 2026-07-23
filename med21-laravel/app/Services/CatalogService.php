@@ -314,7 +314,7 @@ class CatalogService
         return CaseKeys::camelize($booking);
     }
 
-    public function createBookingsBatch(array $items, ?string $paymentGroupId = null): array
+    public function createBookingsBatch(array $items, ?string $paymentGroupId = null, ?string $userId = null): array
     {
         if ($items === []) {
             throw new HttpException(422, 'At least one booking item is required');
@@ -328,7 +328,7 @@ class CatalogService
         try {
             foreach ($items as $item) {
                 $item['paymentGroupId'] = $paymentGroupId;
-                $booking = $this->createBooking($item);
+                $booking = $this->createBooking($item, $userId);
                 $bookings[] = $booking;
                 $totalAmount += (int) ($item['price'] ?? 0);
             }
@@ -346,7 +346,7 @@ class CatalogService
         ];
     }
 
-    public function createBooking(array $payload): array
+    public function createBooking(array $payload, ?string $userId = null): array
     {
         if (($payload['customerEmail'] ?? '') && ($payload['date'] ?? '') && ($payload['timeSlot'] ?? '')) {
             $existing = Booking::query()
@@ -386,41 +386,107 @@ class CatalogService
             $vendorCost = $assignment?->vendor_price ?? 0;
         }
 
-        $booking = Booking::query()->create([
-            'id' => SequentialId::next(Booking::class, 'b'),
-            'customer_name' => $payload['customerName'],
-            'customer_email' => $payload['customerEmail'] ?? 'guest@example.com',
-            'customer_phone' => $payload['customerPhone'] ?? '',
-            'service_title' => $payload['serviceTitle'],
-            'vendor_name' => $payload['vendorName'] ?? 'Unassigned',
-            'vendor_id' => $vendorId,
-            'service_id' => $payload['serviceId'] ?? null,
-            'category' => $category,
-            'subcategory' => $subcategory,
-            'price' => (int) ($payload['price'] ?? 150),
-            'cost' => $vendorCost,
-            'date' => $payload['date'] ?? now()->toDateString(),
-            'time_slot' => $payload['timeSlot'] ?? 'Flexible',
-            'region' => $payload['region'] ?? 'Dubai',
-            'status' => $payload['status'] ?? AppConstants::BOOKING_STATUSES['PENDING'],
-            'payment_status' => $payload['paymentStatus'] ?? AppConstants::PAYMENT_STATUSES['UNPAID'],
-            'payment_provider' => $payload['paymentProvider'] ?? null,
-            'payment_app_utr' => $payload['paymentAppUtr'] ?? null,
-            'payment_order_id' => $payload['paymentOrderId'] ?? null,
-            'payment_transaction_utr' => $payload['paymentTransactionUtr'] ?? null,
-            'payment_response_status' => $payload['paymentResponseStatus'] ?? null,
-            'payment_group_id' => $payload['paymentGroupId'] ?? null,
-            'paid_at' => isset($payload['paidAt']) ? new \DateTime($payload['paidAt']) : null,
-            'expires_at' => now()->addHours(2),
-            'notes' => $payload['notes'] ?? '',
-        ]);
+        return \DB::transaction(function () use ($payload, $userId, $vendorId, $vendorCost, $category, $subcategory): array {
+            $price = (int) ($payload['price'] ?? 150);
+            $walletAmount = 0;
+            $walletTransactionId = null;
+            $referralCode = $payload['referralCode'] ?? null;
+            $friendDiscount = 0;
+            $referralId = null;
 
-        $this->sendBookingConfirmationEmail($booking);
+            if ($referralCode && $userId) {
+                $referralService = app(\App\Services\ReferralService::class);
+                $referralValidation = $referralService->validateReferralCode($referralCode, $userId);
+                if ($referralValidation['valid'] ?? false) {
+                    $hasPriorBookings = Booking::query()
+                        ->where('customer_email', $payload['customerEmail'] ?? '')
+                        ->whereNotIn('status', ['Cancelled'])
+                        ->exists();
+                    if ($hasPriorBookings) {
+                        throw new HttpException(400, 'Referral discount is only available for first-time bookings');
+                    }
+                    $friendDiscount = (int) ($referralValidation['friendDiscount'] ?? 0);
+                    $price = max(0, $price - $friendDiscount);
+                }
+            }
 
-        // Notify all eligible vendors with this service enabled
-        $this->notifyEligibleVendors($booking);
+            if ($userId) {
+                $wallet = \App\Models\Wallet::query()->where('user_id', $userId)->first();
+                if ($wallet && $wallet->balance > 0) {
+                    $walletAmount = min($wallet->balance, $price);
+                    $walletService = app(\App\Services\WalletService::class);
+                    $txn = $walletService->debit(
+                        $wallet,
+                        $walletAmount,
+                        'Payment for booking',
+                        'booking_payment',
+                        null,
+                    );
+                    $walletTransactionId = $txn->id;
+                }
+            }
 
-        return CaseKeys::camelize($booking);
+            $fullyPaidViaWallet = $walletAmount >= $price;
+
+            $booking = Booking::query()->create([
+                'id' => SequentialId::next(Booking::class, 'b'),
+                'customer_name' => $payload['customerName'],
+                'customer_email' => $payload['customerEmail'] ?? 'guest@example.com',
+                'customer_phone' => $payload['customerPhone'] ?? '',
+                'service_title' => $payload['serviceTitle'],
+                'vendor_name' => $payload['vendorName'] ?? 'Unassigned',
+                'vendor_id' => $vendorId,
+                'service_id' => $payload['serviceId'] ?? null,
+                'category' => $category,
+                'subcategory' => $subcategory,
+                'price' => $price,
+                'cost' => $vendorCost,
+                'wallet_amount' => $walletAmount,
+                'wallet_transaction_id' => $walletTransactionId,
+                'date' => $payload['date'] ?? now()->toDateString(),
+                'time_slot' => $payload['timeSlot'] ?? 'Flexible',
+                'region' => $payload['region'] ?? 'Dubai',
+                'status' => $payload['status'] ?? AppConstants::BOOKING_STATUSES['PENDING'],
+                'payment_status' => $fullyPaidViaWallet ? AppConstants::PAYMENT_STATUSES['PAID'] : ($payload['paymentStatus'] ?? AppConstants::PAYMENT_STATUSES['UNPAID']),
+                'payment_provider' => $fullyPaidViaWallet ? 'wallet' : ($payload['paymentProvider'] ?? null),
+                'payment_app_utr' => $payload['paymentAppUtr'] ?? null,
+                'payment_order_id' => $payload['paymentOrderId'] ?? null,
+                'payment_transaction_utr' => $payload['paymentTransactionUtr'] ?? null,
+                'payment_response_status' => $payload['paymentResponseStatus'] ?? null,
+                'payment_group_id' => $payload['paymentGroupId'] ?? null,
+                'paid_at' => $fullyPaidViaWallet ? now() : (isset($payload['paidAt']) ? new \DateTime($payload['paidAt']) : null),
+                'expires_at' => now()->addHours(2),
+                'notes' => $payload['notes'] ?? '',
+            ]);
+
+            if ($walletTransactionId) {
+                $walletTxn = \App\Models\WalletTransaction::query()->find($walletTransactionId);
+                if ($walletTxn) {
+                    $walletTxn->forceFill(['reference_id' => $booking->id])->save();
+                }
+            }
+
+            if ($referralCode && $userId && $friendDiscount > 0) {
+                $referralService = app(\App\Services\ReferralService::class);
+                $referral = $referralService->createReferral($referralCode, $userId, $booking->id);
+                if ($referral) {
+                    $referralId = $referral->id;
+                }
+            }
+
+            $this->sendBookingConfirmationEmail($booking);
+            $this->notifyEligibleVendors($booking);
+
+            $result = CaseKeys::camelize($booking);
+            if ($friendDiscount > 0) {
+                $result['friendDiscount'] = $friendDiscount;
+            }
+            if ($referralId) {
+                $result['referralId'] = $referralId;
+            }
+
+            return $result;
+        });
     }
 
     public function attachBookingPayment(string $bookingId, array $payment = [], ?string $paymentGroupId = null): ?array
@@ -653,7 +719,7 @@ class CatalogService
         );
     }
 
-    public function cancelCustomerBooking(string $id, string $email): array
+    public function cancelCustomerBooking(string $id, string $email, bool $refundToWallet = false, ?string $userId = null): array
     {
         $booking = Booking::query()->find($id) ?? throw new HttpException(404, 'Booking not found');
         if ($booking->customer_email !== $email) {
@@ -663,6 +729,24 @@ class CatalogService
             throw new HttpException(400, 'Only pending or active bookings can be cancelled');
         }
         $booking->forceFill(['status' => AppConstants::BOOKING_STATUSES['CANCELLED']])->save();
+
+        if ($refundToWallet && $booking->payment_status === AppConstants::PAYMENT_STATUSES['PAID']) {
+            $refundAmount = $booking->price - ($booking->wallet_amount ?? 0);
+            if ($refundAmount > 0) {
+                $wallet = \App\Models\Wallet::query()->where('user_id', $userId ?? \App\Models\User::query()
+                    ->where('email', $email)->value('id'))->first();
+                if ($wallet) {
+                    $walletService = app(\App\Services\WalletService::class);
+                    $walletService->credit(
+                        $wallet,
+                        $refundAmount,
+                        'Refund for cancelled booking ' . $booking->id,
+                        'booking_refund',
+                        $booking->id,
+                    );
+                }
+            }
+        }
 
         return CaseKeys::camelize($booking);
     }

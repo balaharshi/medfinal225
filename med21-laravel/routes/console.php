@@ -3,6 +3,7 @@
 use App\Console\Commands\CancelExpiredBookings;
 use App\Console\Commands\CaptureExpiredAuthorizations;
 use App\Console\Commands\SendBookingReminders;
+use App\Console\Commands\VestReferrals;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -14,3 +15,4 @@ Artisan::command('inspire', function () {
 Schedule::command(CaptureExpiredAuthorizations::class)->hourly();
 Schedule::command(CancelExpiredBookings::class)->everyFiveMinutes();
 Schedule::command(SendBookingReminders::class)->hourly();
+Schedule::command(VestReferrals::class)->daily();

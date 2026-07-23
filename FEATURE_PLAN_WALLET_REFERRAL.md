@@ -1,5 +1,9 @@
 # Feature Plan: Customer Wallet + Referral Program
 
+> **Status: Implemented** (July 23, 2026)
+>
+> Backend fully implemented. See deviations from plan noted inline below.
+
 ## Overview
 
 Two connected features: a **customer wallet** stores credit balance used to pay for bookings, and a **referral program** rewards users with wallet credit when they bring new customers.
@@ -206,3 +210,49 @@ referrals
 3. **Referral code + promo code are separate** — referral discount is hardcoded (AED 25), promo codes are percentage/flat via admin. A customer can use one referral discount + one promo code per booking (stackable, if admin allows).
 4. **No referral link tracking infrastructure** — we use codes only. Simple, works offline, no need for UTM/cookie tracking. User can still share a deep link like `medzivahealthcare.com/?ref=VARUN25`.
 5. **Wallet auto-created on user registration** — via `User::created` event listener. Zero-friction.
+
+---
+
+## 6. Implementation Notes & Deviations from Plan
+
+| Item | Plan | Implemented | Reason |
+|---|---|---|---|
+| Wallet auto-funding | Customer could self-deposit | **No customer deposit** — wallet funded only via refunds, admin credits, and referral rewards | Business decision: wallet is a refund/reward store, not a prepaid account |
+| Wallet at checkout | Manual amount input | **Auto-applied** up to booking total | Simpler UX, eliminates input friction |
+| Cancellation refund | Always to wallet | **Choice** — refund to wallet or original card via `refundToWallet` param | Customer flexibility |
+| Referral code generation | On first visit to referral page | **On registration** (auto, zero-friction) | Code available immediately, no extra API call |
+| Referral code format | `FIRSTNAMEXX` (5 chars + 2 digits) | `FIRST3OFNAME + LAST3OFPHONE` (e.g. `JOH123`) | Shorter, more memorable, unique per phone |
+| Friend discount | Applied at checkout | Applied at booking creation via `referralCode` payload field | Backend-owned validation prevents abuse |
+| Promo + referral stack | Undefined order | Referral discount applied first, then promo code, then wallet credit | Logical order for discount stacking |
+| Admin settings | Undefined | `settings.wallet_config` and `settings.referral_config` JSON columns with dedicated admin endpoints | Clean separation of wallet and referral config in admin panel |
+| All amounts | Hardcoded AED 25 | **Configurable** via admin panel (`welcome_bonus`, `referrer_reward`, `friend_discount`, `vesting_days`, `max_per_year`) | Full admin control |
+
+### Files Created (13)
+
+| File | Purpose |
+|---|---|
+| `database/migrations/2026_07_23_000000_create_wallet_system.php` | `wallets` + `wallet_transactions` tables |
+| `database/migrations/2026_07_23_000001_add_wallet_to_bookings.php` | Wallet fields on bookings |
+| `database/migrations/2026_07_23_000002_create_referral_system.php` | `referral_codes` + `referrals` tables |
+| `database/migrations/2026_07_23_000003_add_wallet_referral_config_to_settings.php` | Config JSON columns on settings |
+| `app/Models/Wallet.php` | Wallet Eloquent model |
+| `app/Models/WalletTransaction.php` | Transaction audit model |
+| `app/Models/ReferralCode.php` | Referral code model |
+| `app/Models/Referral.php` | Referral record model |
+| `app/Services/WalletService.php` | Wallet business logic |
+| `app/Services/ReferralService.php` | Referral business logic |
+| `app/Http/Controllers/Api/WalletController.php` | Wallet API endpoints |
+| `app/Http/Controllers/Api/ReferralController.php` | Referral API endpoints |
+| `app/Console/Commands/VestReferrals.php` | Daily vesting cron |
+
+### Files Modified (7)
+
+| File | Changes |
+|---|---|
+| `routes/api.php` | 14 new wallet + referral routes |
+| `routes/console.php` | Daily `referrals:vest` scheduler entry |
+| `app/Providers/AppServiceProvider.php` | `User::created` → auto-create wallet + referral code |
+| `app/Models/User.php` | `wallet()` and `referralCode()` relationships |
+| `app/Models/Booking.php` | `wallet_amount`, `wallet_transaction_id` fillable |
+| `app/Services/CatalogService.php` | Wallet auto-apply + referral discount + wallet refund on cancel |
+| `app/Http/Controllers/Api/CatalogController.php` | Pass userId + refundToWallet to service |

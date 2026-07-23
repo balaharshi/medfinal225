@@ -5,7 +5,9 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\ReferralController;
 use App\Http\Controllers\Api\VendorServiceAssignmentController;
+use App\Http\Controllers\Api\WalletController;
 use Illuminate\Support\Facades\Route;
 
 $admin = ['api.auth', 'role:super_admin,admin'];
@@ -116,6 +118,33 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
         Route::post('/capture', [AdminPaymentController::class, 'captureAuth']);
         Route::post('/void', [AdminPaymentController::class, 'voidAuth']);
         Route::post('/update-amount', [AdminPaymentController::class, 'updateAmount']);
+    });
+
+    Route::prefix('wallet')->middleware('api.auth')->group(function (): void {
+        Route::get('/', [WalletController::class, 'getWallet']);
+        Route::get('/transactions', [WalletController::class, 'getTransactions']);
+    });
+
+    Route::prefix('admin/wallet')->middleware($admin)->group(function (): void {
+        Route::get('/config', [WalletController::class, 'getConfig']);
+        Route::put('/config', [WalletController::class, 'updateConfig']);
+        Route::get('/users', [WalletController::class, 'adminListUsers']);
+        Route::post('/credit', [WalletController::class, 'adminCredit']);
+        Route::post('/debit', [WalletController::class, 'adminDebit']);
+    });
+
+    Route::prefix('referral')->middleware('api.auth')->group(function (): void {
+        Route::get('/code', [ReferralController::class, 'getCode']);
+        Route::get('/stats', [ReferralController::class, 'getStats']);
+        Route::get('/history', [ReferralController::class, 'getHistory']);
+        Route::post('/apply', [ReferralController::class, 'applyCode']);
+    });
+
+    Route::prefix('admin/referral')->middleware($admin)->group(function (): void {
+        Route::get('/config', [ReferralController::class, 'getConfig']);
+        Route::put('/config', [ReferralController::class, 'updateConfig']);
+        Route::get('/all', [ReferralController::class, 'adminGetAll']);
+        Route::post('/revoke/{id}', [ReferralController::class, 'adminRevoke']);
     });
 };
 

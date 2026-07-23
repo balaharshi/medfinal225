@@ -62,6 +62,8 @@ Configure the frontend public path in `config/medziva.php` or via the `FRONTEND_
 | `PusherService` | Real-time vendor notifications |
 | `VendorServiceAssignmentService` | Vendor-service assignment management |
 | `WhatsAppService` | Meta Cloud API for WhatsApp notifications |
+| `WalletService` | Wallet credit/debit, balance, transaction history, config |
+| `ReferralService` | Referral code generation, validation, vesting, reward processing |
 
 ### Cron Jobs
 
@@ -70,6 +72,63 @@ Configure the frontend public path in `config/medziva.php` or via the `FRONTEND_
 | `bookings:cancel-expired` | Every 5 min | Cancel unaccepted bookings 2h after vendor working hours |
 | `bookings:send-reminders` | Hourly | Send 24h reminder (only if booked >48h before appointment) |
 | `payments:capture-expired` | Hourly | Capture expired ENBDPay authorizations |
+| `referrals:vest` | Daily | Credit vested referral rewards to referrer wallets |
+
+### Customer Wallet & Referral Program
+
+#### Wallet System
+
+Every customer automatically gets a wallet on registration. Wallets are **non-depositable** — balance comes only from:
+
+| Source | Type | Trigger |
+|---|---|---|
+| Booking cancellation | Refund credit | Customer chooses wallet refund on cancel |
+| Admin grant | Promotional credit | Admin manually credits wallet (e.g., welcome bonus) |
+| Referral reward | Referral credit | Friend's first booking vests after configurable period |
+
+At booking checkout, wallet credit is **auto-applied** to reduce the payment amount. If the wallet covers the full price, the booking is instantly marked Paid.
+
+**API:**
+- `GET /api/wallet` — balance + 10 most recent transactions
+- `GET /api/wallet/transactions` — paginated transaction history
+- `GET /api/admin/wallet/config` / `PUT` — wallet settings (welcome bonus amount)
+- `GET /api/admin/wallet/users` — all customers with balances
+- `POST /api/admin/wallet/credit` / `debit` — manual admin adjustments
+
+#### Referral Program
+
+Every customer gets a unique referral code at registration (first 3 chars of name + last 3 digits of phone, e.g. `JOH123`).
+
+| Party | Reward | When |
+|---|---|---|
+| Friend (new customer) | Configurable AED discount | Applied to their first booking |
+| Referrer | Configurable AED wallet credit | Credited after vesting period (default 7 days) |
+
+Referral codes are applied during booking checkout by passing `referralCode` in the payload. The friend discount is only valid for **first-time customers** (no prior non-cancelled bookings).
+
+**Fraud prevention:** self-referral blocked, one code per email, yearly cap (configurable, default 20), admin revoke.
+
+**API:**
+- `GET /api/referral/code` — own code + share link
+- `GET /api/referral/stats` — invites sent, completed, rewards
+- `GET /api/referral/history` — referral records with status
+- `POST /api/referral/apply` — validate a code, returns friend discount
+- `GET /api/admin/referral/config` / `PUT` — referral settings (reward amounts, vesting days, yearly cap)
+- `GET /api/admin/referral/all` — all referrals
+- `POST /api/admin/referral/revoke/{id}` — revoke a referral
+
+#### Database Tables
+
+| Table | Purpose |
+|---|---|
+| `wallets` | 1:1 with users, stores balance |
+| `wallet_transactions` | Audit log: every credit/debit with before/after balance |
+| `referral_codes` | 1:1 with users, unique code per user |
+| `referrals` | Each invite/friend relationship with reward status |
+| `settings.wallet_config` | JSON: `{ welcome_bonus }` |
+| `settings.referral_config` | JSON: `{ referrer_reward, friend_discount, vesting_days, max_per_year }` |
+| `bookings.wallet_amount` | How much wallet credit was applied to this booking |
+| `bookings.wallet_transaction_id` | Links booking to the wallet debit transaction |
 
 ### Mail Classes (7)
 

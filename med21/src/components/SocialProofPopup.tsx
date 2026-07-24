@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { HealthcareService, Product } from '../types';
+import SafeImage from './SafeImage';
 
 interface SocialProofNotification {
   id: number;
@@ -35,7 +36,7 @@ const TIME_OPTIONS = [
   { label: '10 mins ago', weight: 2 },
 ];
 
-const FALLBACK_IMAGE = '/src/assets/images/services/generic-nurse.jpg';
+const FALLBACK_IMAGE = '/images/services/Generic Nurse Visit.jpg';
 
 function weightedRandom<T>(items: T[], weightFn: (item: T) => number): T {
   const totalWeight = items.reduce((sum, item) => sum + weightFn(item), 0);
@@ -173,12 +174,11 @@ export default function SocialProofPopup({ services, products, cartOpen }: Socia
     >
       <div className="bg-white rounded-xl shadow-2xl border border-slate-200/80 flex items-center gap-3 p-2.5 pr-3 max-w-[300px] w-[280px]">
         <div className="w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100">
-          <img
+          <SafeImage
             src={notification.image}
             alt={notification.item}
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
-            onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMAGE; }}
           />
         </div>
         <div className="flex-1 min-w-0">

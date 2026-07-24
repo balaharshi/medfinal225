@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, FormEvent } from 'react';
 import { X, Calendar, Clock, Check, User, Phone, Mail, Award, CheckCircle2, ShieldAlert } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { createEnbdpayCheckout } from '../services/enbdpay';
@@ -138,11 +138,11 @@ export default function BookingModal({
       return;
     }
     let cancelled = false;
-    fetch(`/api/services/${selectedBackendServiceId}/available-slots?date=${encodeURIComponent(date)}`)
-      .then(r => r.ok ? r.json() : null)
+    api.get<any>(`/api/services/${selectedBackendServiceId}/available-slots?date=${encodeURIComponent(date)}`)
+      .catch(() => null)
       .then(data => {
         if (!cancelled && Array.isArray(data) && data.length > 0) {
-          setApiSlots(data);
+          setApiSlots(data as any);
         } else if (!cancelled) {
           setApiSlots(null);
         }
@@ -177,7 +177,7 @@ export default function BookingModal({
   useEffect(() => {
     if (availableSlots.length === 0) return;
     if (!availableSlots.some(s => s.label === time)) {
-      setTime(availableSlots[0].label);
+      setTime(availableSlots[0].label as any);
     }
   }, [date, availableSlots, time]);
 
@@ -186,7 +186,7 @@ export default function BookingModal({
     ? backendServices.map(s => ({ id: s.id, title: s.title, price: s.price, category: s.category || 'Other' }))
     : [];
 
-  const groupedServices = React.useMemo(() => {
+  const groupedServices = useMemo(() => {
     const groups: Record<string, typeof servicesList> = {};
     servicesList.forEach(s => {
       const cat = s.category || 'Other';
@@ -244,7 +244,7 @@ export default function BookingModal({
     setPromoError('');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
     
@@ -542,7 +542,7 @@ export default function BookingModal({
                   </label>
                   <select
                     value={time}
-                    onChange={(e) => setTime(e.target.value)}
+                    onChange={(e) => setTime(e.target.value as any)}
                     className="w-full text-xs border border-slate-200 rounded-xl p-3 bg-white focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
                   >
                     {availableSlots.map((slot) => (

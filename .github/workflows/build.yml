@@ -25,6 +25,10 @@ jobs:
         working-directory: med21
         run: npm ci --legacy-peer-deps
 
+      - name: Lint frontend
+        working-directory: med21
+        run: npm run lint
+
       - name: Build frontend
         working-directory: med21
         run: npm run build
@@ -55,9 +59,9 @@ jobs:
       - name: Update dependencies and validate
         working-directory: med21-laravel
         run: |
-          composer update --prefer-dist --no-interaction
+          composer install --prefer-dist --no-interaction --no-dev
           composer validate --no-check-all --no-check-publish
 
       - name: Check syntax
         working-directory: med21-laravel
-        run: find app -name "*.php" -exec php -l {} \; 2>&1 | grep -v "No syntax errors" || true
+        run: find app config routes database -name "*.php" -exec php -l {} \; 2>&1 | grep -v "No syntax errors" || true

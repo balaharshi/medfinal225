@@ -20,8 +20,9 @@ class VendorNewBooking extends Mailable implements ShouldQueue
 
     public function envelope(): Envelope
     {
+        $title = $this->booking['serviceTitle'] ?? $this->booking['service_title'] ?? 'Healthcare Service';
         return new Envelope(
-            subject: "New Booking Available - {$this->booking['serviceTitle'] ?? $this->booking['service_title'] ?? 'Healthcare Service'}",
+            subject: "New Booking Available - {$title}",
         );
     }
 
@@ -35,6 +36,7 @@ class VendorNewBooking extends Mailable implements ShouldQueue
     private function buildHtml(): string
     {
         $booking = $this->booking;
+        $appUrl = config('app.url');
         $vendorName = htmlspecialchars($this->vendorName);
         $serviceName = htmlspecialchars($booking['serviceTitle'] ?? $booking['service_title'] ?? 'Healthcare Service');
         $customerName = htmlspecialchars($booking['customerName'] ?? $booking['customer_name'] ?? 'Customer');
@@ -109,7 +111,7 @@ class VendorNewBooking extends Mailable implements ShouldQueue
             " : "") . "
 
             <div style='text-align:center;margin:25px 0;'>
-                <a href='https://medzivahealthcare.com/vendor' style='display:inline-block;background-color:#7c3aed;color:#ffffff;padding:12px 30px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;'>View in Vendor Portal</a>
+                <a href='{$appUrl}/vendor' style='display:inline-block;background-color:#7c3aed;color:#ffffff;padding:12px 30px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;'>View in Vendor Portal</a>
             </div>
 
             <p style='color:#475569;font-size:12px;line-height:1.5;margin:0 0 10px;'>
@@ -119,7 +121,7 @@ class VendorNewBooking extends Mailable implements ShouldQueue
 
         <div style='background-color:#f1f5f9;padding:20px;text-align:center;'>
             <p style='color:#94a3b8;font-size:11px;margin:0 0 5px;'>MedZiva International Healthcare L.L.C.</p>
-            <p style='color:#94a3b8;font-size:11px;margin:0;'>Dubai, United Arab Emirates | medzivahealthcare.com</p>
+            <p style='color:#94a3b8;font-size:11px;margin:0;'>Dubai, United Arab Emirates | {$appUrl}</p>
         </div>
     </div>
 </body>

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Vendor extends BaseModel
 {
     protected $fillable = [
-        'name', 'type', 'email', 'contact', 'rating', 'address',
+        'id', 'name', 'type', 'email', 'contact', 'rating', 'address',
         'commission', 'active', 'password_hash', 'logo',
     ];
 

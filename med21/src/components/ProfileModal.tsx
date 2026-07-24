@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
-import { X, User, Mail, Phone, MapPin, CheckCircle, Shield, Award, Edit3, Save, Calendar, Clock, Package, ArrowLeft } from 'lucide-react';
+import { useState, useEffect, FormEvent } from 'react';
+import { X, User, Mail, Phone, MapPin, CheckCircle, Shield, Award, Edit3, Save, Calendar, Clock, Package, ArrowLeft, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PhoneInput from './PhoneInput';
 import ConfirmDialog from './ConfirmDialog';
@@ -34,7 +34,7 @@ interface ProfileModalProps {
   email: string;
   phone: string; // 9-digit UAE mobile number
   address: string;
-  onSave: (fullName: string, email: string, phone: string, address: string) => void;
+  onSave: (fullName: string, email: string, phone: string, address: string) => Promise<void>;
   onSuccessToast: (msg: string) => void;
 }
 
@@ -55,9 +55,15 @@ export default function ProfileModal({
   const [mobileError, setMobileError] = useState('');
   const [isSaved, setIsSaved] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [activeTab, setActiveTab] = useState<'profile' | 'bookings'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'bookings' | 'wallet' | 'referral'>('profile');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
 
   // Reschedule state
   const [rescheduleBookingId, setRescheduleBookingId] = useState<string | null>(null);
@@ -67,10 +73,33 @@ export default function ProfileModal({
   const [rescheduling, setRescheduling] = useState(false);
   const [cancelBookingId, setCancelBookingId] = useState<string | null>(null);
 
+  // Wallet state
+  const [wallet, setWallet] = useState<{ balance: number; transactions: any[] } | null>(null);
+  const [walletLoading, setWalletLoading] = useState(false);
+
+  // Referral state
+  const [referralCode, setReferralCode] = useState<{ code: string; shareLink: string } | null>(null);
+  const [referralStats, setReferralStats] = useState<{ invitesSent: number; completedReferrals: number; totalRewardsEarned: number; pendingRewards: number } | null>(null);
+  const [referralLoading, setReferralLoading] = useState(false);
+
   // Fetch user bookings when bookings tab is opened
   useEffect(() => {
     if (isOpen && activeTab === 'bookings' && bookings.length === 0) {
       fetchBookings();
+    }
+  }, [isOpen, activeTab]);
+
+  // Fetch wallet when wallet tab is opened
+  useEffect(() => {
+    if (isOpen && activeTab === 'wallet' && !wallet) {
+      fetchWallet();
+    }
+  }, [isOpen, activeTab]);
+
+  // Fetch referral when referral tab is opened
+  useEffect(() => {
+    if (isOpen && activeTab === 'referral' && !referralCode) {
+      fetchReferral();
     }
   }, [isOpen, activeTab]);
 
@@ -79,8 +108,7 @@ export default function ProfileModal({
     try {
       const data = await api.get('/api/my-bookings');
       setBookings(data as any);
-    } catch {
-    } finally {
+    } catch { /* ignore fetch errors */ } finally {
       setBookingsLoading(false);
     }
   };
@@ -88,10 +116,72 @@ export default function ProfileModal({
   const handleCancelBooking = async (bookingId: string) => {
     try {
       await api.delete(`/api/my-bookings/${bookingId}`);
-      setBookings((prev) => prev.filter((b: any) => b.id !== bookingId));
+      setBookings((prev) => prev.map((b: any) => b.id === bookingId ? { ...b, status: 'Cancelled' } : b));
       toast.success('Booking cancelled');
     } catch {
       toast.error('Failed to cancel');
+    }
+  };
+
+  const fetchWallet = async () => {
+    setWalletLoading(true);
+    try {
+      const data = await api.get('/api/wallet');
+      setWallet(data as any);
+    } catch { /* ignore */ } finally {
+      setWalletLoading(false);
+    }
+  };
+
+  const fetchReferral = async () => {
+    setReferralLoading(true);
+    try {
+      const [codeRes, statsRes] = await Promise.allSettled([
+        api.get('/api/referral/code'),
+        api.get('/api/referral/stats'),
+      ]);
+      if (codeRes.status === 'fulfilled') setReferralCode(codeRes.value as any);
+      if (statsRes.status === 'fulfilled') setReferralStats(statsRes.value as any);
+    } catch { /* ignore */ } finally {
+      setReferralLoading(false);
+    }
+  };
+
+  const handleChangePassword = async (e: FormEvent) => {
+    e.preventDefault();
+    setPasswordError('');
+
+    if (!currentPassword) {
+      setPasswordError('Current password is required');
+      return;
+    }
+    if (!newPassword || newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters');
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) {
+      setPasswordError('New password must include uppercase, number, and special character');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      await api.put('/api/auth/change-password', {
+        body: { currentPassword, newPassword },
+      });
+      toast.success('Password changed successfully');
+      setShowChangePassword(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      setPasswordError(err?.message || 'Failed to change password');
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -110,7 +200,7 @@ export default function ProfileModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
@@ -136,12 +226,16 @@ export default function ProfileModal({
 
     setFormErrors({});
     
-    onSave(nameVal.trim(), emailVal.trim(), phoneVal, addressVal.trim());
-    setIsSaved(true);
-    onSuccessToast('Your premium MedZiva profile has been updated!');
-    setTimeout(() => {
-      onClose();
-    }, 1200);
+    try {
+      await onSave(nameVal.trim(), emailVal.trim(), phoneVal, addressVal.trim());
+      setIsSaved(true);
+      onSuccessToast('Your premium MedZiva profile has been updated!');
+      setTimeout(() => {
+        onClose();
+      }, 1200);
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to save profile. Please try again.');
+    }
   };
 
   return (
@@ -153,7 +247,7 @@ export default function ProfileModal({
           <button
             onClick={onClose}
             aria-label="Close profile"
-            className="absolute right-4 top-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full cursor-pointer transition-colors"
+            className="absolute right-4 top-4 p-[9px] bg-white/10 hover:bg-white/20 text-white rounded-full cursor-pointer transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -190,11 +284,119 @@ export default function ProfileModal({
             >
               My Bookings
             </button>
+            <button
+              onClick={() => setActiveTab('wallet')}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'wallet'
+                  ? 'bg-white text-medical-blue'
+                  : 'bg-white/10 text-white hover:bg-white/20'
+              }`}
+            >
+              Wallet
+            </button>
+            <button
+              onClick={() => setActiveTab('referral')}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'referral'
+                  ? 'bg-white text-medical-blue'
+                  : 'bg-white/10 text-white hover:bg-white/20'
+              }`}
+            >
+              Referral
+            </button>
           </div>
         </div>
 
         {/* Body & Form content */}
-        {activeTab === 'profile' ? (
+        {activeTab === 'wallet' ? (
+          <div className="p-6 space-y-4 overflow-y-auto flex-grow">
+            {walletLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue mx-auto"></div>
+                <p className="text-xs text-slate-500 mt-3">Loading wallet...</p>
+              </div>
+            ) : wallet ? (
+              <>
+                <div className="bg-gradient-to-br from-medical-blue to-teal-950 rounded-2xl p-5 text-white">
+                  <p className="text-[10px] text-teal-200 uppercase tracking-widest font-bold">Wallet Balance</p>
+                  <p className="text-3xl font-black mt-1">AED {wallet.balance}</p>
+                  <p className="text-[10px] text-teal-300 mt-1">Available for bookings</p>
+                </div>
+                <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider">Recent Transactions</h4>
+                {wallet.transactions && wallet.transactions.length > 0 ? (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {wallet.transactions.map((tx: any) => (
+                      <div key={tx.id} className="flex items-center justify-between bg-white border border-slate-100 rounded-xl p-3">
+                        <div className="text-left">
+                          <p className="text-xs font-bold text-slate-700">{tx.description}</p>
+                          <p className="text-[9px] text-slate-400">{new Date(tx.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <span className={`text-xs font-black ${tx.type === 'credit' ? 'text-medical-green' : 'text-red-500'}`}>
+                          {tx.type === 'credit' ? '+' : '-'}AED {tx.amount}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 text-center py-4">No transactions yet.</p>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-xs text-slate-500">Wallet not available. Please contact support.</p>
+              </div>
+            )}
+          </div>
+        ) : activeTab === 'referral' ? (
+          <div className="p-6 space-y-4 overflow-y-auto flex-grow">
+            {referralLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue mx-auto"></div>
+                <p className="text-xs text-slate-500 mt-3">Loading referral info...</p>
+              </div>
+            ) : (
+              <>
+                <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-5 text-white">
+                  <p className="text-[10px] text-amber-200 uppercase tracking-widest font-bold">Your Referral Code</p>
+                  {referralCode ? (
+                    <div className="mt-2 flex items-center gap-3">
+                      <span className="text-2xl font-black tracking-widest">{referralCode.code}</span>
+                      <button
+                        onClick={() => { navigator.clipboard.writeText(referralCode.shareLink); toast.success('Referral link copied!'); }}
+                        className="text-[10px] font-bold bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg cursor-pointer"
+                      >
+                        Copy Link
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-amber-200 mt-1">Generating your code...</p>
+                  )}
+                </div>
+                {referralStats && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-slate-50 rounded-xl p-4 text-center">
+                      <p className="text-lg font-black text-slate-800">{referralStats.invitesSent}</p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Invites Sent</p>
+                    </div>
+                    <div className="bg-slate-50 rounded-xl p-4 text-center">
+                      <p className="text-lg font-black text-slate-800">{referralStats.completedReferrals}</p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Completed</p>
+                    </div>
+                    <div className="bg-slate-50 rounded-xl p-4 text-center">
+                      <p className="text-lg font-black text-medical-green">AED {referralStats.totalRewardsEarned}</p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Total Earned</p>
+                    </div>
+                    <div className="bg-slate-50 rounded-xl p-4 text-center">
+                      <p className="text-lg font-black text-amber-600">AED {referralStats.pendingRewards}</p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Pending</p>
+                    </div>
+                  </div>
+                )}
+                <p className="text-[10px] text-slate-400 text-center">Share your code with friends. You get AED 25 when they book!</p>
+              </>
+            )}
+          </div>
+        ) : activeTab === 'profile' ? (
           <form onSubmit={handleSubmit} noValidate className="p-6 space-y-4 overflow-y-auto flex-grow">
             
             {isSaved ? (
@@ -318,6 +520,82 @@ export default function ProfileModal({
                 </div>
               </div>
 
+              {!showChangePassword ? (
+                <button
+                  type="button"
+                  onClick={() => setShowChangePassword(true)}
+                  className="flex items-center gap-2 text-xs font-bold text-medical-blue hover:text-blue-800 py-2 cursor-pointer"
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  Change Password
+                </button>
+              ) : (
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-black text-slate-700 flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5 text-slate-500" />
+                      Change Password
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowChangePassword(false);
+                        setPasswordError('');
+                        setCurrentPassword('');
+                        setNewPassword('');
+                        setConfirmPassword('');
+                      }}
+                      className="text-[10px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  {passwordError && (
+                    <p className="text-[10px] font-semibold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg">{passwordError}</p>
+                  )}
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 block mb-1">Current Password</label>
+                    <input
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => { setCurrentPassword(e.target.value); setPasswordError(''); }}
+                      placeholder="Enter current password"
+                      className="w-full text-xs border border-slate-200 rounded-lg p-2.5 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 block mb-1">New Password</label>
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => { setNewPassword(e.target.value); setPasswordError(''); }}
+                        placeholder="New password"
+                        className="w-full text-xs border border-slate-200 rounded-lg p-2.5 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 block mb-1">Confirm Password</label>
+                      <input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError(''); }}
+                        placeholder="Confirm new password"
+                        className="w-full text-xs border border-slate-200 rounded-lg p-2.5 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleChangePassword}
+                    disabled={changingPassword}
+                    className="w-full py-2.5 bg-medical-blue hover:bg-blue-900 text-white font-black text-xs rounded-lg cursor-pointer transition-all disabled:opacity-50"
+                  >
+                    {changingPassword ? 'Updating...' : 'Update Password'}
+                  </button>
+                </div>
+              )}
+
               {/* Action Buttons */}
               <div className="pt-4 flex gap-3 border-t border-slate-100 mt-5">
                 <button
@@ -419,15 +697,12 @@ export default function ProfileModal({
                                   setRescheduleDate(e.target.value);
                                   setRescheduleSlots([]);
                                   setRescheduleTimeSlot('');
-                                  if (e.target.value && booking.serviceId) {
-                                    try {
-                                      const res = await fetch(`/api/services/${booking.serviceId}/available-slots?date=${e.target.value}`);
-                                      if (res.ok) {
-                                        const data = await res.json();
+                                    if (e.target.value && booking.serviceId) {
+                                      try {
+                                        const data = await api.get<any>(`/api/services/${booking.serviceId}/available-slots?date=${e.target.value}`);
                                         if (Array.isArray(data)) setRescheduleSlots(data);
-                                      }
-                                    } catch {}
-                                  }
+                                      } catch { /* ignore */ }
+                                    }
                                 }}
                                 className="w-full text-[10px] border border-blue-200 rounded-lg p-2 bg-white"
                               />

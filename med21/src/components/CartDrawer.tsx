@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Trash2, Plus, Minus, ShoppingBag, CheckCircle, Calendar, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 import { api } from '../lib/api';
 import PhoneInput from './PhoneInput';
 import LocationPicker, { SelectedLocation } from './LocationPicker';
+import SafeImage from './SafeImage';
 import { CartItem } from '../types';
 import ConfirmDialog from './ConfirmDialog';
 import { createEnbdpayCheckout } from '../services/enbdpay';
@@ -18,7 +19,6 @@ import { createBooking } from '../services/bookings';
 import { formatAedWhole } from '../utils/money';
 import { TIME_SLOTS } from '../constants';
 import { trackEvent, AnalyticsEvents } from '../services/analytics';
-import SafeImage from './SafeImage';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -97,9 +97,7 @@ export default function CartDrawer({
         return { serviceId, slots: null };
       }
       try {
-        const res = await fetch(`/api/services/${encodeURIComponent(serviceId)}/available-slots?date=${encodeURIComponent(dispatchDate)}`);
-        if (!res.ok) return { serviceId, slots: null };
-        const data = await res.json();
+        const data = await api.get<any>(`/api/services/${encodeURIComponent(serviceId)}/available-slots?date=${encodeURIComponent(dispatchDate)}`);
         return { serviceId, slots: Array.isArray(data) && data.length > 0 ? data : null };
       } catch {
         return { serviceId, slots: null };
@@ -211,7 +209,7 @@ export default function CartDrawer({
     setPromoError('');
   };
 
-  const handleCheckoutSubmit = async (e: React.FormEvent) => {
+  const handleCheckoutSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
@@ -257,8 +255,8 @@ export default function CartDrawer({
     try {
       // Validate cart prices against current API data
       const [srvRes, prodRes] = await Promise.all([
-        fetch('/api/services').then(r => r.ok ? r.json() : []),
-        fetch('/api/products').then(r => r.ok ? r.json() : []),
+        api.get<any[]>('/api/services').catch(() => []),
+        api.get<any[]>('/api/products').catch(() => []),
       ]);
       const currentPrices: Record<string, number> = {};
       (Array.isArray(srvRes) ? srvRes : []).forEach((s: any) => { currentPrices[s.id] = s.price; });
@@ -288,7 +286,7 @@ export default function CartDrawer({
           customerEmail: patientEmail,
           customerPhone: patientContact,
           serviceTitle: title,
-          serviceId: String(serviceId).startsWith('srv-') ? serviceId : undefined,
+          serviceId: serviceId || undefined,
           category,
           subcategory,
           price: effectivePrice * item.quantity,
@@ -410,7 +408,7 @@ export default function CartDrawer({
                 <button
                   onClick={onClose}
                   aria-label="Close cart"
-                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full cursor-pointer transition-colors"
+                  className="p-[9px] text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full cursor-pointer transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -457,6 +455,7 @@ export default function CartDrawer({
 
                             <div className="flex flex-col items-end justify-between gap-2 h-16 shrink-0">
                               <button
+                                type="button"
                                 onClick={() =>
                                   requestRemoveItem(
                                     item.product.id,
@@ -464,16 +463,22 @@ export default function CartDrawer({
                                   )
                                 }
                                 aria-label="Remove item"
-                                className="text-red-400 hover:text-red-500 hover:bg-red-50 p-2 rounded transition-colors cursor-pointer"
+                                className="text-red-400 hover:text-red-500 hover:bg-red-50 p-3 rounded transition-colors cursor-pointer"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Trash2 className="w-4 h-4" />
                               </button>
 
                               <div className="flex items-center gap-2 border border-slate-200 rounded-lg p-0.5 bg-slate-50">
                                 <button
-                                  onClick={() => onUpdateQty(item.product.id, Math.max(1, item.quantity - 1))}
+                                  onClick={() => {
+                                    if (item.quantity <= 1) {
+                                      requestRemoveItem(item.product.id, 'name' in item.product ? item.product.name : item.product.title);
+                                    } else {
+                                      onUpdateQty(item.product.id, item.quantity - 1);
+                                    }
+                                  }}
                                   aria-label="Decrease quantity"
-                                  className="p-2 hover:bg-white rounded text-slate-600 hover:text-slate-900 cursor-pointer"
+                                  className="p-[9px] hover:bg-white rounded text-slate-600 hover:text-slate-900 cursor-pointer"
                                 >
                                   <Minus className="w-3.5 h-3.5" />
                                 </button>
@@ -481,7 +486,7 @@ export default function CartDrawer({
                                 <button
                                   onClick={() => onUpdateQty(item.product.id, item.quantity + 1)}
                                   aria-label="Increase quantity"
-                                  className="p-2 hover:bg-white rounded text-slate-600 hover:text-slate-900 cursor-pointer"
+                                  className="p-[9px] hover:bg-white rounded text-slate-600 hover:text-slate-900 cursor-pointer"
                                 >
                                   <Plus className="w-3.5 h-3.5" />
                                 </button>

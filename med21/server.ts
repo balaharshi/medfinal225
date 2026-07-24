@@ -11,7 +11,7 @@ app.use(express.json());
 
 app.use("/api", async (req, res) => {
   try {
-    const response = await fetch(`${BACKEND_URL}${req.originalUrl}`, {
+    const response = await fetch(`${BACKEND_URL}${req.originalUrl.replace(/^\/api/, '')}`, {
       method: req.method,
       headers: {
         "Content-Type": "application/json",
@@ -61,8 +61,8 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Frontend running on http://localhost:${PORT}`);
-    console.log(`API proxy forwarding /api requests to ${BACKEND_URL}`);
+    console.warn(`Frontend running on http://localhost:${PORT}`);
+    console.warn(`API proxy forwarding /api requests to ${BACKEND_URL}`);
   });
 }
 

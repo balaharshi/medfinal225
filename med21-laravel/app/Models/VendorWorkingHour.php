@@ -13,7 +13,7 @@ class VendorWorkingHour extends Model
     public $incrementing = false;
 
     protected $fillable = [
-        'vendor_id',
+        'id', 'vendor_id',
         'day_of_week',
         'start_time',
         'end_time',

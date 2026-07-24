@@ -10,6 +10,10 @@
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
+    # Skip API and server paths — they're handled by the Laravel backend
+    RewriteCond %{REQUEST_URI} ^/(api|server) [NC]
+    RewriteRule ^ - [L]
+
     # Send Requests to Front Controller (index.html) for SPA routing
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
@@ -23,8 +27,10 @@
     </FilesMatch>
 
     # Security headers
+    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header set Content-Security-Policy "default-src 'self' https:; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; style-src 'self' https: 'unsafe-inline'; img-src 'self' https: data:; font-src 'self' https:; connect-src 'self' https: wss:"
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN"
-    Header set X-XSS-Protection "1; mode=block"
+    Header always unset X-XSS-Protection
     Header set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>

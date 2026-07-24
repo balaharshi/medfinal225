@@ -1,8 +1,8 @@
 /**
  * Centralized API client for MedZiva frontend.
  *
- * Replaces raw fetch() calls throughout the app.
- * Handles: base URL, auth tokens, credentials, JSON parsing, error handling.
+ * Uses httpOnly cookies for authentication (set by backend via withAccessCookie).
+ * Handles: base URL, credentials, JSON parsing, error handling.
  *
  * Usage:
  *   import { api } from '@/lib/api';
@@ -19,13 +19,11 @@ const API_BASE = (() => {
   return '';
 })();
 
-type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 interface RequestOptions {
   body?: unknown;
   headers?: Record<string, string>;
-  /** Skip auth token injection (e.g., for public endpoints). */
-  noAuth?: boolean;
   /** Skip credentials: 'include' (default: true). */
   noCredentials?: boolean;
 }
@@ -36,32 +34,13 @@ interface ApiError {
   errors?: Record<string, string[]>;
 }
 
-function getAuthToken(): string | null {
-  try {
-    return (
-      localStorage.getItem('medziva_user_token') ||
-      localStorage.getItem('medziva_vendor_token') ||
-      localStorage.getItem('medziva_admin_token')
-    );
-  } catch {
-    return null;
-  }
-}
-
 async function request<T = unknown>(method: HttpMethod, url: string, options: RequestOptions = {}): Promise<T> {
-  const { body, headers = {}, noAuth = false, noCredentials = false } = options;
+  const { body, headers = {}, noCredentials = false } = options;
 
   const requestHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
     ...headers,
   };
-
-  if (!noAuth) {
-    const token = getAuthToken();
-    if (token) {
-      requestHeaders['Authorization'] = `Bearer ${token}`;
-    }
-  }
 
   const response = await fetch(`${API_BASE}${url}`, {
     method,
@@ -83,17 +62,6 @@ async function request<T = unknown>(method: HttpMethod, url: string, options: Re
       message: (errorData.message as string) || `Request failed: ${response.status}`,
       errors: errorData.errors as Record<string, string[]> | undefined,
     };
-
-    // Auto-clear stale tokens on auth errors
-    if (response.status === 401) {
-      try {
-        localStorage.removeItem('medziva_user_token');
-        localStorage.removeItem('medziva_vendor_token');
-        localStorage.removeItem('medziva_admin_token');
-      } catch {
-        // localStorage not available
-      }
-    }
 
     throw new Error(error.message);
   }
@@ -118,6 +86,9 @@ export const api = {
 
   post: <T = unknown>(url: string, options?: RequestOptions) =>
     request<T>('POST', url, options),
+
+  put: <T = unknown>(url: string, options?: RequestOptions) =>
+    request<T>('PUT', url, options),
 
   patch: <T = unknown>(url: string, options?: RequestOptions) =>
     request<T>('PATCH', url, options),

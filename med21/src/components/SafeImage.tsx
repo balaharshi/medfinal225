@@ -5,28 +5,20 @@ interface SafeImageProps {
   alt: string;
   containerClassName?: string;
   className?: string;
+  fallbackSrc?: string;
   fallback?: ReactNode;
   children?: ReactNode;
-  referrerPolicy?: HTMLImageElement['referrerPolicy'];
+  referrerPolicy?: React.HTMLAttributeReferrerPolicy;
   loading?: 'eager' | 'lazy';
   onError?: (event: SyntheticEvent<HTMLImageElement>) => void;
 }
 
-/**
- * SafeImage
- *
- * Renders an <img> only when a non-empty src is provided. If the image fails
- * to load, the entire container is hidden so no broken-image icon or empty
- * placeholder box is shown.
- *
- * Use this for all product/service/category images so the UI degrades cleanly
- * when an image path is missing or a file is unavailable.
- */
 export default function SafeImage({
   src,
   alt,
   containerClassName,
   className,
+  fallbackSrc,
   fallback = null,
   children,
   referrerPolicy,
@@ -34,6 +26,7 @@ export default function SafeImage({
   onError,
 }: SafeImageProps) {
   const [visible, setVisible] = useState(true);
+  const [currentSrc, setCurrentSrc] = useState<string | null>(null);
 
   if (!src || src.trim() === '') {
     return <>{fallback}</>;
@@ -43,23 +36,26 @@ export default function SafeImage({
     return <>{fallback}</>;
   }
 
-  // Defensive: ensure spaces in URLs are encoded. Most browsers handle raw
-  // spaces, but encoding keeps paths consistent and avoids edge cases.
-  const safeSrc = src.replace(/ /g, '%20');
+  const displaySrc = (currentSrc || src).replace(/ /g, '%20');
+
+  const handleError = (event: SyntheticEvent<HTMLImageElement>) => {
+    if (fallbackSrc && (!currentSrc || currentSrc !== fallbackSrc)) {
+      setCurrentSrc(fallbackSrc);
+      onError?.(event);
+      return;
+    }
+    setVisible(false);
+    onError?.(event);
+  };
 
   const image = (
     <img
-      src={safeSrc}
+      src={displaySrc}
       alt={alt}
       className={className}
       referrerPolicy={referrerPolicy}
       loading={loading}
-      onError={(event) => {
-        setVisible(false);
-        if (onError) {
-          onError(event);
-        }
-      }}
+      onError={handleError}
     />
   );
 

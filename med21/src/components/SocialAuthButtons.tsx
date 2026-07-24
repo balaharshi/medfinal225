@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api } from '../lib/api';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';

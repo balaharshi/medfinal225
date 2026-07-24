@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, FormEvent } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
+import { api } from "../lib/api";
 import { 
   Lock, 
   Unlock, 
@@ -70,7 +71,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
   });
 
   // Active Pane Tab inside Vendor Console
-  const [activePane, setActivePane] = useState<"dashboard" | "bookings" | "services" | "reports" | "profile" | "workinghours">("dashboard");
+  const [activePane, setActivePane] = useState<"dashboard" | "bookings" | "services" | "reports" | "profile">("dashboard");
 
   // Dynamic lists from backend
   const [bookingsList, setBookingsList] = useState<any[]>([]);
@@ -88,53 +89,24 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
   const [profileChangeRequests, setProfileChangeRequests] = useState<any[]>([]);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  // Working hours state
-  const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const [workingHours, setWorkingHours] = useState<Record<number, { startTime: string; endTime: string; isActive: boolean }>>(() => {
-    const init: Record<number, any> = {};
-    for (let d = 0; d < 7; d++) init[d] = { startTime: '08:00', endTime: '22:00', isActive: true };
-    return init;
-  });
-  const [savingHours, setSavingHours] = useState(false);
-  const [hoursSaved, setHoursSaved] = useState(false);
-
   useEffect(() => {
     localStorage.removeItem("medziva_vendor_auth");
     localStorage.removeItem("medziva_vendor_id");
     localStorage.removeItem("medziva_vendor_data");
   }, []);
 
-  const getVendorRequestInit = (options?: RequestInit): RequestInit => {
-    const token = localStorage.getItem("medziva_vendor_token");
-    return {
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...options?.headers,
-      },
-      ...options,
-    };
-  };
+
 
   useEffect(() => {
     const hydrateSession = async () => {
       try {
-        const token = localStorage.getItem("medziva_vendor_token");
-        const response = await fetch('/api/auth/session', {
-          credentials: 'include',
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
-        if (response.ok) {
-          const data = await response.json();
-          if (data?.user?.role === 'vendor' && data?.vendor) {
-            setIsAuthenticated(true);
-            setVendorData(data.vendor);
-          }
+        const data = await api.get<{ user?: { role?: string }; vendor?: unknown }>('/api/auth/session');
+        if (data?.user?.role === 'vendor' && data?.vendor) {
+          setIsAuthenticated(true);
+          setVendorData(data.vendor);
         }
       } catch (error) {
 
-        localStorage.removeItem("medziva_vendor_token");
         setIsAuthenticated(false);
       } finally {
         setIsSessionChecking(false);
@@ -151,20 +123,14 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     setIsLoadingData(true);
     try {
       const [resBookings, resServices] = await Promise.all([
-        fetch(`/api/vendorBookings/${vendorData.id}`, getVendorRequestInit()),
-        fetch(`/api/vendorServices/${vendorData.id}`, getVendorRequestInit())
+        api.get<any[]>(`/api/vendorBookings/${vendorData.id}`),
+        api.get<any[]>(`/api/vendorServices/${vendorData.id}`)
       ]);
-      
-      if (resBookings.ok) {
-        const list = await resBookings.json();
-        setBookingsList(list);
-      }
-      if (resServices.ok) {
-        const list = await resServices.json();
-        setServicesList(list);
-      }
-    } catch (e) {
 
+      setBookingsList(resBookings);
+      setServicesList(resServices);
+    } catch (e) {
+      toast.error("Failed to load vendor data. Please try again.");
     } finally {
       setIsLoadingData(false);
       setLastSyncTime(new Date());
@@ -177,62 +143,18 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     }
   }, [isAuthenticated, vendorData]);
 
-  useEffect(() => {
-    if (activePane === 'profile' && vendorData?.id) {
-      loadProfileChangeRequests();
+  const loadProfileChangeRequests = async () => {
+    if (!vendorData?.id) return;
+    try {
+      const data = await api.get<any[]>(`/api/vendorProfile/${vendorData.id}/change-requests`);
+      setProfileChangeRequests(Array.isArray(data) ? data : []);
+    } catch {
+      toast.error("Failed to load profile change requests.");
     }
-  }, [activePane, vendorData?.id]);
-
-  const loadWorkingHours = async () => {
-    if (!vendorData?.id) return;
-    try {
-      const res = await fetch(`/api/vendor-working-hours/${vendorData.id}`, getVendorRequestInit());
-      if (!res.ok) return;
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        const hours: Record<number, any> = {};
-        for (let d = 0; d < 7; d++) {
-          hours[d] = { startTime: '08:00', endTime: '22:00', isActive: false };
-        }
-        data.forEach((wh: any) => {
-          hours[wh.dayOfWeek] = {
-            startTime: wh.startTime,
-            endTime: wh.endTime,
-            isActive: wh.isActive ?? true,
-          };
-        });
-        setWorkingHours(hours);
-      }
-    } catch (e) { /* silently handle */ }
-  };
-
-  const saveWorkingHours = async () => {
-    if (!vendorData?.id) return;
-    setSavingHours(true);
-    setHoursSaved(false);
-    try {
-      const hours = (Object.entries(workingHours) as [string, { startTime: string; endTime: string; isActive: boolean }][])
-        .filter(([, v]) => v.isActive)
-        .map(([day, v]) => ({
-          dayOfWeek: parseInt(day),
-          startTime: v.startTime,
-          endTime: v.endTime,
-          isActive: true,
-        }));
-      await fetch(`/api/vendor-working-hours/${vendorData.id}`, getVendorRequestInit({
-        method: 'PUT',
-        body: JSON.stringify({ hours }),
-      }));
-      setHoursSaved(true);
-      setTimeout(() => setHoursSaved(false), 3000);
-    } catch (e) { /* silently handle */ }
-    finally { setSavingHours(false); }
   };
 
   useEffect(() => {
-    if (activePane === 'workinghours' && vendorData?.id) {
-      loadWorkingHours();
-    }
+    if (activePane === 'profile' && vendorData?.id) { /* no-op */ }
   }, [activePane, vendorData?.id]);
 
   // Subscribe to real-time booking notifications via Pusher
@@ -250,17 +172,10 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     setAuthLoading(true);
     setAuthError(null);
     try {
-      const response = await fetch("/api/vendorLogin", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: values.email, password: values.password })
+      const data = await api.post<{ success?: boolean; accessToken?: string; vendor?: unknown; error?: string }>("/api/vendorLogin", {
+        body: { email: values.email, password: values.password },
       });
-      const data = await response.json();
-      if (response.ok && data.success) {
-        if (data.accessToken) {
-          localStorage.setItem("medziva_vendor_token", data.accessToken);
-        }
+      if (data.success) {
         setIsAuthenticated(true);
         setVendorData(data.vendor);
         setIsSessionChecking(false);
@@ -288,16 +203,8 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
       return;
     }
 
-    if (data.accessToken) {
-      localStorage.setItem("medziva_vendor_token", data.accessToken);
-    }
-
-    const sessionResponse = await fetch('/api/auth/session', {
-      credentials: 'include',
-      headers: data.accessToken ? { Authorization: `Bearer ${data.accessToken}` } : undefined,
-    });
-    const sessionData = await sessionResponse.json();
-    if (!sessionResponse.ok || !sessionData?.vendor) {
+    const sessionData = await api.get<{ vendor?: unknown }>('/api/auth/session');
+    if (!sessionData?.vendor) {
       const message = "Vendor account is not linked to a provider profile.";
       setAuthError(message);
       toast.error(message);
@@ -318,15 +225,14 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
   // Perform logout
   const handleLogout = () => {
-    localStorage.removeItem("medziva_vendor_token");
-    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => undefined);
+    api.post('/api/auth/logout').catch(() => undefined);
     setIsAuthenticated(false);
     setVendorData(null);
     triggerToast("Logged out successfully.");
   };
 
   // Handle profile update
-  const handleProfileChangeRequest = async (e: React.FormEvent) => {
+  const handleProfileChangeRequest = async (e: FormEvent) => {
     e.preventDefault();
     if (!vendorData?.id) return;
     if (!profileChangeValue.trim()) {
@@ -335,38 +241,21 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     }
 
     try {
-      const response = await fetch(`/api/vendorProfile/${vendorData.id}/change-requests`, getVendorRequestInit({
-        method: "POST",
-        body: JSON.stringify({
+      const response = await api.post<{ error?: string }>(`/api/vendorProfile/${vendorData.id}/change-requests`, {
+        body: {
           fieldName: profileChangeField,
           requestedValue: profileChangeValue.trim(),
           reason: profileChangeReason.trim() || undefined,
-        }),
-      }));
+        },
+      });
 
-      if (response.ok) {
-        toast.success("Change request submitted. Admin will review it.");
-        setProfileChangeValue("");
-        setProfileChangeReason("");
-        loadProfileChangeRequests();
-      } else {
-        const data = await response.json();
-        toast.error(data?.error || "Failed to submit request.");
-      }
-    } catch (e) { console.error('Profile change request failed:', e);
-      toast.error("Failed to submit request.");
+      toast.success("Change request submitted. Admin will review it.");
+      setProfileChangeValue("");
+      setProfileChangeReason("");
+      loadProfileChangeRequests();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to submit request.");
     }
-  };
-
-  const loadProfileChangeRequests = async () => {
-    if (!vendorData?.id) return;
-    try {
-      const response = await fetch(`/api/vendorProfile/${vendorData.id}/change-requests`, getVendorRequestInit());
-      if (response.ok) {
-        const data = await response.json();
-        setProfileChangeRequests(Array.isArray(data) ? data : []);
-      }
-    } catch (e) { console.error('Failed to load profile requests:', e); }
   };
 
   const handleAcceptBooking = async (bookingId: string) => {
@@ -374,14 +263,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
     setAcceptingBookingId(bookingId);
     try {
-      const response = await fetch(`/api/vendorBookings/${vendorData.id}/${bookingId}/accept`, getVendorRequestInit({
-        method: "POST",
-      }));
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data.error || "This booking is no longer available.");
-      }
+      await api.post(`/api/vendorBookings/${vendorData.id}/${bookingId}/accept`);
 
       triggerToast("Booking accepted successfully.");
       await fetchVendorData();
@@ -398,22 +280,23 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
     if (!vendorData?.id) return;
 
     setUpdatingBookingStatus(bookingId);
+    const previousStatus = bookingsList.find(b => b.id === bookingId)?.status;
+
+    setBookingsList(prev =>
+      prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b)
+    );
+
     try {
-      const response = await fetch(`/api/vendorBookings/${vendorData.id}/${bookingId}/status`, getVendorRequestInit({
-        method: "PATCH",
-        body: JSON.stringify({ status: newStatus }),
-      }));
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to update status.");
-      }
-
-      setBookingsList(prev =>
-        prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b)
-      );
+      await api.patch(`/api/vendorBookings/${vendorData.id}/${bookingId}/status`, {
+        body: { status: newStatus },
+      });
       toast.success(`Booking marked as ${newStatus}`);
     } catch (error) {
+      if (previousStatus) {
+        setBookingsList(prev =>
+          prev.map(b => b.id === bookingId ? { ...b, status: previousStatus } : b)
+        );
+      }
       const message = error instanceof Error ? error.message : "Failed to update booking status.";
       toast.error(message);
     } finally {
@@ -468,14 +351,21 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
   const formatRelativeTime = (date: Date | null) => {
     if (!date) return "Never";
-    const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-    if (seconds < 10) return "Just now";
-    if (seconds < 60) return `${seconds}s ago`;
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.floor(hours / 24)}d ago`;
+    const secs = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (secs < 60) return `${secs}s ago`;
+    const mins = Math.floor(secs / 60);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
+  };
+
+  const formatExpiryCountdown = (expiresAt: string | null) => {
+    if (!expiresAt) return null;
+    const diff = new Date(expiresAt).getTime() - Date.now();
+    const hrs = Math.floor(diff / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    return { text: `Expires in ${hrs}h ${mins}m`, urgent: hrs < 1 };
   };
 
   const pendingBookingsCount = bookingsList.filter(b => b.status === "Pending" || !b.status).length;
@@ -501,7 +391,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
           <div className="relative text-center space-y-6">
             <div className="w-20 h-20 bg-white mx-auto rounded-2xl flex items-center justify-center border border-slate-100 shadow-sm p-3">
-              <img src="/newlogo.png" alt="MedZiva Logo" className="h-full w-full object-contain" referrerPolicy="no-referrer" />
+              <SafeImage src="/newlogo.png" alt="MedZiva Logo" className="h-full w-full object-contain" referrerPolicy="no-referrer" />
             </div>
 
             <div>
@@ -528,7 +418,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                   </span>
                   <input
                     type="email"
-                    placeholder="vendor@medzivahealthcare.com"
+                    placeholder="vendor@medziva.ae"
                     {...register("email", {
                       required: "Vendor email is required",
                       pattern: {
@@ -629,13 +519,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center shrink-0 shadow-lg shadow-purple-200">
               {vendorData?.logo ? (
-                <SafeImage
-                  src={vendorData.logo}
-                  alt={vendorData.name}
-                  containerClassName="w-full h-full rounded-2xl overflow-hidden flex items-center justify-center bg-slate-50 border border-slate-100"
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
+                <SafeImage src={vendorData.logo} alt={vendorData.name} className="w-full h-full object-cover rounded-2xl" referrerPolicy="no-referrer" />
               ) : (
                 <span className="text-2xl font-black text-white">{(vendorData?.name || "V").charAt(0)}</span>
               )}
@@ -733,8 +617,7 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
               { id: "bookings", label: "My Bookings", icon: Calendar },
               { id: "services", label: "My Services", icon: HeartPulse },
               { id: "reports", label: "Reports", icon: TrendingUp },
-              { id: "profile", label: "Profile", icon: User },
-              { id: "workinghours", label: "Working Hours", icon: Clock }
+              { id: "profile", label: "Profile", icon: User }
             ].map((pane) => {
               const isSelected = activePane === pane.id;
               return (
@@ -847,6 +730,17 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                         <div className="flex items-center justify-between gap-3 mt-2">
                           <p className="text-[10px] text-slate-400">{book.date} • {book.price} AED</p>
                           <div className="flex items-center gap-1.5">
+                            {(() => {
+                              const expiry = formatExpiryCountdown(book.expiresAt);
+                              if (expiry && (book.status === "Pending" || !book.status)) {
+                                return (
+                                  <span className={`text-[9px] font-bold ${expiry.urgent ? 'text-red-600' : 'text-amber-600'}`}>
+                                    {expiry.text}
+                                  </span>
+                                );
+                              }
+                              return null;
+                            })()}
                             {book.customerPhone && (
                               <a
                                 href={`tel:${book.customerPhone}`}
@@ -995,6 +889,17 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                         )}
                         {!book.customerPhone && <span>No phone</span>}
                       </div>
+                      {(() => {
+                        const expiry = formatExpiryCountdown(book.expiresAt);
+                        if (expiry && (book.status === "Pending" || !book.status)) {
+                          return (
+                            <span className={`text-[9px] font-bold ${expiry.urgent ? 'text-red-600' : 'text-amber-600'}`}>
+                              {expiry.text}
+                            </span>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
                     <div className="flex flex-col sm:items-end gap-2">
                       <span className="text-sm font-black text-medical-green">{book.price} AED</span>
@@ -1283,76 +1188,6 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
                 <p className="text-slate-400 text-[10px]">No previous change requests.</p>
               </div>
             )}
-          </div>
-        )}
-
-        {/* ---- WORKING HOURS VIEW ---- */}
-        {activePane === "workinghours" && (
-          <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-2xs text-left">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-              <div>
-                <h3 className="font-extrabold text-blue-950 text-sm">Working Hours</h3>
-                <p className="text-[10.5px] text-slate-400">Set your weekly availability schedule</p>
-              </div>
-              <button
-                onClick={saveWorkingHours}
-                disabled={savingHours}
-                className={`text-xs font-bold py-2 px-5 rounded-xl cursor-pointer transition-all ${
-                  hoursSaved
-                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                    : 'bg-medical-green hover:bg-emerald-600 text-white'
-                }`}
-              >
-                {savingHours ? 'Saving...' : hoursSaved ? '✓ Saved' : 'Save Hours'}
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {DAYS.map((day, index) => {
-                const wh = workingHours[index] || { startTime: '08:00', endTime: '22:00', isActive: false };
-                return (
-                  <div key={day} className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-slate-200 transition-colors">
-                    <div className="w-24 shrink-0">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={wh.isActive}
-                          onChange={(e) => setWorkingHours(prev => ({
-                            ...prev,
-                            [index]: { ...prev[index], isActive: e.target.checked }
-                          }))}
-                          className="w-4 h-4 rounded accent-medical-green cursor-pointer"
-                        />
-                        <span className="text-xs font-bold text-blue-950">{day}</span>
-                      </label>
-                    </div>
-                    <div className="flex items-center gap-2 flex-1">
-                      <input
-                        type="time"
-                        value={wh.startTime}
-                        onChange={(e) => setWorkingHours(prev => ({
-                          ...prev,
-                          [index]: { ...prev[index], startTime: e.target.value }
-                        }))}
-                        disabled={!wh.isActive}
-                        className="text-xs border border-slate-200 rounded-lg p-2 bg-white disabled:opacity-40 disabled:bg-slate-50"
-                      />
-                      <span className="text-xs text-slate-400">to</span>
-                      <input
-                        type="time"
-                        value={wh.endTime}
-                        onChange={(e) => setWorkingHours(prev => ({
-                          ...prev,
-                          [index]: { ...prev[index], endTime: e.target.value }
-                        }))}
-                        disabled={!wh.isActive}
-                        className="text-xs border border-slate-200 rounded-lg p-2 bg-white disabled:opacity-40 disabled:bg-slate-50"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           </div>
         )}
 

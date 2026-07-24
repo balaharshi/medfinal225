@@ -14,7 +14,7 @@ class EnquiryRequest extends FormRequest
             'customerPhone' => ['nullable', 'string', 'max:50'],
             'serviceTitle' => ['nullable', 'string', 'max:255'],
             'message' => ['required', 'string', 'max:2000'],
-            'contactMethod' => ['nullable', 'string', 'in:phone,email,whatsapp'],
+            'contactMethod' => ['nullable', 'string', 'in:phone,email,whatsapp,Phone,Email,WhatsApp'],
             'date' => ['nullable', 'date'],
         ];
     }

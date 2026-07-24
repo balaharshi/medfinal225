@@ -15,7 +15,6 @@ php artisan config:cache
 
 | Role | Email | Password |
 |------|-------|----------|
-| Super Admin | superadmin@medzivahealthcare.com | Medziva@123 |
 | Admin | admin@medzivahealthcare.com | Medziva@123 |
 | Vendor | vendor@medzivahealthcare.com | Medziva@123 |
 | Customer | customer@medzivahealthcare.com | Medziva@123 |
@@ -26,9 +25,9 @@ php artisan config:cache
 
 ## What the Seeder Does
 
-1. Creates all 4 test accounts
-2. Seeds 27 Home Healthcare, 14 IV Therapy, 50 Lab Tests, 295 Biomarkers, 4 Health Packages, 12 Products
-3. Demo Vendor gets ALL 387 services enabled
+1. Creates all 3 test accounts (admin, vendor, customer)
+2. Seeds 27 Home Healthcare, 14 IV Therapy, 47 Lab Tests, 295 Biomarkers, 12 Products
+3. Demo Vendor gets ALL 383 services enabled
 4. Demo Vendor gets default working hours (8AM-10PM daily)
 5. Creates promo code `MEDZIVA10` (10% off, max AED 100)
 
@@ -185,7 +184,11 @@ medfinal225/
 │   ├── app/
 │   │   ├── Mail/                        # 7 mail classes (BookingConfirmation, BookingExpired, BookingReminder, BookingStatusUpdate, PaymentConfirmation, VendorNewBooking, VendorBookingCancelled)
 │   │   ├── Services/
-│   │   │   ├── CatalogService.php       # 1400+ lines — all booking/expiry/refund/reschedule logic
+│   │   │   ├── CatalogManagementService.php  # Category, product, service CRUD
+│   │   │   ├── BookingService.php        # Booking CRUD, payment, vendor accept, cancel, promo, emails
+│   │   │   ├── VendorService.php         # Vendor CRUD, working hours, SLA, change requests
+│   │   │   ├── EnquiryService.php        # Enquiry CRUD
+│   │   │   ├── SettingsService.php       # Settings + revenue report
 │   │   │   ├── TimeSlotCalculator.php   # Vendor-hours-aware slot calculation
 │   │   │   └── EnbdpayService.php       # AUTH + CAPTURE payment flow
 │   │   └── Console/Commands/

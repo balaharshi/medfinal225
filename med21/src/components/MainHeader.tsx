@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Search, User, ShoppingCart, LogOut, ChevronDown, Menu, X, Home, Activity, Beaker, Flame, Phone, Globe } from 'lucide-react';
 import { ActiveTab } from '../types';
 import ConfirmDialog from './ConfirmDialog';
+import SafeImage from './SafeImage';
 
 const newlogo = '/newlogo.png';
 
@@ -118,7 +119,7 @@ export default function MainHeader({
       {/* Mobile-only header */}
       <div className="md:hidden">
         <a href="/" className="mx-auto mb-0.5 flex w-fit items-center justify-center" aria-label="Go to homepage">
-          <img
+          <SafeImage
             src={newlogo}
             alt="MedZiva Logo"
             className="h-16 w-auto object-contain"
@@ -234,7 +235,7 @@ export default function MainHeader({
         {/* Left Side: Brand Logo */}
         <div className="flex items-center shrink-0">
           <a href="/" className="flex items-center h-full group" aria-label="Go to homepage">
-            <img 
+            <SafeImage 
               src={newlogo} 
               alt="MedZiva Logo" 
               className="h-[5.5rem] w-auto object-contain"
@@ -625,6 +626,16 @@ export default function MainHeader({
             >
               <Globe className="w-5 h-5 text-medical-blue" />
               <span className="font-semibold">About Us</span>
+            </button>
+            <hr className="my-2 border-slate-100" />
+            <button
+              onClick={() => {
+                closeMobileMenu();
+                setShowLogoutConfirm(true);
+              }}
+              className="w-full flex items-center gap-3 p-3 rounded-lg text-left text-red-500 hover:bg-red-50 transition-colors"
+            >
+              <span className="font-semibold">Logout</span>
             </button>
           </div>
         </div>

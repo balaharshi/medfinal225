@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { X, User, Phone, Mail, HelpCircle, ShieldCheck, Send, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PhoneInput from './PhoneInput';
@@ -66,7 +66,7 @@ export default function EnquiryModal({
 
   const servicesList: string[] = [];
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
@@ -161,7 +161,7 @@ export default function EnquiryModal({
           <button
             onClick={success ? handleReset : onClose}
             aria-label="Close enquiry dialog"
-            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-150 rounded-full cursor-pointer transition-colors"
+            className="p-[9px] text-slate-400 hover:text-slate-600 hover:bg-slate-150 rounded-full cursor-pointer transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -192,7 +192,7 @@ export default function EnquiryModal({
                   <option value="General Corporate Screening">General Corporate &amp; Wellness Screening</option>
                   <option value="Custom Long-Term Care Quote">Custom Long-Term Care Package</option>
                   {[
-                    'Nursing Care', 'Physiotherapy', 'Doctor on Call', 'Long-Term Care',
+                    'Custom Nursing Care', 'Nursing Care', 'Physiotherapy', 'Doctor on Call', 'Long-Term Care',
                     'Speech Therapy', 'Occupational Therapy', 'IV Therapy',
                   ].map((name) => (
                     <option key={name} value={name}>

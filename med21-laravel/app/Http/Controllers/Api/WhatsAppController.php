@@ -74,6 +74,8 @@ class WhatsAppController extends Controller
     private function generateAutoReply(string $message): string
     {
         $lower = mb_strtolower(trim($message));
+        $appUrl = config('app.url');
+        $supportEmail = config('mail.from.address', '' . $supportEmail . '');
 
         // Greetings
         if (preg_match('/^(hi|hello|hey|good\s*(morning|afternoon|evening)|مرحبا|السلام)\b/i', $lower)) {
@@ -89,7 +91,7 @@ class WhatsAppController extends Controller
         // Bookings
         if (preg_match('/\b(book|booking|appointment|schedule|حجز|موعد)\b/i', $lower)) {
             return "To book a service:\n\n"
-                . "1. Visit https://medzivahealthcare.com\n"
+                . "1. Visit {$appUrl}\n"
                 . "2. Browse our services (Nursing, IV Therapy, Lab Tests, etc.)\n"
                 . "3. Click 'Book Now' or add to cart\n"
                 . "4. Choose your preferred date and time\n\n"
@@ -112,7 +114,7 @@ class WhatsAppController extends Controller
             return "Our working hours:\n\n"
                 . "• Sunday - Saturday: 8:00 AM - 10:00 PM\n"
                 . "• We operate across Dubai and Sharjah\n\n"
-                . "Online booking is available 24/7 at medzivahealthcare.com";
+                . "Online booking is available 24/7 at {$appUrl}";
         }
 
         // Service area
@@ -132,14 +134,14 @@ class WhatsAppController extends Controller
                 . "💉 IV Therapy & Wellness Drips\n"
                 . "🔬 Lab Tests at Home\n"
                 . "🛏️ Medical Equipment Rental\n\n"
-                . "Visit medzivahealthcare.com to explore all services.";
+                . "Visit {$appUrl} to explore all services.";
         }
 
         // Speak to agent
         if (preg_match('/\b(agent|human|person|support|help|ممثل|مساعدة)\b/i', $lower)) {
             return "You can reach our team:\n\n"
                 . "📞 Call/WhatsApp: +971 55 951 0794\n"
-                . "📧 Email: info@medzivahealthcare.com\n\n"
+                . "📧 Email: {$supportEmail}\n\n"
                 . "Our team is available during business hours (8AM - 10PM).";
         }
 
@@ -151,6 +153,6 @@ class WhatsAppController extends Controller
             . "• 'hours' — Working hours\n"
             . "• 'services' — What we offer\n"
             . "• 'agent' — Talk to a person\n\n"
-            . "Or visit https://medzivahealthcare.com";
+            . "Or visit {$appUrl}";
     }
 }

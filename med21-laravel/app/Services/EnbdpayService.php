@@ -14,7 +14,7 @@ class EnbdpayService
 
     private int $tokenExpiresAt = 0;
 
-    public function __construct(private readonly CatalogService $catalogService)
+    public function __construct(private readonly BookingService $bookingService)
     {
     }
 
@@ -23,8 +23,9 @@ class EnbdpayService
         $appUtr = $payload['appUtr'] ?? $this->buildAppUtr();
         $orderId = $payload['orderId'] ?? $this->buildOrderId();
         $bookingId = isset($payload['bookingId']) ? (string) $payload['bookingId'] : '';
+        $paymentGroupId = isset($payload['paymentGroupId']) ? (string) $payload['paymentGroupId'] : '';
         $amount = $this->toMinorUnits($payload['amount'] ?? null);
-        $redirectUrl = $this->appendReturnParams($this->redirectUrl(), compact('appUtr', 'orderId', 'bookingId'));
+        $redirectUrl = $this->appendReturnParams($this->redirectUrl(), compact('appUtr', 'orderId', 'bookingId', 'paymentGroupId'));
 
         if ((bool) config('services.enbdpay.mock', true)) {
             $mockReturnUrl = $this->appendReturnParams($redirectUrl, [
@@ -33,14 +34,21 @@ class EnbdpayService
                 'responseStatus' => 'CAPTURED',
                 'mock' => 'true',
                 'bookingId' => $bookingId,
+                'paymentGroupId' => $paymentGroupId,
             ]);
             if ($bookingId !== '') {
-                $this->catalogService->updateBookingPaymentStatus([
+                $this->bookingService->updateBookingPaymentStatus([
                     'bookingId' => $bookingId,
                     'appUtr' => $appUtr,
                     'orderId' => $orderId,
                     'responseStatus' => 'CAPTURED',
                 ]);
+            } elseif ($paymentGroupId !== '') {
+                $this->bookingService->updateBookingPaymentStatus([
+                    'appUtr' => $appUtr,
+                    'orderId' => $orderId,
+                    'responseStatus' => 'CAPTURED',
+                ], $paymentGroupId);
             }
 
             return [
@@ -50,6 +58,7 @@ class EnbdpayService
                 'appUtr' => $appUtr,
                 'orderId' => $orderId,
                 'bookingId' => $bookingId,
+                'paymentGroupId' => $paymentGroupId,
                 'amount' => $amount,
                 'currency' => config('services.enbdpay.currency', 'AED'),
                 'mock' => true,
@@ -64,7 +73,7 @@ class EnbdpayService
                 'currency' => config('services.enbdpay.currency', 'AED'),
                 'description' => $this->sanitize($payload['description'] ?? null, 'MedZiva Healthcare Payment', 250),
                 'transactionType' => strtoupper((string) ($payload['transactionType'] ?? config('services.enbdpay.transaction_type', 'SALE'))),
-                'notes' => ['source' => $this->sanitize($payload['source'] ?? null, 'MedZiva'), 'category' => $this->sanitize($payload['category'] ?? null, 'Healthcare'), ...($bookingId ? ['bookingId' => $bookingId] : [])],
+                'notes' => ['source' => $this->sanitize($payload['source'] ?? null, 'MedZiva'), 'category' => $this->sanitize($payload['category'] ?? null, 'Healthcare'), ...($bookingId ? ['bookingId' => $bookingId] : []), ...($paymentGroupId ? ['paymentGroupId' => $paymentGroupId] : [])],
                 'app' => array_filter([
                     'appUtr' => $appUtr,
                     'redirectUrl' => $redirectUrl,
@@ -87,14 +96,25 @@ class EnbdpayService
             throw new HttpException(424, $this->readField($response, 'responseMessage') ?: 'ENBDpay did not create a checkout link');
         }
 
-        $booking = $bookingId ? $this->catalogService->attachBookingPayment($bookingId, [
-            'paymentStatus' => 'Pending',
-            'paymentProvider' => 'ENBDpay',
-            'paymentAppUtr' => $appUtr,
-            'paymentOrderId' => $orderId,
-            'paymentTransactionUtr' => $transactionUtr,
-            'paymentResponseStatus' => $responseStatus,
-        ]) : null;
+        if ($paymentGroupId) {
+            $this->bookingService->attachBookingPayment('', [
+                'paymentStatus' => 'Pending',
+                'paymentProvider' => 'ENBDpay',
+                'paymentAppUtr' => $appUtr,
+                'paymentOrderId' => $orderId,
+                'paymentTransactionUtr' => $transactionUtr,
+                'paymentResponseStatus' => $responseStatus,
+            ], $paymentGroupId);
+        } elseif ($bookingId) {
+            $this->bookingService->attachBookingPayment($bookingId, [
+                'paymentStatus' => 'Pending',
+                'paymentProvider' => 'ENBDpay',
+                'paymentAppUtr' => $appUtr,
+                'paymentOrderId' => $orderId,
+                'paymentTransactionUtr' => $transactionUtr,
+                'paymentResponseStatus' => $responseStatus,
+            ]);
+        }
 
         $transactionType = strtoupper((string) ($payload['transactionType'] ?? config('services.enbdpay.transaction_type', 'PURCHASE')));
 
@@ -103,7 +123,8 @@ class EnbdpayService
             $authorizedAmount = (float) $amount / 100;
 
             AuthTransaction::create([
-                'booking_id' => $bookingId,
+                'booking_id' => $bookingId ?: null,
+                'payment_group_id' => $paymentGroupId ?: null,
                 'app_utr' => $appUtr,
                 'order_id' => $orderId,
                 'transaction_utr' => $transactionUtr,
@@ -120,11 +141,12 @@ class EnbdpayService
                 'appUtr' => $appUtr,
                 'orderId' => $orderId,
                 'amount' => $authorizedAmount,
+                'paymentGroupId' => $paymentGroupId,
                 'capture_deadline' => now()->addHours(24)->toDateTimeString(),
             ]);
         }
 
-        return [...$response, 'responseStatus' => $responseStatus, 'redirectUri' => $redirectUri, 'transactionUtr' => $transactionUtr, 'appUtr' => $appUtr, 'orderId' => $orderId, 'bookingId' => $bookingId, 'booking' => $booking];
+        return [...$response, 'responseStatus' => $responseStatus, 'redirectUri' => $redirectUri, 'transactionUtr' => $transactionUtr, 'appUtr' => $appUtr, 'orderId' => $orderId, 'bookingId' => $bookingId, 'paymentGroupId' => $paymentGroupId, 'booking' => null];
     }
 
     public function checkCheckoutStatus(array $payload): array
@@ -135,13 +157,13 @@ class EnbdpayService
 
         if ((bool) config('services.enbdpay.mock', true)) {
             $responseStatus = strtoupper((string) ($payload['responseStatus'] ?? 'CAPTURED'));
-            $booking = $this->catalogService->updateBookingPaymentStatus([
+            $booking = $this->bookingService->updateBookingPaymentStatus([
                 'bookingId' => $payload['bookingId'] ?? null,
                 'appUtr' => $payload['appUtr'] ?? null,
                 'orderId' => $payload['orderId'] ?? null,
                 'transactionUtr' => $payload['transactionUtr'] ?? null,
                 'responseStatus' => $responseStatus,
-            ]);
+            ], $payload['paymentGroupId'] ?? null);
 
             return [
                 'appUtr' => $payload['appUtr'] ?? null,
@@ -159,7 +181,7 @@ class EnbdpayService
         ]));
 
         $status = $this->requestJson("/checkout/apis/v2/transactions?{$params}", ['token' => $this->getAuthToken()]);
-        $booking = $this->catalogService->updateBookingPaymentStatus([
+        $booking = $this->bookingService->updateBookingPaymentStatus([
             'bookingId' => $payload['bookingId'] ?? null,
             'appUtr' => $this->readField($status, 'appUtr') ?: ($payload['appUtr'] ?? null),
             'orderId' => $this->readField($status, 'orderId') ?: ($payload['orderId'] ?? null),
@@ -181,12 +203,11 @@ class EnbdpayService
         }
 
         if ((bool) config('services.enbdpay.mock', true)) {
-            $this->catalogService->updateBookingPaymentStatus([
-                'bookingId' => $payload['bookingId'] ?? null,
+            $this->bookingService->updateBookingPaymentStatus([
                 'appUtr' => $appUtr,
                 'transactionUtr' => $transactionUtr,
                 'responseStatus' => 'CAPTURED',
-            ]);
+            ], $payload['paymentGroupId'] ?? null);
 
             return [
                 'responseStatus' => 'CAPTURED',
@@ -209,12 +230,11 @@ class EnbdpayService
         $response = $this->requestJson($path, ['method' => 'post', 'token' => $this->getAuthToken(), 'body' => $body]);
         $responseStatus = $this->readField($response, 'responseStatus') ?: 'CAPTURED';
 
-        $this->catalogService->updateBookingPaymentStatus([
-            'bookingId' => $payload['bookingId'] ?? null,
+        $this->bookingService->updateBookingPaymentStatus([
             'appUtr' => $appUtr,
             'transactionUtr' => $transactionUtr,
             'responseStatus' => $responseStatus,
-        ]);
+        ], $payload['paymentGroupId'] ?? null);
 
         return [...$response, 'responseStatus' => $responseStatus];
     }
@@ -353,13 +373,14 @@ class EnbdpayService
         $this->verifyWebhookSignature($payload, $headers, $rawBody);
 
         $notes = $this->readField($payload, 'notes');
-        $booking = $this->catalogService->updateBookingPaymentStatus([
+        $paymentGroupId = is_array($notes) ? $this->readField($notes, 'paymentGroupId') : null;
+        $booking = $this->bookingService->updateBookingPaymentStatus([
             'bookingId' => is_array($notes) ? $this->readField($notes, 'bookingId') : null,
             'appUtr' => $this->readField($payload, 'appUtr'),
             'orderId' => $this->readField($payload, 'orderId'),
             'transactionUtr' => $this->readField($payload, 'transactionUtr'),
             'responseStatus' => $this->readField($payload, 'responseStatus') ?: $this->readField($payload, 'status'),
-        ]);
+        ], $paymentGroupId);
 
         return ['received' => true, 'booking' => $booking];
     }
@@ -533,7 +554,7 @@ class EnbdpayService
             'lastName' => $last,
             'isdCode' => '+971',
             'mobileNumber' => substr(preg_replace('/\D/', '', (string) ($customer['phone'] ?? '500000000')), -15) ?: '500000000',
-            'email' => substr((string) ($customer['email'] ?? 'guest@medzivahealthcare.com'), 0, 50),
+            'email' => substr((string) ($customer['email'] ?? 'booking@' . config('app.name') . '.ae'), 0, 50),
             'shippingAddress' => ['addressLine1' => $address, 'addressLine2' => 'MedZiva Healthcare', 'city' => 'Dubai', 'state' => 'Dubai', 'countryCode' => 'AE', 'pinCode' => '00000'],
             'billingAddress' => ['addressLine1' => $address, 'addressLine2' => 'MedZiva Healthcare', 'city' => 'Dubai', 'state' => 'Dubai', 'countryCode' => 'AE', 'pinCode' => '00000'],
         ];

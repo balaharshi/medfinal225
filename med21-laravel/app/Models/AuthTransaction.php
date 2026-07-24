@@ -8,6 +8,7 @@ class AuthTransaction extends Model
 {
     protected $fillable = [
         'booking_id',
+        'payment_group_id',
         'app_utr',
         'order_id',
         'transaction_utr',

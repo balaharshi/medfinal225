@@ -33,6 +33,8 @@ class BookingReminder extends Mailable implements ShouldQueue
 
     private function buildHtml(): string
     {
+        $appUrl = config('app.url');
+        $supportEmail = config('mail.from.address', '' . $supportEmail . '');
         $serviceName = htmlspecialchars($this->booking['serviceTitle'] ?? $this->booking['service_title'] ?? 'your appointment');
         $customerName = htmlspecialchars($this->booking['customerName'] ?? $this->booking['customer_name'] ?? 'Valued Customer');
         $bookingId = htmlspecialchars($this->booking['id'] ?? 'N/A');
@@ -88,14 +90,14 @@ class BookingReminder extends Mailable implements ShouldQueue
             </p>
 
             <p style='color:#475569;font-size:13px;line-height:1.6;margin:0 0 20px;'>
-                Questions? Contact us at <a href='mailto:booking@medzivahealthcare.com' style='color:#1769b3;'>booking@medzivahealthcare.com</a>
+                Questions? Contact us at <a href='mailto:{$supportEmail}' style='color:#1769b3;'>{$supportEmail}</a>
             </p>
         </div>
 
         <div style='background-color:#f1f5f9;padding:20px;text-align:center;'>
             <p style='color:#475569;font-size:13px;font-weight:700;margin:0 0 4px;'>— MedZiva Team</p>
             <p style='color:#94a3b8;font-size:11px;margin:0 0 5px;'>MedZiva International Healthcare L.L.C.</p>
-            <p style='color:#94a3b8;font-size:11px;margin:0;'>Dubai, United Arab Emirates | medzivahealthcare.com</p>
+            <p style='color:#94a3b8;font-size:11px;margin:0;'>Dubai, United Arab Emirates | {$appUrl}</p>
         </div>
     </div>
 </body>

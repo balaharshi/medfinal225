@@ -23,7 +23,7 @@ class SanityTest extends TestCase
 
     public function test_bookings_requires_authentication(): void
     {
-        $response = $this->postJson('/api/bookings', []);
+        $response = $this->postJson('/bookings', []);
 
         $response->assertStatus(401);
         $response->assertJsonStructure(['message']);
@@ -33,7 +33,7 @@ class SanityTest extends TestCase
     {
         $this->skipWithoutDatabase();
 
-        $response = $this->getJson('/api/services');
+        $response = $this->getJson('/services');
 
         $response->assertOk();
         $response->assertJsonStructure([]);
@@ -47,7 +47,7 @@ class SanityTest extends TestCase
         $last = null;
 
         for ($i = 0; $i < $limit + 2; $i++) {
-            $last = $this->postJson('/api/auth/login', [
+            $last = $this->postJson('/auth/login', [
                 'email' => 'nobody@example.com',
                 'password' => 'wrong-password',
             ]);

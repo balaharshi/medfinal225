@@ -101,7 +101,7 @@ return new class extends Migration
             $table->text('availability')->nullable();
             $table->json('tags');
             $table->integer('display_priority')->default(100);
-            $table->string('seo_title')->default('');
+            $table->text('seo_title')->nullable();
             $table->text('seo_description')->nullable();
             $table->boolean('popular')->default(false);
             $table->boolean('enquiry_only')->default(false);

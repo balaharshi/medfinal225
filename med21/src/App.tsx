@@ -33,18 +33,18 @@ import SafeImage from './components/SafeImage';
 import Footer from './components/Footer';
 import { formatAedWhole } from './utils/money';
 
-import HomePage from './components/HomePage';
-import ServicesPage from './components/ServicesPage';
-import LabTestsPage from './components/LabTestsPage';
-import ProductsPage from './components/ProductsPage';
-import SearchResultsPage from './components/SearchResultsPage';
-import OtherServicesPage from './components/OtherServicesPage';
-import HealthPackagesPage from './components/HealthPackagesPage';
-import OffersPage from './components/OffersPage';
-import ProvidersPage from './components/ProvidersPage';
-import SupportPage from './components/SupportPage';
-import LegalPages from './components/LegalPages';
-import AboutPage from './components/AboutPage';
+const HomePage = lazy(() => import('./components/HomePage'));
+const ServicesPage = lazy(() => import('./components/ServicesPage'));
+const LabTestsPage = lazy(() => import('./components/LabTestsPage'));
+const ProductsPage = lazy(() => import('./components/ProductsPage'));
+const SearchResultsPage = lazy(() => import('./components/SearchResultsPage'));
+const OtherServicesPage = lazy(() => import('./components/OtherServicesPage'));
+const HealthPackagesPage = lazy(() => import('./components/HealthPackagesPage'));
+const OffersPage = lazy(() => import('./components/OffersPage'));
+const ProvidersPage = lazy(() => import('./components/ProvidersPage'));
+const SupportPage = lazy(() => import('./components/SupportPage'));
+const LegalPages = lazy(() => import('./components/LegalPages'));
+const AboutPage = lazy(() => import('./components/AboutPage'));
 
 import { useAppState } from './hooks/useAppState';
 import {
@@ -342,6 +342,7 @@ function MainApp() {
       />
 
       {/* 3.5 Service Category Navigation Bar + Services content */}
+      <Suspense fallback={null}>
       {app.activeTab === 'services' && (
         <ServicesPage
           activeSectionId={app.activeSectionId}
@@ -380,10 +381,12 @@ function MainApp() {
           getVisibleLabAttributes={app.getVisibleLabAttributes}
         />
       )}
+      </Suspense>
 
       {/* 4. Display Core layouts based on dynamic state ActiveTab */}
       <main className="flex-grow">
         <ErrorBoundary>
+        <Suspense fallback={null}>
 
         {app.activeTab === 'search-results' && (
           <SearchResultsPage
@@ -490,6 +493,7 @@ function MainApp() {
         {app.activeTab === 'about' && (
           <AboutPage />
         )}
+        </Suspense>
 
         <AnimatePresence>
           {app.serviceDetails && (

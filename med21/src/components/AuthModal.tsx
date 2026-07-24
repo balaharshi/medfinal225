@@ -168,10 +168,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
       });
 
       if (data?.success) {
-        if (data.accessToken) {
-          localStorage.setItem('medziva_user_token', data.accessToken);
-        }
-
         const user = data.user || {};
         const fallbackName = isSignUp
           ? values.fullName.trim()
@@ -206,10 +202,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
         setAuthError(friendlyError);
         toast.error(friendlyError);
         return;
-      }
-
-      if (data.accessToken) {
-        localStorage.setItem('medziva_user_token', data.accessToken);
       }
 
       const user = data.user || {};

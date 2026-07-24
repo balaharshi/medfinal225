@@ -245,7 +245,7 @@ referrals
 | `app/Http/Controllers/Api/ReferralController.php` | Referral API endpoints |
 | `app/Console/Commands/VestReferrals.php` | Daily vesting cron |
 
-### Files Modified (7)
+### Files Modified (8)
 
 | File | Changes |
 |---|---|
@@ -254,5 +254,6 @@ referrals
 | `app/Providers/AppServiceProvider.php` | `User::created` → auto-create wallet + referral code |
 | `app/Models/User.php` | `wallet()` and `referralCode()` relationships |
 | `app/Models/Booking.php` | `wallet_amount`, `wallet_transaction_id` fillable |
-| `app/Services/CatalogService.php` | Wallet auto-apply + referral discount + wallet refund on cancel |
+| `app/Services/CatalogService.php` | Wallet auto-apply + referral discount + wallet refund on cancel (later split into `BookingService`) |
+| `app/Services/BookingService.php` | Wallet auto-apply + referral discount + wallet refund on cancel (extracted from CatalogService refactor) |
 | `app/Http/Controllers/Api/CatalogController.php` | Pass userId + refundToWallet to service |

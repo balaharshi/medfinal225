@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { api } from '../lib/api';
 import type { HealthcareService, Product, ServiceCategory } from '../types';
 
 export interface AppDataState {
@@ -24,33 +25,24 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const fetchData = useCallback(async () => {
     try {
-      const [catRes, srvRes, prodRes] = await Promise.all([
-        fetch('/api/categories'),
-        fetch('/api/services'),
-        fetch('/api/products'),
+      const [categories, services, products] = await Promise.all([
+        api.get<unknown>('/api/categories'),
+        api.get<unknown>('/api/services'),
+        api.get<unknown>('/api/products'),
       ]);
 
       const updates: Partial<AppDataState> = { loading: false };
 
-      if (catRes.ok) {
-        const categories = await catRes.json();
-        if (Array.isArray(categories) && categories.length > 0) {
-          updates.categories = categories;
-        }
+      if (Array.isArray(categories) && categories.length > 0) {
+        updates.categories = categories as ServiceCategory[];
       }
 
-      if (srvRes.ok) {
-        const liveServices = await srvRes.json();
-        if (Array.isArray(liveServices) && liveServices.length > 0) {
-          updates.services = liveServices;
-        }
+      if (Array.isArray(services) && services.length > 0) {
+        updates.services = services as HealthcareService[];
       }
 
-      if (prodRes.ok) {
-        const liveProducts = await prodRes.json();
-        if (Array.isArray(liveProducts) && liveProducts.length > 0) {
-          updates.products = liveProducts;
-        }
+      if (Array.isArray(products) && products.length > 0) {
+        updates.products = products as Product[];
       }
 
       setState(prev => ({ ...prev, ...updates }));

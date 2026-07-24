@@ -293,18 +293,6 @@ export function useAppState() {
   useEffect(() => {
     const restoreCustomerSession = async () => {
       try {
-        const token = localStorage.getItem('medziva_user_token');
-        if (!token) return;
-        const cachedName = localStorage.getItem('medziva_user_name');
-        const cachedEmail = localStorage.getItem('medziva_user_email');
-        const cachedPhone = localStorage.getItem('medziva_user_phone');
-        const cachedAddress = localStorage.getItem('medziva_user_address');
-        if (cachedName || cachedEmail) {
-          setLoggedInUser(cachedName || '');
-          setLoggedInUserEmail(cachedEmail || '');
-          if (cachedPhone) setLoggedInUserPhone(cachedPhone);
-          if (cachedAddress) setLoggedInUserAddress(cachedAddress);
-        }
         const data = await api.get<{ user?: { role?: string; fullName?: string; email?: string; phone?: string; address?: string } }>('/api/auth/session');
         if (data?.user?.role !== 'customer') return;
         setLoggedInUser(data.user.fullName || '');
@@ -312,7 +300,7 @@ export function useAppState() {
         setLoggedInUserPhone(data.user.phone || '');
         setLoggedInUserAddress(data.user.address || '');
       } catch {
-        localStorage.removeItem('medziva_user_token');
+        // Session cookie not present or expired
       }
     };
     restoreCustomerSession();
@@ -884,7 +872,6 @@ export function useAppState() {
     setLoggedInUserPhone('');
     setLoggedInUserAddress('');
     setCart([]);
-    localStorage.removeItem('medziva_user_token');
     api.post('/api/auth/logout').catch(() => undefined);
     localStorage.removeItem('medziva_user_name');
     localStorage.removeItem('medziva_user_email');

@@ -138,7 +138,7 @@ export default function BookingModal({
       return;
     }
     let cancelled = false;
-    api.get<any>(`/api/services/${selectedBackendServiceId}/available-slots?date=${encodeURIComponent(date)}`, { noAuth: true })
+    api.get<any>(`/api/services/${selectedBackendServiceId}/available-slots?date=${encodeURIComponent(date)}`)
       .catch(() => null)
       .then(data => {
         if (!cancelled && Array.isArray(data) && data.length > 0) {

@@ -184,7 +184,11 @@ medfinal225/
 │   ├── app/
 │   │   ├── Mail/                        # 7 mail classes (BookingConfirmation, BookingExpired, BookingReminder, BookingStatusUpdate, PaymentConfirmation, VendorNewBooking, VendorBookingCancelled)
 │   │   ├── Services/
-│   │   │   ├── CatalogService.php       # 1400+ lines — all booking/expiry/refund/reschedule logic
+│   │   │   ├── CatalogManagementService.php  # Category, product, service CRUD
+│   │   │   ├── BookingService.php        # Booking CRUD, payment, vendor accept, cancel, promo, emails
+│   │   │   ├── VendorService.php         # Vendor CRUD, working hours, SLA, change requests
+│   │   │   ├── EnquiryService.php        # Enquiry CRUD
+│   │   │   ├── SettingsService.php       # Settings + revenue report
 │   │   │   ├── TimeSlotCalculator.php   # Vendor-hours-aware slot calculation
 │   │   │   └── EnbdpayService.php       # AUTH + CAPTURE payment flow
 │   │   └── Console/Commands/

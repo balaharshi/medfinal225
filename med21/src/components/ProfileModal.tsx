@@ -699,7 +699,7 @@ export default function ProfileModal({
                                   setRescheduleTimeSlot('');
                                     if (e.target.value && booking.serviceId) {
                                       try {
-                                        const data = await api.get<any>(`/api/services/${booking.serviceId}/available-slots?date=${e.target.value}`, { noAuth: true });
+                                        const data = await api.get<any>(`/api/services/${booking.serviceId}/available-slots?date=${e.target.value}`);
                                         if (Array.isArray(data)) setRescheduleSlots(data);
                                       } catch { /* ignore */ }
                                     }

@@ -107,7 +107,6 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
         }
       } catch (error) {
 
-        localStorage.removeItem("medziva_vendor_token");
         setIsAuthenticated(false);
       } finally {
         setIsSessionChecking(false);
@@ -177,11 +176,6 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
         body: { email: values.email, password: values.password },
       });
       if (data.success) {
-        if (data.accessToken) {
-          localStorage.removeItem("medziva_user_token");
-          localStorage.removeItem("medziva_admin_token");
-          localStorage.setItem("medziva_vendor_token", data.accessToken);
-        }
         setIsAuthenticated(true);
         setVendorData(data.vendor);
         setIsSessionChecking(false);
@@ -209,10 +203,6 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
       return;
     }
 
-    if (data.accessToken) {
-      localStorage.setItem("medziva_vendor_token", data.accessToken);
-    }
-
     const sessionData = await api.get<{ vendor?: unknown }>('/api/auth/session');
     if (!sessionData?.vendor) {
       const message = "Vendor account is not linked to a provider profile.";
@@ -235,7 +225,6 @@ export default function VendorDashboard({ triggerToast }: VendorDashboardProps) 
 
   // Perform logout
   const handleLogout = () => {
-    localStorage.removeItem("medziva_vendor_token");
     api.post('/api/auth/logout').catch(() => undefined);
     setIsAuthenticated(false);
     setVendorData(null);

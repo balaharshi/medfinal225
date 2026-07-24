@@ -150,3 +150,5 @@ $registerMedzivaRoutes = function () use ($admin, $vendorSelfOrAdmin): void {
 };
 
 $registerMedzivaRoutes();
+
+Route::prefix('v1')->group($registerMedzivaRoutes);

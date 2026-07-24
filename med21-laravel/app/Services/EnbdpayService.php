@@ -14,7 +14,7 @@ class EnbdpayService
 
     private int $tokenExpiresAt = 0;
 
-    public function __construct(private readonly CatalogService $catalogService)
+    public function __construct(private readonly BookingService $bookingService)
     {
     }
 
@@ -37,14 +37,14 @@ class EnbdpayService
                 'paymentGroupId' => $paymentGroupId,
             ]);
             if ($bookingId !== '') {
-                $this->catalogService->updateBookingPaymentStatus([
+                $this->bookingService->updateBookingPaymentStatus([
                     'bookingId' => $bookingId,
                     'appUtr' => $appUtr,
                     'orderId' => $orderId,
                     'responseStatus' => 'CAPTURED',
                 ]);
             } elseif ($paymentGroupId !== '') {
-                $this->catalogService->updateBookingPaymentStatus([
+                $this->bookingService->updateBookingPaymentStatus([
                     'appUtr' => $appUtr,
                     'orderId' => $orderId,
                     'responseStatus' => 'CAPTURED',
@@ -97,7 +97,7 @@ class EnbdpayService
         }
 
         if ($paymentGroupId) {
-            $this->catalogService->attachBookingPayment('', [
+            $this->bookingService->attachBookingPayment('', [
                 'paymentStatus' => 'Pending',
                 'paymentProvider' => 'ENBDpay',
                 'paymentAppUtr' => $appUtr,
@@ -106,7 +106,7 @@ class EnbdpayService
                 'paymentResponseStatus' => $responseStatus,
             ], $paymentGroupId);
         } elseif ($bookingId) {
-            $this->catalogService->attachBookingPayment($bookingId, [
+            $this->bookingService->attachBookingPayment($bookingId, [
                 'paymentStatus' => 'Pending',
                 'paymentProvider' => 'ENBDpay',
                 'paymentAppUtr' => $appUtr,
@@ -157,7 +157,7 @@ class EnbdpayService
 
         if ((bool) config('services.enbdpay.mock', true)) {
             $responseStatus = strtoupper((string) ($payload['responseStatus'] ?? 'CAPTURED'));
-            $booking = $this->catalogService->updateBookingPaymentStatus([
+            $booking = $this->bookingService->updateBookingPaymentStatus([
                 'bookingId' => $payload['bookingId'] ?? null,
                 'appUtr' => $payload['appUtr'] ?? null,
                 'orderId' => $payload['orderId'] ?? null,
@@ -181,7 +181,7 @@ class EnbdpayService
         ]));
 
         $status = $this->requestJson("/checkout/apis/v2/transactions?{$params}", ['token' => $this->getAuthToken()]);
-        $booking = $this->catalogService->updateBookingPaymentStatus([
+        $booking = $this->bookingService->updateBookingPaymentStatus([
             'bookingId' => $payload['bookingId'] ?? null,
             'appUtr' => $this->readField($status, 'appUtr') ?: ($payload['appUtr'] ?? null),
             'orderId' => $this->readField($status, 'orderId') ?: ($payload['orderId'] ?? null),
@@ -203,7 +203,7 @@ class EnbdpayService
         }
 
         if ((bool) config('services.enbdpay.mock', true)) {
-            $this->catalogService->updateBookingPaymentStatus([
+            $this->bookingService->updateBookingPaymentStatus([
                 'appUtr' => $appUtr,
                 'transactionUtr' => $transactionUtr,
                 'responseStatus' => 'CAPTURED',
@@ -230,7 +230,7 @@ class EnbdpayService
         $response = $this->requestJson($path, ['method' => 'post', 'token' => $this->getAuthToken(), 'body' => $body]);
         $responseStatus = $this->readField($response, 'responseStatus') ?: 'CAPTURED';
 
-        $this->catalogService->updateBookingPaymentStatus([
+        $this->bookingService->updateBookingPaymentStatus([
             'appUtr' => $appUtr,
             'transactionUtr' => $transactionUtr,
             'responseStatus' => $responseStatus,
@@ -374,7 +374,7 @@ class EnbdpayService
 
         $notes = $this->readField($payload, 'notes');
         $paymentGroupId = is_array($notes) ? $this->readField($notes, 'paymentGroupId') : null;
-        $booking = $this->catalogService->updateBookingPaymentStatus([
+        $booking = $this->bookingService->updateBookingPaymentStatus([
             'bookingId' => is_array($notes) ? $this->readField($notes, 'bookingId') : null,
             'appUtr' => $this->readField($payload, 'appUtr'),
             'orderId' => $this->readField($payload, 'orderId'),

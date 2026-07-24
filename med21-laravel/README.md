@@ -55,7 +55,11 @@ Configure the frontend public path in `config/medziva.php` or via the `FRONTEND_
 
 | Service | Purpose |
 |---|---|
-| `CatalogService` | All booking/business logic (1400+ lines) |
+| `CatalogManagementService` | Category, product, service CRUD + payload normalization |
+| `BookingService` | Booking CRUD, batch create, payment status, vendor accept, cancel, reschedule, promo codes, email notifications |
+| `VendorService` | Vendor CRUD, profile change requests, working hours, SLA metrics, catalog import/export |
+| `EnquiryService` | Enquiry CRUD |
+| `SettingsService` | Settings read/write, revenue report |
 | `TimeSlotCalculator` | Vendor-hours-aware slot + lead time calculation |
 | `AuthService` | Login, register, OAuth |
 | `EnbdpayService` | ENBDPay AUTH + CAPTURE flow |

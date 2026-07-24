@@ -75,10 +75,6 @@ interface AdminLoginFormValues {
 }
 
 export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDashboardProps) {
-  const hasStoredAdminSession = typeof window !== "undefined" && (
-    localStorage.getItem("medziva_admin_auth") === "true" ||
-    !!localStorage.getItem("medziva_admin_token")
-  );
 
   // Login Authentication States
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -416,28 +412,15 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
 
   useEffect(() => {
     const hydrateSession = async () => {
-      const hasStoredSession = (
-        localStorage.getItem("medziva_admin_auth") === "true" ||
-        !!localStorage.getItem("medziva_admin_token")
-      );
-
       try {
         const data = await api.get<{ user?: { role?: string } }>('/api/auth/session');
         if (data?.user?.role === 'admin' || data?.user?.role === 'super_admin') {
           setIsAuthenticated(true);
-          localStorage.setItem("medziva_admin_auth", "true");
           return;
-        }
-
-        if (hasStoredSession) {
-          localStorage.removeItem("medziva_admin_auth");
-          localStorage.removeItem("medziva_admin_token");
         }
         setIsAuthenticated(false);
       } catch (error) {
 
-        localStorage.removeItem("medziva_admin_auth");
-        localStorage.removeItem("medziva_admin_token");
         setIsAuthenticated(false);
       } finally {
         setIsSessionChecking(false);
@@ -728,12 +711,6 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
           return;
         }
 
-        if (data.accessToken) {
-          localStorage.removeItem("medziva_user_token");
-          localStorage.removeItem("medziva_vendor_token");
-          localStorage.setItem("medziva_admin_token", data.accessToken);
-        }
-        localStorage.setItem("medziva_admin_auth", "true");
         setIsAuthenticated(true);
         setIsSessionChecking(false);
         triggerToast("Access Granted. Welcome back to Admin Operations Center.");
@@ -761,12 +738,6 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
       return;
     }
 
-    if (data.accessToken) {
-      localStorage.removeItem("medziva_user_token");
-      localStorage.removeItem("medziva_vendor_token");
-      localStorage.setItem("medziva_admin_token", data.accessToken);
-    }
-    localStorage.setItem("medziva_admin_auth", "true");
     setIsAuthenticated(true);
     setIsSessionChecking(false);
     triggerToast("Access Granted. Welcome back to Admin Operations Center.");
@@ -781,8 +752,6 @@ export default function AdminDashboard({ db, onRefresh, triggerToast }: AdminDas
   // Perform logout
   const handleLogout = () => {
     setIsAuthenticated(false);
-    localStorage.removeItem("medziva_admin_auth");
-    localStorage.removeItem("medziva_admin_token");
     api.post('/api/auth/logout').catch(() => undefined);
     triggerToast("Logged out of session. Data sealed console-wide.");
   };

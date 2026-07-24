@@ -97,7 +97,7 @@ export default function CartDrawer({
         return { serviceId, slots: null };
       }
       try {
-        const data = await api.get<any>(`/api/services/${encodeURIComponent(serviceId)}/available-slots?date=${encodeURIComponent(dispatchDate)}`, { noAuth: true });
+        const data = await api.get<any>(`/api/services/${encodeURIComponent(serviceId)}/available-slots?date=${encodeURIComponent(dispatchDate)}`);
         return { serviceId, slots: Array.isArray(data) && data.length > 0 ? data : null };
       } catch {
         return { serviceId, slots: null };

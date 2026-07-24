@@ -28,7 +28,7 @@ medfinal225/
 │   │   ├── Console/Commands/  # Artisan commands, including image:* helpers
 │   │   ├── Http/Controllers/  # API controllers
 │   │   ├── Models/            # Eloquent models
-│   │   └── Services/          # Business logic (CatalogService, etc.)
+│   │   └── Services/          # Business logic (BookingService, CatalogManagementService, VendorService, etc.)
 │   ├── database/seeders/     # Default data
 │   ├── database/migrations/  # Schema
 │   ├── config/medziva.php    # Frontend public path config
